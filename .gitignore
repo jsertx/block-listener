@@ -38,3 +38,6 @@ Thumbs.db
 dist/**/*
 
 build/**/*
+
+# Mongodb docker-compose data
+mongodb-data
