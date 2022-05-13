@@ -25,7 +25,7 @@ export class SaveTransaction {
       .getProvider()
       .getTransactionReceipt(txRes.hash);
 
-    await this.txRepository.saveTx(receipt);
+    await this.txRepository.save(receipt);
 
     this.logger.log({
       type: "save-transaction.received",

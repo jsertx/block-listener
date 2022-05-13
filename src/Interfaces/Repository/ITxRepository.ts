@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
+import { IBaseRepository } from "./IBaseRepository";
 
-export interface ITxRepository {
-  saveTx(tx: any): Promise<void>;
-  findAll(): Promise<ethers.providers.TransactionReceipt[]>;
-}
+export interface ITxRepository
+  extends IBaseRepository<ethers.providers.TransactionReceipt> {}

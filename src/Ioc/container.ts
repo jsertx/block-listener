@@ -10,6 +10,7 @@ import { SaveTransaction } from "../UseCases/SaveTransaction";
 import { IocKey } from "./IocKey";
 import { TxRepository } from "../Repository/TxRepository";
 import { createConnection } from "../Database/utils";
+import { AddressRepository } from "../Repository/AddressRepository";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -22,6 +23,7 @@ export const initializeContainer = async () => {
 
     bind(IocKey.DbClient).toConstantValue(dbClient);
     bind(IocKey.TxRepository).to(TxRepository).inSingletonScope();
+    bind(IocKey.AddressRepository).to(AddressRepository).inSingletonScope();
 
     bind(FindDirectTx).toSelf().inSingletonScope();
     bind(BlockListener).toSelf().inSingletonScope();

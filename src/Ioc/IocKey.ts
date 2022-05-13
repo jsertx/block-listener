@@ -7,4 +7,5 @@ export const IocKey = {
   // DB & Repositories
   DbClient: Symbol.for("DbClient"),
   TxRepository: Symbol.for("TxRepository"),
+  AddressRepository: Symbol.for("AddressRepository"),
 };

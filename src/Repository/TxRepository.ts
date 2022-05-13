@@ -14,12 +14,4 @@ export class TxRepository extends MongoBaseRepository implements ITxRepository {
   ) {
     super("tx", client, config);
   }
-
-  async findAll(): Promise<TransactionReceipt[]> {
-    return this.getCollection().find().toArray() as any;
-  }
-
-  async saveTx(tx: any): Promise<void> {
-    await this.getCollection().insertOne(tx);
-  }
 }
