@@ -8,6 +8,7 @@ import { getEnv } from "../Utils/Env";
 
 import "./Controllers/StatusController";
 import "./Controllers/TxController";
+import "./Controllers/AddressController";
 
 export const startApi = (container: Container) => {
   // create server
