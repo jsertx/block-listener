@@ -6,6 +6,8 @@ import { IocKey } from "../Ioc/IocKey";
 import { getEnv } from "../Utils/Env";
 
 import "./Controllers/StatusController";
+import "./Controllers/TxController";
+
 export const startApi = () => {
   // create server
   const server = new InversifyExpressServer(container);
