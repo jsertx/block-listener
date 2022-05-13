@@ -1,6 +1,6 @@
 import { interfaces, controller, httpGet } from "inversify-express-utils";
 
-@controller("/")
+@controller("/status")
 export class FooController implements interfaces.Controller {
   @httpGet("/")
   index(): string {
