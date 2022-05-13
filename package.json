@@ -1,0 +1,19 @@
+{
+  "name": "whale",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Sergio",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.1",
+    "ethers": "^5.6.5",
+    "eventemitter3": "^4.0.7",
+    "inversify": "^6.0.1",
+    "reflect-metadata": "^0.1.13",
+    "winston": "^3.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.32",
+    "typescript": "^4.6.4"
+  }
+}
