@@ -1,14 +1,15 @@
 import * as bodyParser from "body-parser";
+import { Container } from "inversify";
 import { InversifyExpressServer } from "inversify-express-utils";
 import { ILogger } from "../Interfaces/ILogger";
-import { container } from "../Ioc/container";
+
 import { IocKey } from "../Ioc/IocKey";
 import { getEnv } from "../Utils/Env";
 
 import "./Controllers/StatusController";
 import "./Controllers/TxController";
 
-export const startApi = () => {
+export const startApi = (container: Container) => {
   // create server
   const server = new InversifyExpressServer(container);
   server.setConfig((app) => {

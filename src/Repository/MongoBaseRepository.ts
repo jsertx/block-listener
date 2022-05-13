@@ -8,11 +8,11 @@ export type MongoProvider = () => Promise<MongoClient>;
 export abstract class MongoBaseRepository {
   constructor(
     @unmanaged() protected collection: string,
-    @unmanaged() protected db: MongoProvider,
+    @unmanaged() protected client: MongoClient,
     @unmanaged() protected config: IConfig
   ) {}
 
   protected getCollection() {
-    return this.db().then((client) => client.db().collection(this.collection));
+    return this.client.db().collection(this.collection);
   }
 }

@@ -5,6 +5,6 @@ export const IocKey = {
   Logger: Symbol.for("Logger"),
 
   // DB & Repositories
-  DbClientProvider: Symbol.for("Provider<DbClient>"),
+  DbClient: Symbol.for("DbClient"),
   TxRepository: Symbol.for("TxRepository"),
 };
