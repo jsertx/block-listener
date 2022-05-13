@@ -4,15 +4,23 @@
   "main": "index.js",
   "author": "Sergio",
   "license": "MIT",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
   "dependencies": {
+    "body-parser": "^1.20.0",
     "dotenv": "^16.0.1",
     "ethers": "^5.6.5",
     "eventemitter3": "^4.0.7",
+    "express": "^4.18.1",
     "inversify": "^6.0.1",
+    "inversify-express-utils": "^6.4.3",
     "reflect-metadata": "^0.1.13",
     "winston": "^3.7.2"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.19.2",
+    "@types/express": "^4.17.13",
     "@types/node": "^17.0.32",
     "typescript": "^4.6.4"
   }
