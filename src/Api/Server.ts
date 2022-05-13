@@ -20,7 +20,7 @@ export const startApi = () => {
   });
 
   let app = server.build();
-  const port = getEnv("API_PORT", "3000");
+  const port = getEnv("PORT", "3000");
   app.listen(port, () => {
     container.get<ILogger>(IocKey.Logger).log({
       type: "api.start",
