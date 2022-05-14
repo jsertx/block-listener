@@ -1,4 +1,5 @@
 import { HexAddress } from "../Values/Address";
+import { Blockchain } from "../Values/Blockchain";
 
 export enum ContractType {
   DexRouter = "dex_router",
@@ -17,6 +18,7 @@ export enum Abi {
 }
 
 export interface Address {
+  blockchain: Blockchain;
   address: HexAddress;
   type: AddressType;
   contract?: {

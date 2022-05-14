@@ -35,7 +35,10 @@ export class AddressController implements interfaces.Controller {
   async saveAddress(
     @requestBody() address: Address
   ): Promise<IApiResponseEmpty> {
-    await this.addressRepository.save(address);
+    await this.addressRepository.saveIfNotExist(address, {
+      blockchain: address.blockchain,
+      address: address.address,
+    });
     return {
       success: true,
     };
