@@ -9,6 +9,6 @@ export const Config: IConfig = {
     connectionUri: getEnv("DATABASE_URI"),
   },
   txRules: {
-    minEthValue: "1",
+    minEthValue: "10",
   },
 };
