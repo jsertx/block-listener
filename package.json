@@ -11,7 +11,7 @@
     "start:dev:watch": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec yarn start:dev",
     "build:watch": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec yarn build",
     "logs:prod": "heroku logs --tail -a blocklistener",
-    "deplpoy:prod": "git push heroku main"
+    "deploy:prod": "git push heroku main"
   },
   "dependencies": {
     "body-parser": "^1.20.0",
