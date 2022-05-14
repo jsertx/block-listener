@@ -12,6 +12,8 @@ import { TxRepository } from "../Repository/TxRepository";
 import { createConnection } from "../Database/utils";
 import { AddressRepository } from "../Repository/AddressRepository";
 import { ProcessTx } from "../UseCases/ProcessTx";
+import { SaveDexTx } from "../UseCases/SaveDexTx";
+import { SaveEthTx } from "../UseCases/SaveEthTx";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -29,6 +31,8 @@ export const initializeContainer = async () => {
     bind(BlockListener).toSelf().inSingletonScope();
     bind(ProcessTx).toSelf().inSingletonScope();
     bind(SaveTokenTx).toSelf().inSingletonScope();
+    bind(SaveDexTx).toSelf().inSingletonScope();
+    bind(SaveEthTx).toSelf().inSingletonScope();
   });
 
   const container = new Container();

@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { HexAddress } from "../Values/Address";
 import { FormattedAmount } from "../Values/Amount";
 import { Blockchain } from "../Values/Blockchain";
+import { TxType } from "../Values/Tx";
 
 interface TxMetadata {
   /*
@@ -17,6 +18,7 @@ export interface UnprocessedTx {
 }
 
 export interface Tx<TxDataType = any> extends UnprocessedTx {
+  type: TxType;
   data: TxDataType;
 }
 

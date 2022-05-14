@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
 import { EthNativeTransferTx, Tx, UnprocessedTx } from "../Domain/Entities/Tx";
+import { TxType } from "../Domain/Values/Tx";
 import { Channel } from "../Enums/Channel";
 import { IBroker } from "../Interfaces/IBroker";
 import { IConfig } from "../Interfaces/IConfig";
@@ -24,7 +25,7 @@ export class SaveEthTx {
   ) {}
 
   async execute() {
-    this.broker.subscribe(Channel.SaveDirectTokenTx, this.onNewTx.bind(this));
+    this.broker.subscribe(Channel.SaveEthTransferTx, this.onNewTx.bind(this));
   }
 
   async onNewTx({ raw, blockchain }: UnprocessedTx) {
@@ -32,6 +33,7 @@ export class SaveEthTx {
       return;
     }
     const tx: EthNativeTransferTx = {
+      type: TxType.EthTransfer,
       blockchain,
       raw,
       data: { from: raw.from, to: raw.to!, value: toFormatted(raw.value) },

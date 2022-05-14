@@ -9,7 +9,7 @@ import { ITxRepository } from "../Interfaces/Repository/ITxRepository";
 import { IocKey } from "../Ioc/IocKey";
 
 @injectable()
-export class SaveTokenTx {
+export class SaveDexTx {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
