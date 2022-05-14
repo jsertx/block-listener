@@ -35,8 +35,8 @@ export class SaveEthTx {
     const tx: EthNativeTransferTx = {
       type: TxType.EthTransfer,
       blockchain,
-      raw,
       data: { from: raw.from, to: raw.to!, value: toFormatted(raw.value) },
+      raw,
     };
 
     const saved = await this.txRepository.saveIfNotExist(tx, {
