@@ -5,7 +5,8 @@ import { Tx } from "../../Domain/Entities/Tx";
 import { TxType } from "../../Domain/Values/Tx";
 import { ITxRepository } from "../../Interfaces/Repository/ITxRepository";
 import { IocKey } from "../../Ioc/IocKey";
-import { IApiResponse } from "../Types/Response";
+import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
+import { buildPaginatedResponse } from "../Utils/Response";
 
 @controller("/tx")
 export class TxController implements interfaces.Controller {
@@ -13,20 +14,19 @@ export class TxController implements interfaces.Controller {
     @inject(IocKey.TxRepository) private txRepository: ITxRepository
   ) {}
   @httpGet("/")
-  async getAllTransfers(): Promise<IApiResponse<Tx[]>> {
+  async getAllTransfers(): Promise<IApiPaginatedResponse<Tx>> {
     const data = await this.txRepository.findAll();
-    return {
-      success: true,
+    return buildPaginatedResponse({
       data,
-    };
+    });
   }
 
   @httpGet("/eth")
-  async getEthTransfers(): Promise<IApiResponse<Tx[]>> {
+  async getEthTransfers(): Promise<IApiPaginatedResponse<Tx>> {
     const data = await this.txRepository.findAll();
-    return {
-      success: true,
+
+    return buildPaginatedResponse({
       data: data.filter((tx) => tx.type === TxType.EthTransfer),
-    };
+    });
   }
 }

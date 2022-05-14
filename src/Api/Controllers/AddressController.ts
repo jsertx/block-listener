@@ -10,7 +10,12 @@ import {
 import { Address } from "../../Domain/Entities/Address";
 import { IAddressRepository } from "../../Interfaces/Repository/IAddressRepository";
 import { IocKey } from "../../Ioc/IocKey";
-import { IApiResponse, IApiResponseEmpty } from "../Types/Response";
+import {
+  IApiPaginatedResponse,
+  IApiResponse,
+  IApiResponseEmpty,
+} from "../Types/Response";
+import { buildPaginatedResponse } from "../Utils/Response";
 
 @controller("/address")
 export class AddressController implements interfaces.Controller {
@@ -19,12 +24,11 @@ export class AddressController implements interfaces.Controller {
     private addressRepository: IAddressRepository
   ) {}
   @httpGet("/")
-  async index(): Promise<IApiResponse<Address[]>> {
+  async index(): Promise<IApiPaginatedResponse<Address>> {
     const data = await this.addressRepository.findAll();
-    return {
-      success: true,
+    return buildPaginatedResponse({
       data,
-    };
+    });
   }
 
   @httpPost("/")

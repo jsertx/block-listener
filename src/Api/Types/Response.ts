@@ -4,3 +4,10 @@ export interface IApiResponse<Payload = any> {
 }
 
 export type IApiResponseEmpty = Omit<IApiResponse, "data">;
+
+export interface IApiPaginatedResponse<Payload = any>
+  extends IApiResponse<Array<Payload>> {
+  total: number;
+  page: number;
+  pageSize: number;
+}
