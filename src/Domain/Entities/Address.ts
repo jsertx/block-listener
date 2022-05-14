@@ -1,3 +1,5 @@
+import { HexAddress } from "../Values/Address";
+
 export enum ContractType {
   DexRouter = "dex_router",
   Token = "token",
@@ -15,7 +17,7 @@ export enum Abi {
 }
 
 export interface Address {
-  address: string;
+  address: HexAddress;
   type: AddressType;
   contract?: {
     alias: string;

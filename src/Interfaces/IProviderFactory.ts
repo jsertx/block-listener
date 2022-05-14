@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Blockchain } from "../Enums/Blockchain";
+import { Blockchain } from "../Domain/Values/Blockchain";
 
 export interface IProviderFactory {
   getProvider(blockchain?: Blockchain): ethers.providers.BaseProvider;

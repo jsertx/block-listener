@@ -2,6 +2,7 @@ import { injectable, unmanaged } from "inversify";
 import { MongoClient, WithId } from "mongodb";
 import { IConfig } from "../Interfaces/IConfig";
 import { IBaseRepository } from "../Interfaces/Repository/IBaseRepository";
+import { PartialDeep } from "type-fest";
 
 export type MongoProvider = () => Promise<MongoClient>;
 
@@ -25,5 +26,20 @@ export abstract class MongoBaseRepository<Model = any>
 
   async save(item: Model): Promise<void> {
     await this.getCollection().insertOne(item as any);
+  }
+
+  async saveIfNotExist(
+    item: Model,
+    matchCriteria: PartialDeep<Model>
+  ): Promise<boolean> {
+    return this.getCollection()
+      .updateOne(
+        matchCriteria as any,
+        {
+          $setOnInsert: item,
+        },
+        { upsert: true }
+      )
+      .then((res) => res.matchedCount === 0);
   }
 }

@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
+import { UnprocessedTx } from "../Domain/Entities/Tx";
 import { Channel } from "../Enums/Channel";
 import { IBroker } from "../Interfaces/IBroker";
 import { ILogger } from "../Interfaces/ILogger";
@@ -8,7 +9,7 @@ import { ITxRepository } from "../Interfaces/Repository/ITxRepository";
 import { IocKey } from "../Ioc/IocKey";
 
 @injectable()
-export class SaveTransaction {
+export class SaveTokenTx {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
@@ -17,19 +18,15 @@ export class SaveTransaction {
   ) {}
 
   async execute() {
-    this.broker.subscribe(Channel.Tx, this.onNewTx.bind(this));
+    this.broker.subscribe(Channel.SaveDirectDexTx, this.onNewTx.bind(this));
   }
 
-  async onNewTx(txRes: ethers.providers.TransactionResponse) {
-    const receipt = await this.providerFactory
-      .getProvider()
-      .getTransactionReceipt(txRes.hash);
-
-    await this.txRepository.save(receipt);
+  async onNewTx(unprocessedTx: UnprocessedTx) {
+    //await this.txRepository.save(unprocessedTx);
 
     this.logger.log({
-      type: "save-transaction.received",
-      context: { txHash: txRes.hash },
+      type: "save-dex-tx.saved",
+      context: { txHash: unprocessedTx.raw.hash },
     });
   }
 }

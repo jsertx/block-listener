@@ -5,4 +5,7 @@ export interface IConfig {
   database: {
     connectionUri: string;
   };
+  txRules: {
+    minEthValue: string;
+  };
 }

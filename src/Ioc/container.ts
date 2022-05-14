@@ -5,12 +5,13 @@ import { EventBroker } from "../Services/Broker/EventBroker";
 import { WinstonLogger } from "../Services/WinstonLogger";
 import { ProviderFactory } from "../Services/Providers/ProviderFactory";
 import { BlockListener } from "../UseCases/BlockListener";
-import { FindDirectTx } from "../UseCases/FindDirectTx";
-import { SaveTransaction } from "../UseCases/SaveTransaction";
+
+import { SaveTokenTx } from "../UseCases/SaveTokenTx";
 import { IocKey } from "./IocKey";
 import { TxRepository } from "../Repository/TxRepository";
 import { createConnection } from "../Database/utils";
 import { AddressRepository } from "../Repository/AddressRepository";
+import { ProcessTx } from "../UseCases/ProcessTx";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -25,9 +26,9 @@ export const initializeContainer = async () => {
     bind(IocKey.TxRepository).to(TxRepository).inSingletonScope();
     bind(IocKey.AddressRepository).to(AddressRepository).inSingletonScope();
 
-    bind(FindDirectTx).toSelf().inSingletonScope();
     bind(BlockListener).toSelf().inSingletonScope();
-    bind(SaveTransaction).toSelf().inSingletonScope();
+    bind(ProcessTx).toSelf().inSingletonScope();
+    bind(SaveTokenTx).toSelf().inSingletonScope();
   });
 
   const container = new Container();

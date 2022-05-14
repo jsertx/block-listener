@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
-import { Blockchain } from "../../Enums/Blockchain";
+import { Blockchain } from "../../Domain/Values/Blockchain";
 import { IConfig } from "../../Interfaces/IConfig";
 import { IProviderFactory } from "../../Interfaces/IProviderFactory";
 import { IocKey } from "../../Ioc/IocKey";

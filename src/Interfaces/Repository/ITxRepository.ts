@@ -1,5 +1,4 @@
-import { ethers } from "ethers";
+import { Tx } from "../../Domain/Entities/Tx";
 import { IBaseRepository } from "./IBaseRepository";
 
-export interface ITxRepository
-  extends IBaseRepository<ethers.providers.TransactionReceipt> {}
+export interface ITxRepository extends IBaseRepository<Tx> {}

@@ -2,15 +2,15 @@ import "reflect-metadata";
 import "dotenv/config";
 import { initializeContainer } from "./Ioc/container";
 import { BlockListener } from "./UseCases/BlockListener";
-import { FindDirectTx } from "./UseCases/FindDirectTx";
-import { SaveTransaction } from "./UseCases/SaveTransaction";
+import { SaveTokenTx } from "./UseCases/SaveTokenTx";
 import { startApi } from "./Api/Server";
+import { ProcessTx } from "./UseCases/ProcessTx";
 
 (async () => {
   const container = await initializeContainer();
 
-  container.get(FindDirectTx).execute();
-  container.get(SaveTransaction).execute();
+  container.get(SaveTokenTx).execute();
+  container.get(ProcessTx).execute();
   container.get(BlockListener).execute();
 
   startApi(container);
