@@ -1,9 +1,13 @@
 import { interfaces, controller, httpGet } from "inversify-express-utils";
+import { IApiResponse } from "../Types/Response";
 
 @controller("/status")
 export class FooController implements interfaces.Controller {
   @httpGet("/")
-  index(): string {
-    return "ok";
+  index(): IApiResponse<string> {
+    return {
+      success: true,
+      data: "ok",
+    };
   }
 }
