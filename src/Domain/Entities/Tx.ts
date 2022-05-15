@@ -1,8 +1,10 @@
 import { ethers } from "ethers";
+import { Format } from "logform";
 import { HexAddress } from "../Values/Address";
 import { FormattedAmount } from "../Values/Amount";
 import { Blockchain } from "../Values/Blockchain";
 import { TxType } from "../Values/Tx";
+import { Token } from "./Token";
 
 interface TxMetadata {
   /*
@@ -28,4 +30,21 @@ interface EthNativeTransferData {
   value: FormattedAmount;
 }
 
+interface TokenTransferData {
+  from: HexAddress;
+  to: HexAddress;
+  value: FormattedAmount;
+  token: Token;
+}
+
+interface DexSwapData {
+  inputToken: Token;
+  inputAmount: FormattedAmount;
+  outputToken: Token;
+  outputAmount: Format;
+}
+
 export interface EthNativeTransferTx extends Tx<EthNativeTransferData> {}
+
+export interface TokenTransferTx extends Tx<TokenTransferData> {}
+export interface DexSwapTransferTx extends Tx<DexSwapData> {}
