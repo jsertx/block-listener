@@ -1,10 +1,10 @@
 import * as bodyParser from "body-parser";
 import { Container } from "inversify";
 import { InversifyExpressServer } from "inversify-express-utils";
-import { ILogger } from "../Interfaces/ILogger";
+import { ILogger } from "../App/Interfaces/ILogger";
 
 import { IocKey } from "../Ioc/IocKey";
-import { getEnv } from "../Utils/Env";
+import { getEnv } from "../App/Utils/Env";
 
 import "./Controllers/StatusController";
 import "./Controllers/TxController";

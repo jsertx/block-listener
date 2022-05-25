@@ -1,29 +1,53 @@
 import { HexAddress } from "../Values/Address";
-import { Blockchain } from "../Values/Blockchain";
+import { AddressType } from "../Values/AddressType";
+import { Blockchain, BlockchainId } from "../Values/Blockchain";
+import { Entity } from "./Entity";
 
-export enum ContractType {
-  DexRouter = "dex_router",
-  Token = "token",
+enum AddressRelationType {
+  TransferedAsset = "transfer.sent",
+  ReceivedAsset = "transfer.received",
 }
 
-export enum AddressType {
-  Wallet = "wallet",
-  Contract = "contract",
+interface AddressRelation {
+  address: string;
+  type: AddressRelationType;
+  createdAt: Date;
+  metadata: {
+    txHash?: string;
+  };
 }
 
-export enum Abi {
-  Unknown = "unknown",
-  UniswapRouterV2 = "uniswap_router_v2",
-  ERC20 = "erc20",
-}
-
-export interface Address {
-  blockchain: Blockchain;
+export interface AddressRaw<DataType = any> {
+  blockchain: BlockchainId;
   address: HexAddress;
   type: AddressType;
-  contract?: {
-    alias: string;
-    type: ContractType;
-    abi?: Abi;
-  };
+  relations: AddressRelation[];
+  // just a descriptive name: like "Elon Musk DOGE Bag", "USDT treasury", "Coinbase 4",
+  alias?: string;
+  data: DataType;
+  createdAt: Date;
+}
+
+export class Address<DataType = any> extends Entity<AddressRaw<DataType>> {
+  protected _blockchain: Blockchain;
+  constructor(props: AddressRaw<DataType>, _id?: string) {
+    super(props, _id);
+    this._blockchain = new Blockchain(props.blockchain);
+  }
+
+  get address(): HexAddress {
+    return this.props.address;
+  }
+
+  get type(): AddressType {
+    return this.props.type;
+  }
+
+  get blockchain(): Blockchain {
+    return this._blockchain;
+  }
+
+  get data(): DataType {
+    return this.props.data;
+  }
 }

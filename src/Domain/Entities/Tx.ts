@@ -2,8 +2,9 @@ import { ethers } from "ethers";
 import { Format } from "logform";
 import { HexAddress } from "../Values/Address";
 import { FormattedAmount } from "../Values/Amount";
-import { Blockchain } from "../Values/Blockchain";
+import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { TxType } from "../Values/Tx";
+import { Entity } from "./Entity";
 import { Token } from "./Token";
 
 interface TxMetadata {
@@ -13,13 +14,11 @@ interface TxMetadata {
   */
 }
 
-export interface UnprocessedTx {
-  blockchain: Blockchain;
+export interface TxRaw<TxDataType = any> {
+  blockchain: BlockchainId;
+  hash: string;
   metadata?: TxMetadata;
   raw: ethers.providers.TransactionResponse;
-}
-
-export interface Tx<TxDataType = any> extends UnprocessedTx {
   type: TxType;
   data: TxDataType;
 }
@@ -43,8 +42,25 @@ interface DexSwapData {
   outputToken: Token;
   outputAmount: Format;
 }
+export class Tx<DataTypeRaw = any> extends Entity<TxRaw<DataTypeRaw>> {
+  protected _blockchain: Blockchain;
+  constructor(props: TxRaw<DataTypeRaw>, _id?: string) {
+    super(props, _id);
+    this._blockchain = new Blockchain(props.blockchain);
+  }
+  get blockchain(): Blockchain {
+    return this._blockchain;
+  }
+  get type(): TxType {
+    return this.props.type;
+  }
+}
 
-export interface EthNativeTransferTx extends Tx<EthNativeTransferData> {}
+export interface EthNativeTransferTxRaw extends TxRaw<EthNativeTransferData> {}
+export class EthNativeTransferTx extends Tx<EthNativeTransferData> {}
 
-export interface TokenTransferTx extends Tx<TokenTransferData> {}
-export interface DexSwapTransferTx extends Tx<DexSwapData> {}
+export interface TokenTransferTxRaw extends TxRaw<TokenTransferData> {}
+export class TokenTransferTx extends Tx<TokenTransferData> {}
+
+export interface DexSwapTransferTxRaw extends TxRaw<DexSwapData> {}
+export class DexSwapTransferTx extends Tx<DexSwapData> {}

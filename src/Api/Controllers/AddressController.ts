@@ -8,7 +8,7 @@ import {
   requestBody,
 } from "inversify-express-utils";
 import { Address } from "../../Domain/Entities/Address";
-import { IAddressRepository } from "../../Interfaces/Repository/IAddressRepository";
+import { IAddressRepository } from "../../Domain/Repository/IAddressRepository";
 import { IocKey } from "../../Ioc/IocKey";
 import {
   IApiPaginatedResponse,
@@ -35,10 +35,7 @@ export class AddressController implements interfaces.Controller {
   async saveAddress(
     @requestBody() address: Address
   ): Promise<IApiResponseEmpty> {
-    await this.addressRepository.saveIfNotExist(address, {
-      blockchain: address.blockchain,
-      address: address.address,
-    });
+    await this.addressRepository.saveIfNotExist(address);
     return {
       success: true,
     };

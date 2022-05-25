@@ -1,5 +1,5 @@
-import { IConfig } from "../Interfaces/IConfig";
-import { getEnv } from "../Utils/Env";
+import { IConfig } from "../App/Interfaces/IConfig";
+import { getEnv } from "../App/Utils/Env";
 
 export const Config: IConfig = {
   providers: {

@@ -1,8 +1,13 @@
 import { HexAddress } from "../Values/Address";
+import { Blockchain } from "../Values/Blockchain";
+import { Entity } from "./Entity";
 
-export interface Token {
+export interface TokenRaw {
+  address: HexAddress;
+  blockchain: Blockchain;
   symbol: string;
   name: string;
   decimals: number;
-  address: HexAddress;
 }
+
+export class Token extends Entity<TokenRaw> {}
