@@ -1,5 +1,6 @@
 import { IApiPaginatedResponse } from "../Types/Response";
 import { SetOptional } from "type-fest";
+
 export const buildPaginatedResponse = <T = any>({
   success,
   data,

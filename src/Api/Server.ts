@@ -2,17 +2,20 @@ import * as bodyParser from "body-parser";
 import { Container } from "inversify";
 import { InversifyExpressServer } from "inversify-express-utils";
 import { ILogger } from "../Interfaces/ILogger";
+import { GlobalErrorMiddleware } from "./Middleware/GlobalErrorMiddleware";
 
 import { IocKey } from "../Ioc/IocKey";
-import { getEnv } from "../Utils/Env";
+import { getEnv } from "../App/Utils/Env";
 
 import "./Controllers/StatusController";
 import "./Controllers/TxController";
-import "./Controllers/AddressController";
+import "./Controllers/ContractController";
+import "./Controllers/WalletController";
 
 export const startApi = (container: Container) => {
   // create server
   const server = new InversifyExpressServer(container);
+  const logger = container.get<ILogger>(IocKey.Logger);
   server.setConfig((app) => {
     // add body parser
     app.use(
@@ -23,10 +26,14 @@ export const startApi = (container: Container) => {
     app.use(bodyParser.json());
   });
 
-  let app = server.build();
+  server.setErrorConfig((app) => {
+    app.use(GlobalErrorMiddleware(logger));
+  });
+
+  const app = server.build();
   const port = getEnv("PORT", "3000");
   app.listen(port, () => {
-    container.get<ILogger>(IocKey.Logger).log({
+    logger.log({
       type: "api.start",
       message: `Api started listening on port ${port}`,
     });
