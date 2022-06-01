@@ -11,6 +11,7 @@ import "./Controllers/StatusController";
 import "./Controllers/TxController";
 import "./Controllers/ContractController";
 import "./Controllers/WalletController";
+import { ApiTokenAuthMiddleware } from "./Middleware/ApiTokenAuthMiddleware";
 
 export const startApi = (container: Container) => {
   // create server
@@ -24,6 +25,7 @@ export const startApi = (container: Container) => {
       })
     );
     app.use(bodyParser.json());
+    app.use(ApiTokenAuthMiddleware(logger));
   });
 
   server.setErrorConfig((app) => {
