@@ -23,6 +23,7 @@
     "inversify-express-utils": "^6.4.3",
     "joi": "^17.6.0",
     "mongodb": "^4.6.0",
+    "rascal": "^14.4.3",
     "reflect-metadata": "^0.1.13",
     "type-fest": "^2.12.2",
     "winston": "^3.7.2"
