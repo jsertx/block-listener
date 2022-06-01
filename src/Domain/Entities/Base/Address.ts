@@ -22,7 +22,7 @@ export interface AddressRelation {
 export interface AddressRaw<DataType = any> {
   blockchain: BlockchainId;
   address: HexAddress;
-  type: AddressType;
+
   relations: AddressRelation[];
   // just a descriptive name: like "Elon Musk DOGE Bag", "USDT treasury", "Coinbase 4",
   alias?: string;
@@ -41,10 +41,6 @@ export class Address<DataType = any> extends Entity<AddressRaw<DataType>> {
   }
   get address(): HexAddress {
     return this.props.address;
-  }
-
-  get type(): AddressType {
-    return this.props.type;
   }
 
   get blockchain(): Blockchain {

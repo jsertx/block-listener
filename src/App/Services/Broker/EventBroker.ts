@@ -7,7 +7,7 @@ import {
 } from "../../Interfaces/IBroker";
 
 @injectable()
-export class EventBroker implements IBroker {
+export class EventBus implements IBroker {
   private emitter = new EventEmitter();
   async publish<T = any>(
     channel: string,

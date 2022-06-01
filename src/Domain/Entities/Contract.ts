@@ -21,6 +21,10 @@ export class Contract extends Address<ContractDataRaw> {
     return this.props.data.type;
   }
 
+  get type(): ContractType {
+    return this.props.data.type;
+  }
+
   get abi(): any {
     return this.props.data.customAbi || contractTypeToAbi[this.contractType];
   }
