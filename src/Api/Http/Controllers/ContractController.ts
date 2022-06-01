@@ -6,14 +6,14 @@ import {
   httpPost,
   requestBody,
 } from "inversify-express-utils";
-import { IAddressService } from "../../Domain/Interfaces/IAddressService";
+import { IAddressService } from "../../../Domain/Interfaces/IAddressService";
 
-import { IocKey } from "../../Ioc/IocKey";
+import { IocKey } from "../../../Ioc/IocKey";
 import { ContractSchema } from "../Schemas/AddressSchema";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { validateOrThrowError } from "../Utils/Validation";
-import { Contract, ContractRaw } from "../../Domain/Entities/Contract";
+import { Contract, ContractRaw } from "../../../Domain/Entities/Contract";
 
 @controller("/contracts")
 export class ContractController implements interfaces.Controller {

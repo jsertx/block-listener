@@ -1,10 +1,13 @@
 import Joi from "joi";
-import { addressRelationTypeList } from "../../Domain/Entities/Base/Address";
-import { AddressType, addressTypeList } from "../../Domain/Values/AddressType";
-import { blockchainIdList } from "../../Domain/Values/Blockchain";
-import { contractTypeList } from "../../Domain/Values/ContractType";
-import { walletTagNameList } from "../../Domain/Values/WalletTag";
-import { walletTypeList } from "../../Domain/Values/WalletType";
+import { addressRelationTypeList } from "../../../Domain/Entities/Base/Address";
+import {
+  AddressType,
+  addressTypeList,
+} from "../../../Domain/Values/AddressType";
+import { blockchainIdList } from "../../../Domain/Values/Blockchain";
+import { contractTypeList } from "../../../Domain/Values/ContractType";
+import { walletTagNameList } from "../../../Domain/Values/WalletTag";
+import { walletTypeList } from "../../../Domain/Values/WalletType";
 
 export const AddressRelationSchema = Joi.object({
   address: Joi.string().required(),

@@ -7,13 +7,13 @@ import {
   requestBody,
   requestParam,
 } from "inversify-express-utils";
-import { IAddressService } from "../../Domain/Interfaces/IAddressService";
-import { IocKey } from "../../Ioc/IocKey";
+import { IAddressService } from "../../../Domain/Interfaces/IAddressService";
+import { IocKey } from "../../../Ioc/IocKey";
 import { WalletSchema } from "../Schemas/AddressSchema";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { validateOrThrowError } from "../Utils/Validation";
-import { Wallet, WalletRaw } from "../../Domain/Entities/Wallet";
+import { Wallet, WalletRaw } from "../../../Domain/Entities/Wallet";
 
 @controller("/wallets")
 export class WalletController implements interfaces.Controller {

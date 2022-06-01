@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { getEnv } from "../../App/Utils/Env";
-import { ILogger } from "../../Interfaces/ILogger";
+import { getEnv } from "../../../App/Utils/Env";
+import { ILogger } from "../../../Interfaces/ILogger";
 
 export const ApiTokenAuthMiddleware =
   (logger: ILogger) => (req: Request, res: Response, next: NextFunction) => {

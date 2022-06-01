@@ -2,7 +2,7 @@ import "reflect-metadata";
 import "dotenv/config";
 import { initializeContainer } from "./Ioc/container";
 
-import { startApi } from "./Api/Server";
+import { startApi } from "./Api/Http/Server";
 import { ProcessTx } from "./App/UseCases/ProcessTx";
 import { BlockListener } from "./App/UseCases/BlockListener";
 import { SaveEthTx } from "./App/UseCases/SaveEthTx";

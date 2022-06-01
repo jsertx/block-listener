@@ -1,9 +1,9 @@
 import { inject } from "inversify";
 import { interfaces, controller, httpGet } from "inversify-express-utils";
-import { TxRaw } from "../../Domain/Entities/Tx";
-import { TxType } from "../../Domain/Values/Tx";
-import { ITxRepository } from "../../Domain/Repository/ITxRepository";
-import { IocKey } from "../../Ioc/IocKey";
+import { TxRaw } from "../../../Domain/Entities/Tx";
+import { TxType } from "../../../Domain/Values/Tx";
+import { ITxRepository } from "../../../Domain/Repository/ITxRepository";
+import { IocKey } from "../../../Ioc/IocKey";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 
