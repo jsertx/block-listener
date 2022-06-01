@@ -4,7 +4,7 @@ import { HexAddress } from "../Values/Address";
 import { FormattedAmount } from "../Values/Amount";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { TxType } from "../Values/Tx";
-import { Entity } from "./Entity";
+import { Entity } from "./Base/Entity";
 import { Token } from "./Token";
 
 interface TxMetadata {

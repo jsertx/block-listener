@@ -1,4 +1,3 @@
-import { ethers } from "ethers";
 import { inject } from "inversify";
 import { interfaces, controller, httpGet } from "inversify-express-utils";
 import { TxRaw } from "../../Domain/Entities/Tx";

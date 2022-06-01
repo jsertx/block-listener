@@ -4,3 +4,5 @@ export enum ContractType {
   MevBot = "bot.mev",
   ArbBot = "bot.arbitrage",
 }
+
+export const contractTypeList = Object.values(ContractType);

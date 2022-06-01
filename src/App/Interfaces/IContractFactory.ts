@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
-import { Address } from "../../Domain/Entities/Address";
+import { Contract } from "../../Domain/Entities/Contract";
 
 export interface IContractFactory {
   getContract(
-    address: Address,
+    address: Contract,
     provider?: ethers.providers.BaseProvider
   ): ethers.Contract;
 }

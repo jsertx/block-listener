@@ -1,9 +1,9 @@
 import { injectable, unmanaged } from "inversify";
-import { MongoClient, WithId } from "mongodb";
-import { IConfig } from "../../App/Interfaces/IConfig";
+import { Filter, MongoClient, ObjectId, WithId } from "mongodb";
+import { IConfig } from "../../Interfaces/IConfig";
 import { IBaseRepository } from "../../Domain/Repository/IBaseRepository";
 import { PartialDeep } from "type-fest";
-import { Entity } from "../../Domain/Entities/Entity";
+import { Entity } from "../../Domain/Entities/Base/Entity";
 
 export type MongoProvider = () => Promise<MongoClient>;
 
@@ -13,7 +13,6 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
 {
   constructor(
     @unmanaged() protected collectionName: string,
-    @unmanaged()
     @unmanaged()
     protected client: MongoClient,
     @unmanaged() protected config: IConfig
@@ -38,9 +37,9 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
     return this.modelToEntityMapper({ ...item.toRaw(), _id: insertedId });
   }
 
-  async saveIfNotExist(item: TEntity): Promise<boolean> {
+  async saveIfNotExist(item: TEntity): Promise<TEntity> {
     const matchCriteria = this.getMatchCriteriaFromEntity(item);
-    return this.getCollection()
+    const id = await this.getCollection()
       .updateOne(
         matchCriteria as any,
         {
@@ -48,6 +47,8 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
         },
         { upsert: true }
       )
-      .then((res) => res.matchedCount === 0);
+      .then((res) => res.upsertedId);
+
+    return item;
   }
 }

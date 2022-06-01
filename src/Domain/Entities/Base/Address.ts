@@ -1,6 +1,6 @@
-import { HexAddress } from "../Values/Address";
-import { AddressType } from "../Values/AddressType";
-import { Blockchain, BlockchainId } from "../Values/Blockchain";
+import { HexAddress } from "../../Values/Address";
+import { AddressType } from "../../Values/AddressType";
+import { Blockchain, BlockchainId } from "../../Values/Blockchain";
 import { Entity } from "./Entity";
 
 enum AddressRelationType {
@@ -8,7 +8,9 @@ enum AddressRelationType {
   ReceivedAsset = "transfer.received",
 }
 
-interface AddressRelation {
+export const addressRelationTypeList = Object.values(AddressRelationType);
+
+export interface AddressRelation {
   address: string;
   type: AddressRelationType;
   createdAt: Date;
@@ -34,7 +36,9 @@ export class Address<DataType = any> extends Entity<AddressRaw<DataType>> {
     super(props, _id);
     this._blockchain = new Blockchain(props.blockchain);
   }
-
+  addRelation(addressRelation: AddressRelation) {
+    this.props.relations.push(addressRelation);
+  }
   get address(): HexAddress {
     return this.props.address;
   }

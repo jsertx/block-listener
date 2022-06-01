@@ -1,4 +1,4 @@
-import { IConfig } from "../App/Interfaces/IConfig";
+import { IConfig } from "../Interfaces/IConfig";
 import { getEnv } from "../App/Utils/Env";
 
 export const Config: IConfig = {

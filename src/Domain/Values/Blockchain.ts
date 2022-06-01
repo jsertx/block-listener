@@ -2,6 +2,8 @@ export enum BlockchainId {
   Ethereum = "ethereum",
 }
 
+export const blockchainIdList = Object.values(BlockchainId);
+
 const blockchainToChainId: Record<BlockchainId, number> = {
   [BlockchainId.Ethereum]: 1,
 };

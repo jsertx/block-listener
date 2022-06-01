@@ -1,8 +1,8 @@
 import { ABI } from "../../App/Services/SmartContract/ABI";
 import { ContractType } from "../Values/ContractType";
-import { Address, AddressRaw } from "./Address";
+import { Address, AddressRaw } from "./Base/Address";
 
-interface ContractAddressDataRaw {
+interface ContractDataRaw {
   type: ContractType;
   customAbi?: any;
 }
@@ -14,15 +14,18 @@ const contractTypeToAbi = {
   [ContractType.MevBot]: undefined,
 };
 
-export interface ContractAddressRaw
-  extends AddressRaw<ContractAddressDataRaw> {}
+export interface ContractRaw extends AddressRaw<ContractDataRaw> {}
 
-export class ContractAddress extends Address<ContractAddressDataRaw> {
+export class Contract extends Address<ContractDataRaw> {
   get contractType(): ContractType {
     return this.props.data.type;
   }
 
   get abi(): any {
     return this.props.data.customAbi || contractTypeToAbi[this.contractType];
+  }
+
+  static create(props: ContractRaw, _id?: string): Contract {
+    return new Contract(props, _id);
   }
 }

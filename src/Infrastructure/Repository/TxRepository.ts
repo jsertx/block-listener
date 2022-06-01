@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { MongoClient, WithId } from "mongodb";
 import { Tx, TxRaw } from "../../Domain/Entities/Tx";
-import { IConfig } from "../../App/Interfaces/IConfig";
+import { IConfig } from "../../Interfaces/IConfig";
 import { ITxRepository } from "../../Domain/Repository/ITxRepository";
 import { IocKey } from "../../Ioc/IocKey";
 import { MongoBaseRepository } from "./MongoBaseRepository";

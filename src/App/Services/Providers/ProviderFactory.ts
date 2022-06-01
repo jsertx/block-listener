@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
 import { Blockchain, BlockchainId } from "../../../Domain/Values/Blockchain";
-import { IConfig } from "../../Interfaces/IConfig";
+import { IConfig } from "../../../Interfaces/IConfig";
 import { IProviderFactory } from "../../Interfaces/IProviderFactory";
 import { IocKey } from "../../../Ioc/IocKey";
 

@@ -1,6 +1,6 @@
 import { HexAddress } from "../Values/Address";
 import { Blockchain } from "../Values/Blockchain";
-import { Entity } from "./Entity";
+import { Entity } from "./Base/Entity";
 
 export interface TokenRaw {
   address: HexAddress;
