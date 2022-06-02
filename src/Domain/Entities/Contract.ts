@@ -1,4 +1,6 @@
 import { ABI } from "../../App/Services/SmartContract/ABI";
+import { ContractSchema } from "../Schemas/AddressSchema";
+import { validateOrThrowError } from "../Utils/Validation";
 import { ContractType } from "../Values/ContractType";
 import { Address, AddressRaw } from "./Base/Address";
 
@@ -30,6 +32,7 @@ export class Contract extends Address<ContractDataRaw> {
   }
 
   static create(props: ContractRaw, _id?: string): Contract {
+    validateOrThrowError(props, ContractSchema);
     return new Contract(props, _id);
   }
 }

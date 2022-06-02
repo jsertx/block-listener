@@ -9,10 +9,8 @@ import {
 import { IAddressService } from "../../../Domain/Interfaces/IAddressService";
 
 import { IocKey } from "../../../Ioc/IocKey";
-import { ContractSchema } from "../Schemas/AddressSchema";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
-import { validateOrThrowError } from "../Utils/Validation";
 import { Contract, ContractRaw } from "../../../Domain/Entities/Contract";
 
 @controller("/contracts")
@@ -32,8 +30,6 @@ export class ContractController implements interfaces.Controller {
 
   @httpPost("/")
   async saveAddress(@requestBody() body: ContractRaw): Promise<IApiResponse> {
-    validateOrThrowError(body, ContractSchema);
-
     const contract = await this.addressService.saveContract(
       Contract.create(body)
     );

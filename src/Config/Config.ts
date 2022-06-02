@@ -8,6 +8,9 @@ export const Config: IConfig = {
   database: {
     connectionUri: getEnv("DATABASE_URI"),
   },
+  broker: {
+    brokerUri: getEnv("BROKER_URI"),
+  },
   txRules: {
     minEthValue: "10",
   },

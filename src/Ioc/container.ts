@@ -15,12 +15,15 @@ import { BlockListener } from "../App/UseCases/BlockListener";
 import { SaveEthTx } from "../App/UseCases/SaveEthTx";
 import { SaveDexTx } from "../App/UseCases/SaveDexTx";
 import { SaveTokenTx } from "../App/UseCases/SaveTokenTx";
+import { createBrokerConnection } from "../Infrastructure/Broker/Utils/Mq";
+import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
+import { MqAdapter } from "../Api/Mq/MqServer";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
     // Services
     bind(IocKey.Config).toConstantValue(Config);
-    bind(IocKey.Broker).to(EventBus).inSingletonScope();
+    bind(IocKey.EventBus).to(EventBus).inSingletonScope();
     bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
     bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
     bind(IocKey.AddressService).to(AddressService).inSingletonScope();
@@ -30,8 +33,16 @@ export const initializeContainer = async () => {
     bind(SaveEthTx).toSelf().inSingletonScope();
     bind(SaveDexTx).toSelf().inSingletonScope();
     bind(SaveTokenTx).toSelf().inSingletonScope();
-    // Database
-    const dbClient = await createConnection(Config.database.connectionUri);
+    // Broker & DB Connections
+    const [dbClient, brokerClient] = await Promise.all([
+      createConnection(Config.database.connectionUri),
+      createBrokerConnection(Config.broker.brokerUri),
+    ]);
+
+    bind(MqAdapter).toSelf().inSingletonScope();
+    bind(IocKey.BrokerClient).toConstantValue(brokerClient);
+    bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
+
     bind(IocKey.DbClient).toConstantValue(dbClient);
     bind(IocKey.TxRepository).to(TxRepository).inSingletonScope();
     bind(IocKey.ContractRepository).to(ContractRepository).inSingletonScope();

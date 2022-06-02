@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 
-import { IBroker } from "../Interfaces/IBroker";
+import { IBroker } from "../../Interfaces/IBroker";
 import { ILogger } from "../../Interfaces/ILogger";
 
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
@@ -18,7 +18,7 @@ export class BlockListener {
   constructor(
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
     @inject(IocKey.Logger) private logger: ILogger,
-    @inject(IocKey.Broker) private broker: IBroker
+    @inject(IocKey.EventBus) private eventBus: IBroker
   ) {}
 
   async execute() {
@@ -30,7 +30,7 @@ export class BlockListener {
       const block = await provider.getBlockWithTransactions(blockNumber);
 
       for (const raw of block.transactions) {
-        this.broker.publish<UnprocessedTx>(Channel.ProcessTx, {
+        this.eventBus.publish<UnprocessedTx>(Channel.ProcessTx, {
           raw,
           blockchain: this.blockchain,
         });

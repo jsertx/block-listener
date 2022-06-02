@@ -8,6 +8,7 @@ import { BlockListener } from "./App/UseCases/BlockListener";
 import { SaveEthTx } from "./App/UseCases/SaveEthTx";
 import { SaveDexTx } from "./App/UseCases/SaveDexTx";
 import { SaveTokenTx } from "./App/UseCases/SaveTokenTx";
+import { MqAdapter } from "./Api/Mq/MqServer";
 
 (async () => {
   const container = await initializeContainer();
@@ -19,4 +20,5 @@ import { SaveTokenTx } from "./App/UseCases/SaveTokenTx";
   container.get(SaveTokenTx).execute();
 
   startApi(container);
+  container.get(MqAdapter).start();
 })();

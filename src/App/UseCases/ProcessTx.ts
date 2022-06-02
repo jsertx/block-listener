@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
 
-import { IBroker } from "../Interfaces/IBroker";
+import { IBroker } from "../../Interfaces/IBroker";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IConfig } from "../../Interfaces/IConfig";
 
@@ -23,7 +23,7 @@ export class ProcessTx {
   constructor(
     @inject(IocKey.Logger) private logger: ILogger,
     @inject(IocKey.Config) private config: IConfig,
-    @inject(IocKey.Broker) private broker: IBroker,
+    @inject(IocKey.EventBus) private eventBus: IBroker,
     @inject(IocKey.AddressService)
     private contractService: IAddressService
   ) {}
@@ -32,7 +32,7 @@ export class ProcessTx {
     this.logger.log({
       type: "find-direct-tx.start",
     });
-    this.broker.subscribe(Channel.ProcessTx, this.onTx.bind(this));
+    this.eventBus.subscribe(Channel.ProcessTx, this.onTx.bind(this));
   }
 
   async onTx(unprocessedTx: UnprocessedTx) {
@@ -42,7 +42,7 @@ export class ProcessTx {
       addressesOfInterest
     );
     if (channel) {
-      this.broker.publish(channel, unprocessedTx);
+      this.eventBus.publish(channel, unprocessedTx);
     }
   }
 

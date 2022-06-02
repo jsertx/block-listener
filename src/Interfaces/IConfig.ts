@@ -5,6 +5,9 @@ export interface IConfig {
   database: {
     connectionUri: string;
   };
+  broker: {
+    brokerUri: string;
+  };
   txRules: {
     minEthValue: string;
   };
