@@ -17,9 +17,10 @@ import { Channel } from "../Enums/Channel";
 import { IocKey } from "../../Ioc/IocKey";
 import { IAddressService } from "../../Domain/Interfaces/IAddressService";
 import { ContractType } from "../../Domain/Values/ContractType";
+import { IListenerUseCase } from "../../Interfaces/IListenerUseCase";
 
 @injectable()
-export class ProcessTx {
+export class ProcessTx implements IListenerUseCase {
   constructor(
     @inject(IocKey.Logger) private logger: ILogger,
     @inject(IocKey.Config) private config: IConfig,
@@ -28,7 +29,7 @@ export class ProcessTx {
     private contractService: IAddressService
   ) {}
 
-  async execute() {
+  async listen() {
     this.logger.log({
       type: "find-direct-tx.start",
     });

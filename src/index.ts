@@ -2,23 +2,18 @@ import "reflect-metadata";
 import "dotenv/config";
 import { initializeContainer } from "./Ioc/container";
 
-import { startApi } from "./Api/Http/Server";
-import { ProcessTx } from "./App/UseCases/ProcessTx";
-import { BlockListener } from "./App/UseCases/BlockListener";
-import { SaveEthTx } from "./App/UseCases/SaveEthTx";
-import { SaveDexTx } from "./App/UseCases/SaveDexTx";
-import { SaveTokenTx } from "./App/UseCases/SaveTokenTx";
-import { MqAdapter } from "./Api/Mq/MqServer";
+import { IocKey } from "./Ioc/IocKey";
+import { IListenerUseCase } from "./Interfaces/IListenerUseCase";
+import { IAdapter } from "./Interfaces/IAdapter";
 
 (async () => {
   const container = await initializeContainer();
 
-  container.get(ProcessTx).execute();
-  container.get(BlockListener).execute();
-  container.get(SaveEthTx).execute();
-  container.get(SaveDexTx).execute();
-  container.get(SaveTokenTx).execute();
+  container
+    .getAll<IListenerUseCase>(IocKey.ListenerUseCases)
+    .forEach((listener) => listener.listen());
 
-  startApi(container);
-  container.get(MqAdapter).start();
+  container
+    .getAll<IAdapter>(IocKey.Adapters)
+    .forEach((adapter) => adapter.start());
 })();

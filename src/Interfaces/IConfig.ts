@@ -5,6 +5,9 @@ export interface IConfig {
   database: {
     connectionUri: string;
   };
+  http: {
+    port: string;
+  };
   broker: {
     brokerUri: string;
   };

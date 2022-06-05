@@ -17,7 +17,8 @@ import { SaveDexTx } from "../App/UseCases/SaveDexTx";
 import { SaveTokenTx } from "../App/UseCases/SaveTokenTx";
 import { createBrokerConnection } from "../Infrastructure/Broker/Utils/Mq";
 import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
-import { MqAdapter } from "../Api/Mq/MqServer";
+import { BrokerAdapter } from "../Api/Broker/BrokerAdapter";
+import { HttpAdapter } from "../Api/Http/HttpAdapter";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -28,18 +29,20 @@ export const initializeContainer = async () => {
     bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
     bind(IocKey.AddressService).to(AddressService).inSingletonScope();
     // UseCases
-    bind(ProcessTx).toSelf().inSingletonScope();
-    bind(BlockListener).toSelf().inSingletonScope();
-    bind(SaveEthTx).toSelf().inSingletonScope();
-    bind(SaveDexTx).toSelf().inSingletonScope();
-    bind(SaveTokenTx).toSelf().inSingletonScope();
+    bind(IocKey.ListenerUseCases).to(ProcessTx).inSingletonScope();
+    bind(IocKey.ListenerUseCases).to(BlockListener).inSingletonScope();
+    bind(IocKey.ListenerUseCases).to(SaveEthTx).inSingletonScope();
+    bind(IocKey.ListenerUseCases).to(SaveDexTx).inSingletonScope();
+    bind(IocKey.ListenerUseCases).to(SaveTokenTx).inSingletonScope();
     // Broker & DB Connections
     const [dbClient, brokerClient] = await Promise.all([
       createConnection(Config.database.connectionUri),
       createBrokerConnection(Config.broker.brokerUri),
     ]);
 
-    bind(MqAdapter).toSelf().inSingletonScope();
+    bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
+    bind(IocKey.Adapters).to(BrokerAdapter).inRequestScope();
+
     bind(IocKey.BrokerClient).toConstantValue(brokerClient);
     bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
 
@@ -50,6 +53,7 @@ export const initializeContainer = async () => {
   });
 
   const container = new Container();
+  container.bind(IocKey.Container).toConstantValue(container);
   await container.loadAsync(bindings);
   return container;
 };

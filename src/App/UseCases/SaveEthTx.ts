@@ -1,9 +1,6 @@
 import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
-import {
-  EthNativeTransferTx,
-  EthNativeTransferTxRaw,
-} from "../../Domain/Entities/Tx";
+import { EthNativeTransferTx } from "../../Domain/Entities/Tx";
 import { ITxRepository } from "../../Domain/Repository/ITxRepository";
 import { TxType } from "../../Domain/Values/Tx";
 import { IConfig } from "../../Interfaces/IConfig";
@@ -16,9 +13,10 @@ import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { UnprocessedTx } from "../Models/Tx";
 
 import { toFormatted, toPrecision } from "../Utils/Amount";
+import { IListenerUseCase } from "../../Interfaces/IListenerUseCase";
 
 @injectable()
-export class SaveEthTx {
+export class SaveEthTx implements IListenerUseCase {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
     @inject(IocKey.Config) private config: IConfig,
@@ -27,7 +25,7 @@ export class SaveEthTx {
     @inject(IocKey.Logger) private logger: ILogger
   ) {}
 
-  async execute() {
+  async listen() {
     this.eventBus.subscribe(Channel.SaveEthTransferTx, this.onNewTx.bind(this));
   }
 

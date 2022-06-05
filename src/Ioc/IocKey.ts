@@ -1,11 +1,16 @@
 export const IocKey = {
+  Container: Symbol.for("Container"),
   Config: Symbol.for("Config"),
   ProviderFactory: Symbol.for("ProviderFactory"),
   AddressService: Symbol.for("AddressService"),
   ContractFactory: Symbol.for("ContractFactory"),
   Logger: Symbol.for("Logger"),
+  // Adapters
+  Adapters: Symbol.for("Adapters"),
   // Events
   EventBus: Symbol.for("EventBus"),
+  // UseCases
+  ListenerUseCases: Symbol.for("ListenerUseCases"),
   // Broker
   BrokerClient: Symbol.for("BrokerClient"),
   Broker: Symbol.for("Broker"),

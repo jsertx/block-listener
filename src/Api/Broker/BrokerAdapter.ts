@@ -2,12 +2,13 @@ import { inject, injectable } from "inversify";
 import { Contract, ContractRaw } from "../../Domain/Entities/Contract";
 import { Wallet, WalletRaw } from "../../Domain/Entities/Wallet";
 import { IAddressService } from "../../Domain/Interfaces/IAddressService";
+import { IAdapter } from "../../Interfaces/IAdapter";
 import { IBroker } from "../../Interfaces/IBroker";
 import { IocKey } from "../../Ioc/IocKey";
 import { createSubHandler } from "./Utils";
 
 @injectable()
-export class MqAdapter {
+export class BrokerAdapter implements IAdapter {
   constructor(
     @inject(IocKey.Broker) private broker: IBroker,
     @inject(IocKey.AddressService) private addressService: IAddressService

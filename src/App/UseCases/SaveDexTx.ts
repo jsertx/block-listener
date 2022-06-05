@@ -1,4 +1,3 @@
-import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
 import { ITxRepository } from "../../Domain/Repository/ITxRepository";
 import { ILogger } from "../../Interfaces/ILogger";
@@ -9,9 +8,10 @@ import { IBroker } from "../../Interfaces/IBroker";
 
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { UnprocessedTx } from "../Models/Tx";
+import { IListenerUseCase } from "../../Interfaces/IListenerUseCase";
 
 @injectable()
-export class SaveDexTx {
+export class SaveDexTx implements IListenerUseCase {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
@@ -19,7 +19,7 @@ export class SaveDexTx {
     @inject(IocKey.Logger) private logger: ILogger
   ) {}
 
-  async execute() {
+  async listen() {
     this.eventBus.subscribe(Channel.SaveDirectDexTx, this.onNewTx.bind(this));
   }
 

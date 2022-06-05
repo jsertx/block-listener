@@ -8,6 +8,9 @@ export const Config: IConfig = {
   database: {
     connectionUri: getEnv("DATABASE_URI"),
   },
+  http: {
+    port: getEnv("PORT"),
+  },
   broker: {
     brokerUri: getEnv("BROKER_URI"),
   },

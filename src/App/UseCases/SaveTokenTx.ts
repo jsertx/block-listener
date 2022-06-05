@@ -7,9 +7,10 @@ import { Channel } from "../Enums/Channel";
 import { IBroker } from "../../Interfaces/IBroker";
 
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
+import { IListenerUseCase } from "../../Interfaces/IListenerUseCase";
 
 @injectable()
-export class SaveTokenTx {
+export class SaveTokenTx implements IListenerUseCase {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
@@ -17,7 +18,7 @@ export class SaveTokenTx {
     @inject(IocKey.Logger) private logger: ILogger
   ) {}
 
-  async execute() {
+  async listen() {
     this.eventBus.subscribe(Channel.SaveDirectTokenTx, this.onNewTx.bind(this));
   }
 
