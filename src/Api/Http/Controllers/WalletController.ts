@@ -14,7 +14,13 @@ import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { validateOrThrowError } from "../../../Domain/Utils/Validation";
 import { Wallet, WalletRaw } from "../../../Domain/Entities/Wallet";
+import { ApiOperationPost, ApiPath } from "swagger-express-ts";
 
+@ApiPath({
+  path: "/wallets",
+  name: "Wallets",
+  security: { basicAuth: [] },
+})
 @controller("/wallets")
 export class WalletController implements interfaces.Controller {
   constructor(
@@ -30,10 +36,25 @@ export class WalletController implements interfaces.Controller {
     });
   }
 
+  @ApiOperationPost({
+    description: "Create wallet",
+    parameters: {
+      body: {
+        description: "New version",
+        required: true,
+        model: "CreateWallet",
+      },
+    },
+    responses: {
+      200: { description: "Success" },
+    },
+  })
   @httpPost("/")
-  async saveAddress(@requestBody() body: WalletRaw): Promise<IApiResponse> {
+  async createWallet(@requestBody() body: WalletRaw): Promise<IApiResponse> {
     validateOrThrowError(body, WalletSchema);
-    const wallet = await this.addressService.saveWallet(Wallet.create(body));
+    const wallet = await this.addressService.saveWallet(
+      Wallet.create({ ...body, createdAt: new Date() })
+    );
     return {
       success: true,
       data: wallet.toRaw(),

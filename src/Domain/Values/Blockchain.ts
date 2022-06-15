@@ -1,11 +1,19 @@
+import { NotEvmChainError } from "../Errors/NotEvmChainError";
+
 export enum BlockchainId {
   Ethereum = "ethereum",
+  Bitcoin = "bitcoin",
+  Binance = "binance",
+  Polygon = "polygon",
 }
 
 export const blockchainIdList = Object.values(BlockchainId);
 
-const blockchainToChainId: Record<BlockchainId, number> = {
+const blockchainToChainId: Partial<Record<BlockchainId, number>> = {
+  [BlockchainId.Bitcoin]: undefined,
   [BlockchainId.Ethereum]: 1,
+  [BlockchainId.Binance]: 56,
+  [BlockchainId.Polygon]: 137,
 };
 
 export class Blockchain {
@@ -16,9 +24,14 @@ export class Blockchain {
   }
 
   static toChainId(id: BlockchainId): number {
-    if (!blockchainToChainId[id]) {
+    const chainId = blockchainToChainId[id];
+    if (chainId === undefined) {
+      throw new NotEvmChainError(id);
+    }
+    if (!chainId) {
       throw new Error(`Blockchain ${id} invalid or unsupported`);
     }
-    return blockchainToChainId[id];
+
+    return chainId;
   }
 }

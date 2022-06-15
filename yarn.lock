@@ -2197,6 +2197,16 @@ supports-color@^7.1.0:
   dependencies:
     has-flag "^4.0.0"
 
+swagger-express-ts@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/swagger-express-ts/-/swagger-express-ts-1.1.0.tgz#6de97fe3173e5a8ddd0653b00e5c5225c3c3bdb1"
+  integrity sha512-XgvEi4pp36rfXbHRT58uwsC50AxU8oVgFX3p3rEYlGZH8UV0srvZ8xFD7inNwZLKqbLtiRbjHLugGxggJnfHiw==
+
+swagger-ui-dist@^4.12.0:
+  version "4.12.0"
+  resolved "https://registry.yarnpkg.com/swagger-ui-dist/-/swagger-ui-dist-4.12.0.tgz#986d90f05e81fb9db3ca40372278a5d8ce71db3a"
+  integrity sha512-B0Iy2ueXtbByE6OOyHTi3lFQkpPi/L7kFOKFeKTr44za7dJIELa9kzaca6GkndCgpK1QTjArnoXG+aUy0XQp1w==
+
 text-hex@1.0.x:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/text-hex/-/text-hex-1.0.0.tgz#69dc9c1b17446ee79a92bf5b884bb4b9127506f5"
