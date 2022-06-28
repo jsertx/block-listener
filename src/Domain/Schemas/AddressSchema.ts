@@ -44,11 +44,14 @@ export const AddressSchemaPartial = {
     .required(),
   relations: Joi.array().items(AddressRelationSchema).optional(),
   alias: Joi.string().optional(),
-  data: Joi.alternatives().conditional("type", {
-    is: AddressType.Contract,
-    then: ContractAddressSchema,
-    otherwise: WalletAddressSchema,
-  }),
+  createdAt: Joi.date().required(),
+  data: Joi.alternatives()
+    .conditional("type", {
+      is: AddressType.Contract,
+      then: ContractAddressSchema,
+      otherwise: WalletAddressSchema,
+    })
+    .required(),
 };
 
 export const WalletSchema = Joi.object({

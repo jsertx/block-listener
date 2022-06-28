@@ -51,7 +51,6 @@ export class WalletController implements interfaces.Controller {
   })
   @httpPost("/")
   async createWallet(@requestBody() body: WalletRaw): Promise<IApiResponse> {
-    validateOrThrowError(body, WalletSchema);
     const wallet = await this.addressService.saveWallet(
       Wallet.create({ ...body, createdAt: new Date() })
     );
