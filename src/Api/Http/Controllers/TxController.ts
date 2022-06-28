@@ -7,7 +7,7 @@ import { IocKey } from "../../../Ioc/IocKey";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 
-@controller("/tx")
+@controller("/txs")
 export class TxController implements interfaces.Controller {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository
