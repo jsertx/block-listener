@@ -15,10 +15,10 @@ export class AddressService implements IAddressService {
   ) {}
 
   findAllWallets(): Promise<Wallet[]> {
-    return this.walletRepository.findAll();
+    return this.walletRepository.findAll().then((res) => res.data);
   }
   findAllContracts(): Promise<Contract[]> {
-    return this.contractRepository.findAll();
+    return this.contractRepository.findAll().then((res) => res.data);
   }
 
   saveWallet(wallet: Wallet): Promise<Wallet> {

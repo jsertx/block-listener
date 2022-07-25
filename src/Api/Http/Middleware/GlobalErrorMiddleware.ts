@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { ILogger } from "../../../Interfaces/ILogger";
-import { ValidationError } from "../../../App/Errors/ValidationError";
+import { ValidationError } from "../Errors/ValidationError";
 
 export const GlobalErrorMiddleware =
   (logger: ILogger) =>

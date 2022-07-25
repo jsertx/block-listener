@@ -1,11 +1,14 @@
 import { ABI } from "../Services/SmartContract/ABI";
-import { ContractSchema } from "../Schemas/AddressSchema";
 import { validateOrThrowError } from "../Utils/Validation";
-import { ContractType } from "../Values/ContractType";
-
+import { ContractType, contractTypeList } from "../Values/ContractType";
 import { Entity } from "./Base/Entity";
 import { HexAddress } from "../Values/Address";
-import { Blockchain, BlockchainId } from "../Values/Blockchain";
+import {
+  Blockchain,
+  BlockchainId,
+  blockchainIdList,
+} from "../Values/Blockchain";
+import Joi from "joi";
 
 interface ContractProps {
   blockchain: BlockchainId;
@@ -24,6 +27,19 @@ const contractTypeToAbi = {
 };
 
 export interface ContractRaw extends ContractProps {}
+
+export const ContractSchema = Joi.object({
+  blockchain: Joi.string()
+    .valid(...blockchainIdList)
+    .required(),
+  address: Joi.string().required(),
+  type: Joi.string()
+    .valid(...contractTypeList)
+    .required(),
+  alias: Joi.string().optional(),
+  createdAt: Joi.date().required(),
+  customAbi: Joi.any(),
+}).options({ stripUnknown: true });
 
 export class Contract extends Entity<ContractProps> {
   get address(): HexAddress {

@@ -1,9 +1,15 @@
-import { WalletSchema } from "../Schemas/AddressSchema";
+import Joi from "joi";
+import { SetOptional } from "type-fest";
+
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddress } from "../Values/Address";
-import { Blockchain, BlockchainId } from "../Values/Blockchain";
-import { WalletTag } from "../Values/WalletTag";
-import { WalletType } from "../Values/WalletType";
+import {
+  Blockchain,
+  BlockchainId,
+  blockchainIdList,
+} from "../Values/Blockchain";
+import { WalletTag, walletTagNameList } from "../Values/WalletTag";
+import { WalletType, walletTypeList } from "../Values/WalletType";
 import { Entity } from "./Base/Entity";
 
 interface WalletProps {
@@ -16,6 +22,7 @@ interface WalletProps {
   relations: AddressRelation[];
   createdAt: Date;
 }
+type WalletPropsConstructor = SetOptional<WalletProps, "relations" | "tags">;
 
 export interface WalletRaw extends WalletProps {}
 
@@ -35,13 +42,46 @@ export interface AddressRelation {
   };
 }
 
+export const WalletRelationSchema = Joi.object({
+  address: Joi.string().required(),
+  type: Joi.string()
+    .valid(...addressRelationTypeList)
+    .required(),
+  metadata: Joi.object({
+    txHash: Joi.string().optional(),
+  }).optional(),
+});
+
+const WalletAddressTagSchema = Joi.object({
+  tag: Joi.string().valid(...walletTagNameList),
+});
+
+export const WalletSchema = Joi.object({
+  blockchain: Joi.string()
+    .valid(...blockchainIdList)
+    .required(),
+  address: Joi.string().required(),
+  type: Joi.string()
+    .valid(...walletTypeList)
+    .required(),
+  relations: Joi.array().items(WalletRelationSchema).optional(),
+  alias: Joi.string().optional(),
+  tags: Joi.array().items(WalletAddressTagSchema).optional(),
+  createdAt: Joi.date().required(),
+}).options({ stripUnknown: true });
+
 export class Wallet extends Entity<WalletProps> {
-  constructor(props: WalletProps, _id?: string) {
-    super(props, _id);
+  constructor(props: WalletPropsConstructor, _id?: string) {
+    super({ relations: [], tags: [], ...props }, _id);
   }
   addRelation(addressRelation: AddressRelation) {
     this.props.relations.push(addressRelation);
   }
+
+  get type(): WalletType {
+    return this.props.type;
+  }
+
   get address(): HexAddress {
     return this.props.address;
   }

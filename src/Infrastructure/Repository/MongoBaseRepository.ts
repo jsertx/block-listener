@@ -1,7 +1,11 @@
 import { injectable, unmanaged } from "inversify";
 import { Filter, MongoClient, ObjectId, WithId } from "mongodb";
 import { IConfig } from "../../Interfaces/IConfig";
-import { IBaseRepository } from "../../App/Repository/IBaseRepository";
+import {
+  findAllOptions,
+  FindAllResponse,
+  IBaseRepository,
+} from "../../App/Repository/IBaseRepository";
 import { PartialDeep } from "type-fest";
 import { Entity } from "../../App/Entities/Base/Entity";
 
@@ -27,8 +31,26 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
     return this.client.db().collection<TModel>(this.collectionName);
   }
 
-  async findAll(): Promise<TEntity[]> {
-    return this.getCollection().find().map(this.modelToEntityMapper).toArray();
+  async findAll({ page, pageSize = 500 }: findAllOptions = {}): Promise<
+    FindAllResponse<TEntity>
+  > {
+    let query = this.getCollection().find();
+    if (page) {
+      const skip = (page - 1) * pageSize;
+      query = query.skip(skip).limit(pageSize);
+    }
+
+    const [total, data] = await Promise.all([
+      this.getCollection().countDocuments(),
+      query.map(this.modelToEntityMapper).toArray(),
+    ]);
+
+    return {
+      data,
+      page: page || 1,
+      pageSize: page ? pageSize : total,
+      total,
+    };
   }
 
   async save(item: TEntity): Promise<TEntity> {

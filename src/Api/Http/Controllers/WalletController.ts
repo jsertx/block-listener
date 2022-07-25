@@ -9,12 +9,12 @@ import {
 } from "inversify-express-utils";
 import { IAddressService } from "../../../App/Interfaces/IAddressService";
 import { IocKey } from "../../../Ioc/IocKey";
-import { WalletSchema } from "../../../App/Schemas/AddressSchema";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { validateOrThrowError } from "../../../App/Utils/Validation";
 import { Wallet, WalletRaw } from "../../../App/Entities/Wallet";
 import { ApiOperationPost, ApiPath } from "swagger-express-ts";
+import { CreateWalletDto, CreateWalletDtoSchema } from "../Dto/WalletDto";
 
 @ApiPath({
   path: "/wallets",
@@ -36,23 +36,13 @@ export class WalletController implements interfaces.Controller {
     });
   }
 
-  @ApiOperationPost({
-    description: "Create wallet",
-    parameters: {
-      body: {
-        description: "New version",
-        required: true,
-        model: "CreateWallet",
-      },
-    },
-    responses: {
-      200: { description: "Success" },
-    },
-  })
   @httpPost("/")
-  async createWallet(@requestBody() body: WalletRaw): Promise<IApiResponse> {
+  async createWallet(
+    @requestBody() body: CreateWalletDto
+  ): Promise<IApiResponse> {
+    validateOrThrowError(body, CreateWalletDtoSchema);
     const wallet = await this.addressService.saveWallet(
-      Wallet.create({ ...body, createdAt: new Date() })
+      Wallet.create({ ...body, tags: [], relations: [], createdAt: new Date() })
     );
     return {
       success: true,

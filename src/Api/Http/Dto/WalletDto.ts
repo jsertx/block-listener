@@ -1,11 +1,11 @@
 import Joi from "joi";
-import { blockchainIdList } from "../../../App/Values/Blockchain";
-import { walletTypeList } from "../../../App/Values/WalletType";
+import { BlockchainId, blockchainIdList } from "../../../App/Values/Blockchain";
+import { WalletType, walletTypeList } from "../../../App/Values/WalletType";
 
 export interface CreateWalletDto {
   address: string;
-  blockchain: string;
-  type: string;
+  blockchain: BlockchainId;
+  type: WalletType;
   alias: string;
 }
 
