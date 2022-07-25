@@ -2,9 +2,9 @@ stages:
   - deploy
 
 deploy_develop:
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
-    - when: manual
+  # rules:
+  #   - if: '$CI_COMMIT_REF_NAME == "main"'
+  #   - when: manual
   stage: deploy
   script:
     - echo "Deploy to develop server"
