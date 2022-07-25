@@ -5,10 +5,10 @@ import { IConfig } from "../../Interfaces/IConfig";
 import { IocKey } from "../../Ioc/IocKey";
 import { MongoBaseRepository } from "./MongoBaseRepository";
 import { PartialObjectDeep } from "type-fest/source/partial-deep";
-import { Address, AddressRaw } from "../../Domain/Entities/Base/Address";
-import { BlockchainId } from "../../Domain/Values/Blockchain";
-import { Contract, ContractRaw } from "../../Domain/Entities/Contract";
-import { IContractRepository } from "../../Domain/Repository/IContractRepository";
+
+import { BlockchainId } from "../../App/Values/Blockchain";
+import { Contract, ContractRaw } from "../../App/Entities/Contract";
+import { IContractRepository } from "../../App/Repository/IContractRepository";
 
 @injectable()
 export class ContractRepository
@@ -23,10 +23,10 @@ export class ContractRepository
   }
 
   protected getMatchCriteriaFromEntity(
-    address: Address
+    contract: Contract
   ): PartialObjectDeep<ContractRaw> {
-    const { blockchain } = address.toRaw();
-    return { blockchain, address: address.address };
+    const { blockchain, address } = contract.toRaw();
+    return { blockchain, address };
   }
 
   protected modelToEntityMapper(model: WithId<ContractRaw>): Contract {

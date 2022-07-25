@@ -6,17 +6,18 @@ import {
   IBrokerPublicationReceipt,
   IBrokerSubCallback,
 } from "../../../Interfaces/IBroker";
+import { EventChannel } from "../../Enums/Channel";
 
 @injectable()
-export class EventBus implements IBroker {
+export class EventBus implements IBroker<EventChannel> {
   private emitter = new EventEmitter();
   async publish<T = any>(
-    channel: string,
+    publication: EventChannel,
     event: T
   ): Promise<IBrokerPublicationReceipt> {
-    const success = this.emitter.emit(channel, event);
+    const success = this.emitter.emit(publication, event);
     if (!success) {
-      throw new Error(`Error publishing into ${channel}`);
+      throw new Error(`Error publishing into ${publication}`);
     }
     return {
       success,
@@ -24,13 +25,13 @@ export class EventBus implements IBroker {
   }
 
   async subscribe<T = any>(
-    channel: string,
-    callback: IBrokerSubCallback
+    publication: EventChannel,
+    callback: IBrokerSubCallback<T>
   ): Promise<IBrokerSubscription> {
-    this.emitter.on(channel, callback);
+    this.emitter.on(publication, callback);
     return {
       off: () => {
-        this.emitter.off(channel, callback);
+        this.emitter.off(publication, callback);
       },
     };
   }

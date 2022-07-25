@@ -7,13 +7,13 @@ import {
   requestBody,
   requestParam,
 } from "inversify-express-utils";
-import { IAddressService } from "../../../Domain/Interfaces/IAddressService";
+import { IAddressService } from "../../../App/Interfaces/IAddressService";
 import { IocKey } from "../../../Ioc/IocKey";
-import { WalletSchema } from "../../../Domain/Schemas/AddressSchema";
+import { WalletSchema } from "../../../App/Schemas/AddressSchema";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
-import { validateOrThrowError } from "../../../Domain/Utils/Validation";
-import { Wallet, WalletRaw } from "../../../Domain/Entities/Wallet";
+import { validateOrThrowError } from "../../../App/Utils/Validation";
+import { Wallet, WalletRaw } from "../../../App/Entities/Wallet";
 import { ApiOperationPost, ApiPath } from "swagger-express-ts";
 
 @ApiPath({

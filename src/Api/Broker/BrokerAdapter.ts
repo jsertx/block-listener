@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
-import { Contract, ContractRaw } from "../../Domain/Entities/Contract";
-import { Wallet, WalletRaw } from "../../Domain/Entities/Wallet";
-import { IAddressService } from "../../Domain/Interfaces/IAddressService";
+import { Contract, ContractRaw } from "../../App/Entities/Contract";
+import { Wallet, WalletRaw } from "../../App/Entities/Wallet";
+import { IAddressService } from "../../App/Interfaces/IAddressService";
 import { IAdapter } from "../../Interfaces/IAdapter";
 import { IBroker } from "../../Interfaces/IBroker";
 import { IocKey } from "../../Ioc/IocKey";

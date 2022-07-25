@@ -1,8 +1,8 @@
 import { inject, injectable } from "inversify";
 import { MongoClient, WithId } from "mongodb";
-import { Tx, TxRaw } from "../../Domain/Entities/Tx";
+import { Tx, TxRaw } from "../../App/Entities/Tx";
 import { IConfig } from "../../Interfaces/IConfig";
-import { ITxRepository } from "../../Domain/Repository/ITxRepository";
+import { ITxRepository } from "../../App/Repository/ITxRepository";
 import { IocKey } from "../../Ioc/IocKey";
 import { MongoBaseRepository } from "./MongoBaseRepository";
 import { PartialObjectDeep } from "type-fest/source/partial-deep";

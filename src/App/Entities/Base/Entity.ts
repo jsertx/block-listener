@@ -8,6 +8,7 @@ export class Entity<Props> {
   get isSaved() {
     return !!this.id;
   }
+
   toRaw(): Props {
     return this.props;
   }

@@ -1,13 +1,13 @@
 import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
-import { ITxRepository } from "../../Domain/Repository/ITxRepository";
+import { ITxRepository } from "../Repository/ITxRepository";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IocKey } from "../../Ioc/IocKey";
-import { Channel } from "../Enums/Channel";
+import { EventChannel } from "../Enums/Channel";
 import { IBroker } from "../../Interfaces/IBroker";
 
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
-import { IListenerUseCase } from "../../Interfaces/IListenerUseCase";
+import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
 
 @injectable()
 export class SaveTokenTx implements IListenerUseCase {
@@ -19,7 +19,10 @@ export class SaveTokenTx implements IListenerUseCase {
   ) {}
 
   async listen() {
-    this.eventBus.subscribe(Channel.SaveDirectTokenTx, this.onNewTx.bind(this));
+    this.eventBus.subscribe(
+      EventChannel.SaveDirectTokenTx,
+      this.onNewTx.bind(this)
+    );
   }
 
   async onNewTx(txRes: ethers.providers.TransactionResponse) {

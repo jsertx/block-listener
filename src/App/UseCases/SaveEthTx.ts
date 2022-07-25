@@ -1,19 +1,19 @@
 import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
-import { EthNativeTransferTx } from "../../Domain/Entities/Tx";
-import { ITxRepository } from "../../Domain/Repository/ITxRepository";
-import { TxType } from "../../Domain/Values/Tx";
+import { EthNativeTransferTx } from "../Entities/Tx";
+import { ITxRepository } from "../Repository/ITxRepository";
+import { TxType } from "../Values/Tx";
 import { IConfig } from "../../Interfaces/IConfig";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IocKey } from "../../Ioc/IocKey";
-import { Channel } from "../Enums/Channel";
+import { EventChannel } from "../Enums/Channel";
 import { IBroker } from "../../Interfaces/IBroker";
 
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
-import { UnprocessedTx } from "../Models/Tx";
+import { RawTransaction } from "../Models/RawTransaction";
 
 import { toFormatted, toPrecision } from "../Utils/Amount";
-import { IListenerUseCase } from "../../Interfaces/IListenerUseCase";
+import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
 
 @injectable()
 export class SaveEthTx implements IListenerUseCase {
@@ -26,20 +26,23 @@ export class SaveEthTx implements IListenerUseCase {
   ) {}
 
   async listen() {
-    this.eventBus.subscribe(Channel.SaveEthTransferTx, this.onNewTx.bind(this));
+    this.eventBus.subscribe(
+      EventChannel.SaveEthTransferTx,
+      this.onNewTx.bind(this)
+    );
   }
 
-  async onNewTx({ raw, blockchain }: UnprocessedTx) {
-    if (raw.value.lt(toPrecision(this.config.txRules.minEthValue))) {
+  async onNewTx({ raw: data, blockchain }: RawTransaction) {
+    if (data.value.lt(toPrecision(this.config.txRules.minEthValue))) {
       return;
     }
 
     const tx = new EthNativeTransferTx({
-      hash: raw.hash,
+      hash: data.hash,
       type: TxType.EthTransfer,
-      blockchain: blockchain.id,
-      data: { from: raw.from, to: raw.to!, value: toFormatted(raw.value) },
-      raw,
+      blockchain,
+      data: { from: data.from, to: data.to!, value: toFormatted(data.value) },
+      raw: data,
     });
 
     const saved = await this.txRepository.saveIfNotExist(tx);
@@ -47,7 +50,7 @@ export class SaveEthTx implements IListenerUseCase {
     if (saved) {
       this.logger.log({
         type: "save-eth-tx.saved",
-        context: { txHash: raw.hash },
+        context: { txHash: data.hash },
       });
     }
   }

@@ -1,9 +1,9 @@
 import { injectable, unmanaged } from "inversify";
 import { Filter, MongoClient, ObjectId, WithId } from "mongodb";
 import { IConfig } from "../../Interfaces/IConfig";
-import { IBaseRepository } from "../../Domain/Repository/IBaseRepository";
+import { IBaseRepository } from "../../App/Repository/IBaseRepository";
 import { PartialDeep } from "type-fest";
-import { Entity } from "../../Domain/Entities/Base/Entity";
+import { Entity } from "../../App/Entities/Base/Entity";
 
 export type MongoProvider = () => Promise<MongoClient>;
 

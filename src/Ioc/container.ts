@@ -7,7 +7,6 @@ import { ProviderFactory } from "../App/Services/Providers/ProviderFactory";
 import { IocKey } from "./IocKey";
 import { TxRepository } from "../Infrastructure/Repository/TxRepository";
 import { createConnection } from "../Infrastructure/Database/utils";
-import { AddressService } from "../Domain/Services/AddressService";
 import { WalletRepository } from "../Infrastructure/Repository/WalletRepository";
 import { ContractRepository } from "../Infrastructure/Repository/ContractRepository";
 import { ProcessTx } from "../App/UseCases/ProcessTx";
@@ -19,6 +18,7 @@ import { createBrokerConnection } from "../Infrastructure/Broker/Utils/Mq";
 import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
 import { BrokerAdapter } from "../Api/Broker/BrokerAdapter";
 import { HttpAdapter } from "../Api/Http/HttpAdapter";
+import { AddressService } from "../App/Services/AddressService";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {

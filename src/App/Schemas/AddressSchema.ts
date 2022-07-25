@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { addressRelationTypeList } from "../Entities/Base/Address";
+import { addressRelationTypeList } from "../Entities/Wallet";
 import { AddressType, addressTypeList } from "../Values/AddressType";
 import { blockchainIdList } from "../Values/Blockchain";
 import { contractTypeList } from "../Values/ContractType";

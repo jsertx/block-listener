@@ -5,19 +5,17 @@ import { IBroker } from "../../Interfaces/IBroker";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IConfig } from "../../Interfaces/IConfig";
 
-import { BlockWithTransactions } from "../Types/BlockWithTransactions";
 import { createAddrMap } from "../Utils/Address";
 import { isNativeTokenTx } from "../Utils/Tx";
 import { ContractMap } from "../Types/Mappings";
 import { Opt } from "../Types/Helpers";
 
-import { toPrecision } from "../Utils/Amount";
-import { UnprocessedTx } from "../Models/Tx";
-import { Channel } from "../Enums/Channel";
+import { RawTransaction } from "../Models/RawTransaction";
+import { EventChannel } from "../Enums/Channel";
 import { IocKey } from "../../Ioc/IocKey";
-import { IAddressService } from "../../Domain/Interfaces/IAddressService";
-import { ContractType } from "../../Domain/Values/ContractType";
-import { IListenerUseCase } from "../../Interfaces/IListenerUseCase";
+import { IAddressService } from "../Interfaces/IAddressService";
+import { ContractType } from "../Values/ContractType";
+import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
 
 @injectable()
 export class ProcessTx implements IListenerUseCase {
@@ -33,10 +31,10 @@ export class ProcessTx implements IListenerUseCase {
     this.logger.log({
       type: "find-direct-tx.start",
     });
-    this.eventBus.subscribe(Channel.ProcessTx, this.onTx.bind(this));
+    this.eventBus.subscribe(EventChannel.ProcessTx, this.onTx.bind(this));
   }
 
-  async onTx(unprocessedTx: UnprocessedTx) {
+  async onTx(unprocessedTx: RawTransaction) {
     const addressesOfInterest = await this.getSmartContractsOfInterest();
     const channel = this.getPublicationChannel(
       unprocessedTx,
@@ -48,32 +46,32 @@ export class ProcessTx implements IListenerUseCase {
   }
 
   private getPublicationChannel(
-    { raw }: UnprocessedTx,
+    { raw: data }: RawTransaction,
     addressesOfInterest: ContractMap
-  ): Opt<Channel | undefined> {
-    if (isNativeTokenTx(raw) && raw.value.gte("0")) {
-      return Channel.SaveEthTransferTx;
+  ): Opt<EventChannel | undefined> {
+    if (isNativeTokenTx(data) && data.value.gte("0")) {
+      return EventChannel.SaveEthTransferTx;
     }
-    const contract = addressesOfInterest[raw.to!];
+    const contract = addressesOfInterest[data.to!];
     if (!contract) {
       return undefined;
     }
 
     return {
-      [ContractType.UniswapRouterV2Like]: Channel.SaveDirectDexTx,
-      [ContractType.TokenErc20]: Channel.SaveDirectTokenTx,
+      [ContractType.UniswapRouterV2Like]: EventChannel.SaveDirectDexTx,
+      [ContractType.TokenErc20]: EventChannel.SaveDirectTokenTx,
       [ContractType.ArbBot]: undefined,
       [ContractType.MevBot]: undefined,
     }[contract.type];
   }
 
   private async getSmartContractsOfInterest(): Promise<ContractMap> {
-    const addresses = await this.contractService.findAllContracts();
+    const contracts = await this.contractService.findAllContracts();
     return createAddrMap(
-      addresses.reduce((map, address) => {
+      contracts.reduce((map, contract) => {
         return {
           ...map,
-          [address.address]: address,
+          [contract.address]: contract,
         };
       }, {})
     );

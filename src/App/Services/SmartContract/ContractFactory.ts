@@ -5,9 +5,9 @@ import { IContractFactory } from "../../Interfaces/IContractFactory";
 import { IProviderFactory } from "../../Interfaces/IProviderFactory";
 import { IocKey } from "../../../Ioc/IocKey";
 import { ABI } from "./ABI";
-import { AddressType } from "../../../Domain/Values/AddressType";
-import { ContractType } from "../../../Domain/Values/ContractType";
-import { Contract, ContractRaw } from "../../../Domain/Entities/Contract";
+import { AddressType } from "../../Values/AddressType";
+import { ContractType } from "../../Values/ContractType";
+import { Contract, ContractRaw } from "../../Entities/Contract";
 
 @injectable()
 export class ContractFactory implements IContractFactory {
