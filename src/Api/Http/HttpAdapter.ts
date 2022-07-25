@@ -12,8 +12,8 @@ import { IConfig } from "../../Interfaces/IConfig";
 
 import "./Controllers/StatusController";
 import "./Controllers/TxController";
+import "./Controllers/ContractController";
 import "./Controllers/WalletController";
-import { setupSwagger } from "./Middleware/Swagger";
 
 @injectable()
 export class HttpAdapter implements IAdapter {
@@ -35,8 +35,6 @@ export class HttpAdapter implements IAdapter {
       );
       app.use(bodyParser.json());
       app.use(ApiTokenAuthMiddleware(this.logger));
-
-      setupSwagger(app);
     });
 
     server.setErrorConfig((app) => {

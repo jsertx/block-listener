@@ -11,35 +11,35 @@ import { IocKey } from "../../../Ioc/IocKey";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { validateOrThrowError } from "../../../App/Utils/Validation";
-import { Wallet, WalletRaw } from "../../../App/Entities/Wallet";
-import { CreateWalletDto, CreateWalletDtoSchema } from "../Dto/WalletDto";
+import { Contract, ContractRaw } from "../../../App/Entities/Contract";
+import { CreateContractDto, CreateContractDtoSchema } from "../Dto/ContractDto";
 
-@controller("/wallets")
-export class WalletController implements interfaces.Controller {
+@controller("/contracts")
+export class ContractController implements interfaces.Controller {
   constructor(
     @inject(IocKey.AddressService)
     private addressService: IAddressService
   ) {}
 
   @httpGet("/")
-  async index(): Promise<IApiPaginatedResponse<WalletRaw>> {
-    const data = await this.addressService.findAllWallets();
+  async index(): Promise<IApiPaginatedResponse<ContractRaw>> {
+    const data = await this.addressService.findAllContracts();
     return buildPaginatedResponse({
       data: data.map((data) => data.toRaw()),
     });
   }
 
   @httpPost("/")
-  async createWallet(
-    @requestBody() body: CreateWalletDto
+  async createContract(
+    @requestBody() body: CreateContractDto
   ): Promise<IApiResponse> {
-    validateOrThrowError(body, CreateWalletDtoSchema);
-    const wallet = await this.addressService.saveWallet(
-      Wallet.create({ ...body, createdAt: new Date() })
+    validateOrThrowError(body, CreateContractDtoSchema);
+    const contract = await this.addressService.saveContract(
+      Contract.create({ ...body, createdAt: new Date() })
     );
     return {
       success: true,
-      data: wallet.toRaw(),
+      data: contract.toRaw(),
     };
   }
 }

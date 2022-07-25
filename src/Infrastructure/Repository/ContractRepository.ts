@@ -19,7 +19,7 @@ export class ContractRepository
     @inject(IocKey.DbClient) client: MongoClient,
     @inject(IocKey.Config) config: IConfig
   ) {
-    super("address", client, config);
+    super("contracts", client, config);
   }
 
   protected getMatchCriteriaFromEntity(
