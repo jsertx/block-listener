@@ -75,6 +75,14 @@ export class Tx<DataTypeRaw> extends Entity<TxProps<DataTypeRaw>> {
     return this.props.hash;
   }
 
+  get timestamp(): number {
+    return this.props.raw.timestamp;
+  }
+
+  get block(): number {
+    return this.props.raw.blockHeight;
+  }
+
   get isSmartContractCall(): boolean {
     return !!this.raw.smartContractCall;
   }
@@ -90,7 +98,9 @@ export class Tx<DataTypeRaw> extends Entity<TxProps<DataTypeRaw>> {
   get raw(): RawTx {
     return this.props.raw;
   }
-
+  get data(): DataTypeRaw | undefined {
+    return this.props.data;
+  }
   get original(): ethers.providers.TransactionResponse {
     return this.props.raw.original;
   }
