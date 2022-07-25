@@ -60,8 +60,6 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
       upsert: true,
     });
 
-    console.log(res);
-
     const _item = await this.getCollection().findOne(
       filter as unknown as Filter<TModel>
     );

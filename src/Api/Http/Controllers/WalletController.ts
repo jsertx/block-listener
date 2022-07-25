@@ -42,7 +42,7 @@ export class WalletController implements interfaces.Controller {
   ): Promise<IApiResponse> {
     validateOrThrowError(body, CreateWalletDtoSchema);
     const wallet = await this.addressService.saveWallet(
-      Wallet.create({ ...body, tags: [], relations: [], createdAt: new Date() })
+      Wallet.create({ ...body, createdAt: new Date() })
     );
     return {
       success: true,
