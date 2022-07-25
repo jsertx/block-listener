@@ -54,23 +54,21 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
   }
 
   async save(item: TEntity): Promise<TEntity> {
-    const { insertedId } = await this.getCollection().insertOne(item.toRaw());
+    const filter = this.getMatchCriteriaFromEntity(item);
+    const doc = { $set: item.toRaw() };
+    const res = await this.getCollection().updateOne(filter as any, doc, {
+      upsert: true,
+    });
 
-    return this.modelToEntityMapper({ ...item.toRaw(), _id: insertedId });
-  }
+    console.log(res);
 
-  async saveIfNotExist(item: TEntity): Promise<TEntity> {
-    const matchCriteria = this.getMatchCriteriaFromEntity(item);
-    const id = await this.getCollection()
-      .updateOne(
-        matchCriteria as any,
-        {
-          $setOnInsert: item.toRaw(),
-        },
-        { upsert: true }
-      )
-      .then((res) => res.upsertedId);
+    const _item = await this.getCollection().findOne(
+      filter as unknown as Filter<TModel>
+    );
 
-    return item;
+    return this.modelToEntityMapper({
+      ...item.toRaw(),
+      _id: _item?._id,
+    });
   }
 }

@@ -22,10 +22,10 @@ export class AddressService implements IAddressService {
   }
 
   saveWallet(wallet: Wallet): Promise<Wallet> {
-    return this.walletRepository.saveIfNotExist(wallet);
+    return this.walletRepository.save(wallet);
   }
 
   saveContract(contract: Contract): Promise<Contract> {
-    return this.contractRepository.saveIfNotExist(contract);
+    return this.contractRepository.save(contract);
   }
 }

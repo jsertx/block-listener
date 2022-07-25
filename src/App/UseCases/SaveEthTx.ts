@@ -45,7 +45,7 @@ export class SaveEthTx implements IListenerUseCase {
       raw: data,
     });
 
-    const saved = await this.txRepository.saveIfNotExist(tx);
+    const saved = await this.txRepository.save(tx);
 
     if (saved) {
       this.logger.log({

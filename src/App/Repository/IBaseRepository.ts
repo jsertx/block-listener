@@ -13,5 +13,4 @@ export interface FindAllResponse<TEntity> {
 export interface IBaseRepository<TEntity extends Entity<any>> {
   findAll(options?: findAllOptions): Promise<FindAllResponse<TEntity>>;
   save(item: TEntity): Promise<TEntity>;
-  saveIfNotExist(item: TEntity): Promise<TEntity>;
 }
