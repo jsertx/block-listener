@@ -56,7 +56,7 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
   async save(item: TEntity): Promise<TEntity> {
     const filter = this.getMatchCriteriaFromEntity(item);
     const doc = { $set: item.toRaw() };
-    const res = await this.getCollection().updateOne(filter as any, doc, {
+    await this.getCollection().updateOne(filter as any, doc, {
       upsert: true,
     });
 
