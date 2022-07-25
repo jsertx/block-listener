@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Contract } from "../../Domain/Entities/Contract";
+import { Contract } from "../Entities/Contract";
 
 export interface IContractFactory {
   getContract(

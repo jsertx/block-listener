@@ -1,9 +1,13 @@
 import { injectable, unmanaged } from "inversify";
 import { Filter, MongoClient, ObjectId, WithId } from "mongodb";
 import { IConfig } from "../../Interfaces/IConfig";
-import { IBaseRepository } from "../../Domain/Repository/IBaseRepository";
+import {
+  findAllOptions,
+  FindAllResponse,
+  IBaseRepository,
+} from "../../App/Repository/IBaseRepository";
 import { PartialDeep } from "type-fest";
-import { Entity } from "../../Domain/Entities/Base/Entity";
+import { Entity } from "../../App/Entities/Base/Entity";
 
 export type MongoProvider = () => Promise<MongoClient>;
 
@@ -27,28 +31,44 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
     return this.client.db().collection<TModel>(this.collectionName);
   }
 
-  async findAll(): Promise<TEntity[]> {
-    return this.getCollection().find().map(this.modelToEntityMapper).toArray();
+  async findAll({ page, pageSize = 500 }: findAllOptions = {}): Promise<
+    FindAllResponse<TEntity>
+  > {
+    let query = this.getCollection().find();
+    if (page) {
+      const skip = (page - 1) * pageSize;
+      query = query.skip(skip).limit(pageSize);
+    }
+
+    const [total, data] = await Promise.all([
+      this.getCollection().countDocuments(),
+      query.map(this.modelToEntityMapper).toArray(),
+    ]);
+
+    return {
+      data,
+      page: page || 1,
+      pageSize: page ? pageSize : total,
+      total,
+    };
   }
 
   async save(item: TEntity): Promise<TEntity> {
-    const { insertedId } = await this.getCollection().insertOne(item.toRaw());
+    const filter = this.getMatchCriteriaFromEntity(item);
+    const doc = { $set: item.toRaw() };
+    const res = await this.getCollection().updateOne(filter as any, doc, {
+      upsert: true,
+    });
 
-    return this.modelToEntityMapper({ ...item.toRaw(), _id: insertedId });
-  }
+    console.log(res);
 
-  async saveIfNotExist(item: TEntity): Promise<TEntity> {
-    const matchCriteria = this.getMatchCriteriaFromEntity(item);
-    const id = await this.getCollection()
-      .updateOne(
-        matchCriteria as any,
-        {
-          $setOnInsert: item.toRaw(),
-        },
-        { upsert: true }
-      )
-      .then((res) => res.upsertedId);
+    const _item = await this.getCollection().findOne(
+      filter as unknown as Filter<TModel>
+    );
 
-    return item;
+    return this.modelToEntityMapper({
+      ...item.toRaw(),
+      _id: _item?._id,
+    });
   }
 }

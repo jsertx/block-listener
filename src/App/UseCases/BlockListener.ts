@@ -5,10 +5,10 @@ import { ILogger } from "../../Interfaces/ILogger";
 
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IocKey } from "../../Ioc/IocKey";
-import { Blockchain, BlockchainId } from "../../Domain/Values/Blockchain";
-import { UnprocessedTx } from "../Models/Tx";
-import { Channel } from "../Enums/Channel";
-import { IListenerUseCase } from "../../Interfaces/IListenerUseCase";
+import { Blockchain, BlockchainId } from "../Values/Blockchain";
+import { RawTransaction } from "../Models/RawTransaction";
+import { EventChannel } from "../Enums/Channel";
+import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
 
 @injectable()
 export class BlockListener implements IListenerUseCase {
@@ -30,10 +30,10 @@ export class BlockListener implements IListenerUseCase {
     provider.on("block", async (blockNumber) => {
       const block = await provider.getBlockWithTransactions(blockNumber);
 
-      for (const raw of block.transactions) {
-        this.eventBus.publish<UnprocessedTx>(Channel.ProcessTx, {
-          raw,
-          blockchain: this.blockchain,
+      for (const data of block.transactions) {
+        this.eventBus.publish<RawTransaction>(EventChannel.ProcessTx, {
+          raw: data,
+          blockchain: this.blockchain.id,
         });
       }
       this.logger.log({

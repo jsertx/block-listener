@@ -12,7 +12,6 @@ import { IConfig } from "../../Interfaces/IConfig";
 
 import "./Controllers/StatusController";
 import "./Controllers/TxController";
-import "./Controllers/ContractController";
 import "./Controllers/WalletController";
 import { setupSwagger } from "./Middleware/Swagger";
 

@@ -4,9 +4,9 @@ import { IConfig } from "../../Interfaces/IConfig";
 import { IocKey } from "../../Ioc/IocKey";
 import { MongoBaseRepository } from "./MongoBaseRepository";
 import { PartialObjectDeep } from "type-fest/source/partial-deep";
-import { BlockchainId } from "../../Domain/Values/Blockchain";
-import { Wallet, WalletRaw } from "../../Domain/Entities/Wallet";
-import { IWalletRepository } from "../../Domain/Repository/IWalletRepository";
+import { BlockchainId } from "../../App/Values/Blockchain";
+import { Wallet, WalletRaw } from "../../App/Entities/Wallet";
+import { IWalletRepository } from "../../App/Repository/IWalletRepository";
 
 @injectable()
 export class WalletRepository

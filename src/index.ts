@@ -3,7 +3,7 @@ import "dotenv/config";
 import { initializeContainer } from "./Ioc/container";
 
 import { IocKey } from "./Ioc/IocKey";
-import { IListenerUseCase } from "./Interfaces/IListenerUseCase";
+import { IListenerUseCase } from "./App/Interfaces/IListenerUseCase";
 import { IAdapter } from "./Interfaces/IAdapter";
 
 (async () => {

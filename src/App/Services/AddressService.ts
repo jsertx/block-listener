@@ -15,17 +15,17 @@ export class AddressService implements IAddressService {
   ) {}
 
   findAllWallets(): Promise<Wallet[]> {
-    return this.walletRepository.findAll();
+    return this.walletRepository.findAll().then((res) => res.data);
   }
   findAllContracts(): Promise<Contract[]> {
-    return this.contractRepository.findAll();
+    return this.contractRepository.findAll().then((res) => res.data);
   }
 
   saveWallet(wallet: Wallet): Promise<Wallet> {
-    return this.walletRepository.saveIfNotExist(wallet);
+    return this.walletRepository.save(wallet);
   }
 
   saveContract(contract: Contract): Promise<Contract> {
-    return this.contractRepository.saveIfNotExist(contract);
+    return this.contractRepository.save(contract);
   }
 }

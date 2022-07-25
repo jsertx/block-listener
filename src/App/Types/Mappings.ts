@@ -1,5 +1,5 @@
-import { Contract } from "../../Domain/Entities/Contract";
-import { Wallet } from "../../Domain/Entities/Wallet";
+import { Contract } from "../Entities/Contract";
+import { Wallet } from "../Entities/Wallet";
 
 export type ContractMap = Record<string, Contract>;
 export type WalletMap = Record<string, Wallet>;
