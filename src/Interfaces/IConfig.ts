@@ -1,7 +1,7 @@
 export interface IConfig {
   providers: {
     etherScanApiKey: string;
-    alchemyJsonRpcUrl: string;
+    alchemyJsonRpcUrl?: string;
   };
   database: {
     database?: string;
