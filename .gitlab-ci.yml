@@ -3,7 +3,7 @@ stages:
 
 deploy_develop:
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "main"'
     - when: manual
   stage: deploy
   script:
