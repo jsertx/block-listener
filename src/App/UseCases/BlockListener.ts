@@ -29,13 +29,10 @@ export class BlockListener implements IListenerUseCase {
     const provider = this.providerFactory.getProvider(this.blockchain);
     provider.on("block", async (blockNumber) => {
       const block = await provider.getBlockWithTransactions(blockNumber);
-
-      for (const data of block.transactions) {
-        this.eventBus.publish<RawTransaction>(EventChannel.ProcessTx, {
-          raw: data,
-          blockchain: this.blockchain.id,
-        });
-      }
+      this.eventBus.publish(EventChannel.NewBlock, {
+        blockchain: this.blockchain,
+        block,
+      });
       this.logger.log({
         type: "block-listener.new-block",
         context: {

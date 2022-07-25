@@ -12,9 +12,13 @@ export class ProviderFactory implements IProviderFactory {
   constructor(@inject(IocKey.Config) private config: IConfig) {}
 
   getProvider(blockchain: Blockchain = defaultBlockchain) {
-    return new ethers.providers.EtherscanProvider(
-      blockchain.chainId,
-      this.config.providers.etherScanApiKey
+    return new ethers.providers.StaticJsonRpcProvider(
+      this.config.providers.alchemyJsonRpcUrl,
+      blockchain.chainId
     );
+    // return new ethers.providers.EtherscanProvider(
+    //   blockchain.chainId,
+    //   this.config.providers.etherScanApiKey
+    // );
   }
 }

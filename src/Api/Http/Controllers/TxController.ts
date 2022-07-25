@@ -5,7 +5,7 @@ import {
   httpGet,
   queryParam,
 } from "inversify-express-utils";
-import { TxRaw } from "../../../App/Entities/Tx";
+import { TxProps } from "../../../App/Entities/Tx";
 import { TxType } from "../../../App/Values/Tx";
 import { ITxRepository } from "../../../App/Repository/ITxRepository";
 import { IocKey } from "../../../Ioc/IocKey";
@@ -22,7 +22,7 @@ export class TxController implements interfaces.Controller {
   async getAllTransfers(
     @queryParam("page") _page: string,
     @queryParam("pageSize") _pageSize: string
-  ): Promise<IApiPaginatedResponse<TxRaw>> {
+  ): Promise<IApiPaginatedResponse<TxProps>> {
     const { data, page, pageSize, total } = await this.txRepository.findAll({
       page: _page ? Number(_page) : 1,
       pageSize: _pageSize ? Number(_pageSize) : 500,
