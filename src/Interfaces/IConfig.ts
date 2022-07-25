@@ -4,6 +4,7 @@ export interface IConfig {
     alchemyJsonRpcUrl: string;
   };
   database: {
+    database?: string;
     connectionUri: string;
   };
   http: {

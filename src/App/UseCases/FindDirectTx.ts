@@ -14,6 +14,7 @@ import { toPrecision } from "../Utils/Amount";
 
 import { RawBlock } from "../Models/RawBlock";
 import { IContractRepository } from "../Repository/IContractRepository";
+import { RawTxId } from "../Models/RawTxId";
 
 @injectable()
 export class FindDirectTx implements IListenerUseCase {
@@ -41,7 +42,8 @@ export class FindDirectTx implements IListenerUseCase {
         this.isBigNativeTx(rawTx) ||
         this.isAgainstContractOfInterst(rawTx, contracts)
       ) {
-        this.eventBus.publish(EventChannel.SaveTx, rawTx);
+        const msg: RawTxId = { blockchain, hash: raw.hash };
+        this.eventBus.publish(EventChannel.SaveTx, msg);
       }
     }
   }

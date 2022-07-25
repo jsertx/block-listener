@@ -38,7 +38,7 @@ export interface TxProps<TxDataType = any> {
   data?: TxDataType;
 }
 
-interface EthNativeTransferData {
+export interface EthNativeTransferData {
   from: HexAddress;
   to: HexAddress;
   value: FormattedAmount;
@@ -71,9 +71,18 @@ export class Tx<DataTypeRaw> extends Entity<TxProps<DataTypeRaw>> {
     super(props, _id);
     this._blockchain = new Blockchain(props.blockchain);
   }
+  get hash(): string {
+    return this.props.hash;
+  }
+
+  get isSmartContractCall(): boolean {
+    return !!this.raw.smartContractCall;
+  }
+
   get blockchain(): Blockchain {
     return this._blockchain;
   }
+
   get type(): TxType {
     return this.props.type;
   }
@@ -84,6 +93,11 @@ export class Tx<DataTypeRaw> extends Entity<TxProps<DataTypeRaw>> {
 
   get original(): ethers.providers.TransactionResponse {
     return this.props.raw.original;
+  }
+
+  setTypeAndData(type: TxType, data: DataTypeRaw) {
+    this.props.type = type;
+    this.props.data = data;
   }
 
   static create(props: TxProps, _id?: string): Tx<any> {

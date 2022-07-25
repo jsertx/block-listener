@@ -63,7 +63,7 @@ export class FindInternalTx implements IListenerUseCase {
       .filter(onlyUniqueFilter);
 
     txHashes.forEach((hash) => {
-      const msg: RawTxId = { blockchain: rawBlock.blockchain, hash, blockNumber: };
+      const msg: RawTxId = { blockchain: rawBlock.blockchain, hash };
       this.eventBus.publish(EventChannel.SaveTx, msg);
     });
   }
@@ -96,7 +96,9 @@ export class FindInternalTx implements IListenerUseCase {
       fromBlock,
       toBlock
     );
-    return events.map((event) => event.transactionHash).filter(onlyUniqueFilter);
+    return events
+      .map((event) => event.transactionHash)
+      .filter(onlyUniqueFilter);
   }
 
   private getBlockFetchingRange({

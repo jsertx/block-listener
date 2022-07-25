@@ -7,6 +7,7 @@ export const Config: IConfig = {
     alchemyJsonRpcUrl: getEnv("ALCHEMY_JSON_RPC_URL"),
   },
   database: {
+    database: getEnv("DATABASE_NAME"),
     connectionUri: getEnv("DATABASE_URI"),
   },
   http: {

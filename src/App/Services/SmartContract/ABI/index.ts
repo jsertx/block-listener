@@ -13,3 +13,5 @@ export const ABI = {
   ERC20,
   Wrapped,
 };
+
+export const allAbiList = Object.values(ABI);

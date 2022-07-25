@@ -28,7 +28,9 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
   ): PartialDeep<TModel>;
 
   protected getCollection() {
-    return this.client.db().collection<TModel>(this.collectionName);
+    return this.client
+      .db(this.config.database.database)
+      .collection<TModel>(this.collectionName);
   }
 
   async findAll({ page, pageSize = 500 }: findAllOptions = {}): Promise<

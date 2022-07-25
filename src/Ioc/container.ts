@@ -15,6 +15,8 @@ import { BlockListener } from "../App/UseCases/BlockListener";
 
 import { HttpAdapter } from "../Api/Http/HttpAdapter";
 import { AddressService } from "../App/Services/AddressService";
+import { SaveTx } from "../App/UseCases/SaveTx";
+import { ProcessTx } from "../App/UseCases/ProcessTx";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -25,9 +27,11 @@ export const initializeContainer = async () => {
     bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
     bind(IocKey.AddressService).to(AddressService).inSingletonScope();
     // UseCases
-    bind(IocKey.ListenerUseCases).to(BlockListener).inSingletonScope();
+    bind(IocKey.ListenerUseCases).to(ProcessTx).inSingletonScope();
+    bind(IocKey.ListenerUseCases).to(SaveTx).inSingletonScope();
     bind(IocKey.ListenerUseCases).to(FindDirectTx).inSingletonScope();
     bind(IocKey.ListenerUseCases).to(FindInternalTx).inSingletonScope();
+    bind(IocKey.ListenerUseCases).to(BlockListener).inSingletonScope();
     // Broker & DB Connections
     const dbClient = await createConnection(Config.database.connectionUri);
     //const brokerClient = await createBrokerConnection(Config.broker.brokerUri),

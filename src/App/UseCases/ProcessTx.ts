@@ -1,76 +1,47 @@
 import { inject, injectable } from "inversify";
-import { ITxRepository } from "../Repository/ITxRepository";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IocKey } from "../../Ioc/IocKey";
 import { EventChannel } from "../Enums/Channel";
 import { IBroker } from "../../Interfaces/IBroker";
-import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
-import { RawTx, Tx } from "../Entities/Tx";
-import { TxType } from "../Values/Tx";
-import { RawTxId } from "../Models/RawTxId";
-import { isSmartContractCall } from "../Utils/Tx";
-import { IContractRepository } from "../Repository/IContractRepository";
+import {
+  EthNativeTransferData,
+  EthNativeTransferTxRaw,
+  Tx,
+} from "../Entities/Tx";
 import { LogDecoder, TxDecoder } from "@maticnetwork/eth-decoder";
 import { ethers } from "ethers";
 import { TransactionLog } from "../Models/TransactionLog";
-import { Blockchain, BlockchainId } from "../Values/Blockchain";
-import { allAbiList } from "../Services/SmartContract/ABI";
+import { ITxRepository } from "../Repository/ITxRepository";
+import { TxType } from "../Values/Tx";
+import { toFormatted, toPrecision } from "../Utils/Amount";
 
 @injectable()
-export class SaveTx implements IListenerUseCase {
+export class ProcessTx implements IListenerUseCase {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
-    @inject(IocKey.ContractRepository)
-    private contractRepository: IContractRepository,
-    @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
-    @inject(IocKey.EventBus) private eventBus: IBroker,
+    @inject(IocKey.EventBus)
+    private eventBus: IBroker,
     @inject(IocKey.Logger) private logger: ILogger
   ) {}
 
   async listen() {
-    this.eventBus.subscribe(EventChannel.SaveTx, this.onNewTx.bind(this));
+    this.eventBus.subscribe(EventChannel.ProcessTx, this.onNewTx.bind(this));
   }
 
-  async onNewTx({ blockchain, hash }: RawTxId) {
-    const provider = this.providerFactory.getProvider(blockchain);
-
-    const [res, receipt] = await Promise.all([
-      provider.getTransaction(hash),
-      provider.getTransactionReceipt(hash),
-    ]);
-
-    const block = await provider.getBlock(res.blockNumber!);
-
-    const logsDecoder = new LogDecoder(allAbiList);
-    const logs: TransactionLog[] = this.decodeTxLogs(receipt, logsDecoder);
-
-    let smartContractCall: RawTx["smartContractCall"];
-    if (isSmartContractCall(res)) {
-      const txDecoder = new TxDecoder(allAbiList);
-      smartContractCall = this.decodeTxDetails(res, txDecoder);
+  async onNewTx(tx: Tx<any>) {
+    if (!tx.isSmartContractCall) {
+      const data: EthNativeTransferData = {
+        from: tx.raw.from,
+        to: tx.raw.to,
+        value: toFormatted(tx.raw.value),
+      };
+      tx.setTypeAndData(TxType.EthTransfer, data);
+      await this.txRepository.save(tx);
     }
-
-    const raw: RawTx = {
-      original: res,
-      hash,
-      blockHeight: receipt.blockNumber,
-      timestamp: block.timestamp,
-      data: res.data,
-      to: res.to || "WTF",
-      from: res.from,
-      value: res.value.toString(),
-      smartContractCall,
-      logs: logs,
-    };
-
-    const tx = await this.txRepository.save(
-      Tx.create({ blockchain: blockchain.id, hash, raw, type: TxType.Unknown })
-    );
-    this.eventBus.publish(EventChannel.ProcessTx, tx);
     this.logger.log({
-      type: "save-tx.saved",
-      context: { txHash: hash },
+      type: "process-tx.done",
+      context: { txHash: tx.hash },
     });
   }
 

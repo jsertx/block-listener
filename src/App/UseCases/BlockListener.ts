@@ -6,7 +6,6 @@ import { ILogger } from "../../Interfaces/ILogger";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IocKey } from "../../Ioc/IocKey";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
-import { RawTransaction } from "../Models/RawTransaction";
 import { EventChannel } from "../Enums/Channel";
 import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
 
@@ -27,6 +26,7 @@ export class BlockListener implements IListenerUseCase {
       type: "block-listener.start",
     });
     const provider = this.providerFactory.getProvider(this.blockchain);
+
     provider.on("block", async (blockNumber) => {
       const block = await provider.getBlockWithTransactions(blockNumber);
       this.eventBus.publish(EventChannel.NewBlock, {
