@@ -39,6 +39,10 @@ export class SaveTx implements IStandaloneApps {
       provider.getTransactionReceipt(hash),
     ]);
 
+    if (receipt.status === 0) {
+      return;
+    }
+
     const block = await provider.getBlock(res.blockNumber!);
 
     const logsDecoder = new LogDecoder(allAbiList);
