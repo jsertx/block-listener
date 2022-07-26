@@ -33,7 +33,7 @@ export const initializeContainer = async () => {
     bind(IocKey.StandAloneApps).to(SaveTx).inSingletonScope();
     bind(IocKey.StandAloneApps).to(FindDirectTx).inSingletonScope();
     bind(IocKey.StandAloneApps).to(FindInternalTx).inSingletonScope();
-    //bind(IocKey.StandAloneApps).to(BlockListener).inSingletonScope();
+    bind(IocKey.StandAloneApps).to(BlockListener).inSingletonScope();
     bind(IocKey.StandAloneApps).to(SelectivePairDiscoverer).inSingletonScope();
     // Broker & DB Connections
     const dbClient = await createConnection(Config.database.connectionUri);
