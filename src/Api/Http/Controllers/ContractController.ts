@@ -10,7 +10,7 @@ import { IAddressService } from "../../../App/Interfaces/IAddressService";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
-import { validateOrThrowError } from "../../../App/Utils/Validation";
+import { validateOrThrowError } from "../Utils/Validation";
 import { Contract, ContractRaw } from "../../../App/Entities/Contract";
 import { CreateContractDto, CreateContractDtoSchema } from "../Dto/ContractDto";
 

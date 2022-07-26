@@ -22,4 +22,4 @@ export const CreateContractDtoSchema = Joi.object({
     .valid(...contractTypeList)
     .required(),
   alias: Joi.string().optional(),
-}).options({ stripUnknown: true });
+});

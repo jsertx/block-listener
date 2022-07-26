@@ -30,4 +30,4 @@ export const CreateWalletDtoSchema = Joi.object({
   alias: Joi.string().optional(),
   relations: Joi.array().items(WalletRelationSchema).optional(),
   tags: Joi.array().items(WalletAddressTagSchema).optional(),
-}).options({ stripUnknown: true });
+});

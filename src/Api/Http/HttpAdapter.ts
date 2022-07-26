@@ -13,6 +13,7 @@ import { IConfig } from "../../Interfaces/IConfig";
 import "./Controllers/StatusController";
 import "./Controllers/TxController";
 import "./Controllers/ContractController";
+import "./Controllers/TokenController";
 import "./Controllers/WalletController";
 
 @injectable()
