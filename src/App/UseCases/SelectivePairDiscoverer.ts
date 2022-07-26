@@ -35,7 +35,6 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
   ) {}
 
   async start() {
-    this.execute();
     cron.schedule(CronSchedule.EveryHour, this.execute.bind(this));
   }
 
