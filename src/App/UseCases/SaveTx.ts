@@ -32,8 +32,30 @@ export class SaveTx implements IStandaloneApps {
   }
 
   async onNewTx({ blockchain, hash }: RawTxId) {
-    const provider = this.providerFactory.getProvider(blockchain);
+    const successfullTx = await this.getRawTransaction({ blockchain, hash });
+    if (!successfullTx) {
+      return;
+    }
+    const tx = await this.txRepository.save(
+      Tx.create({
+        blockchain: blockchain.id,
+        hash,
+        raw: successfullTx,
+        type: TxType.Unknown,
+      })
+    );
+    this.eventBus.publish(EventChannel.ProcessTx, tx);
+    this.logger.log({
+      type: "save-tx.saved",
+      context: { txHash: hash },
+    });
+  }
 
+  private async getRawTransaction({
+    blockchain,
+    hash,
+  }: RawTxId): Promise<RawTx | undefined> {
+    const provider = this.providerFactory.getProvider(blockchain);
     const [res, receipt] = await Promise.all([
       provider.getTransaction(hash),
       provider.getTransactionReceipt(hash),
@@ -54,7 +76,7 @@ export class SaveTx implements IStandaloneApps {
       smartContractCall = this.decodeTxDetails(res, txDecoder);
     }
 
-    const raw: RawTx = {
+    return {
       original: res,
       hash,
       blockHeight: receipt.blockNumber,
@@ -66,15 +88,6 @@ export class SaveTx implements IStandaloneApps {
       smartContractCall,
       logs: logs,
     };
-
-    const tx = await this.txRepository.save(
-      Tx.create({ blockchain: blockchain.id, hash, raw, type: TxType.Unknown })
-    );
-    this.eventBus.publish(EventChannel.ProcessTx, tx);
-    this.logger.log({
-      type: "save-tx.saved",
-      context: { txHash: hash },
-    });
   }
 
   private decodeTxLogs(
