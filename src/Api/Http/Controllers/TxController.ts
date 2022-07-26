@@ -18,13 +18,36 @@ export class TxController implements interfaces.Controller {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository
   ) {}
-
   @httpGet("/")
+  async getAll(
+    @queryParam("page") _page: string,
+    @queryParam("pageSize") _pageSize: string
+  ): Promise<IApiPaginatedResponse<TxSimplifiedDto>> {
+    return this.getTransferByType(undefined, _page, _pageSize);
+  }
+  @httpGet("/eth")
   async getAllTransfers(
     @queryParam("page") _page: string,
     @queryParam("pageSize") _pageSize: string
   ): Promise<IApiPaginatedResponse<TxSimplifiedDto>> {
+    return this.getTransferByType(TxType.EthTransfer, _page, _pageSize);
+  }
+
+  @httpGet("/unknown")
+  async getAllUnknown(
+    @queryParam("page") _page: string,
+    @queryParam("pageSize") _pageSize: string
+  ): Promise<IApiPaginatedResponse<TxSimplifiedDto>> {
+    return this.getTransferByType(TxType.Unknown, _page, _pageSize);
+  }
+
+  async getTransferByType(
+    type: TxType | undefined,
+    _page: string,
+    _pageSize: string
+  ): Promise<IApiPaginatedResponse<TxSimplifiedDto>> {
     const { data, page, pageSize, total } = await this.txRepository.findAll({
+      where: type ? { type } : undefined,
       page: _page ? Number(_page) : 1,
       pageSize: _pageSize ? Number(_pageSize) : 500,
     });

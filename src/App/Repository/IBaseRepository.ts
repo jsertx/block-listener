@@ -1,6 +1,7 @@
 import { Entity } from "../Entities/Base/Entity";
 
-export interface findAllOptions {
+export interface findAllOptions<T = any> {
+  where?: Partial<T>;
   page?: number;
   pageSize?: number;
 }

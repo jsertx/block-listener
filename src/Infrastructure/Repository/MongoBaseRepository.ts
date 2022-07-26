@@ -33,10 +33,10 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
       .collection<TModel>(this.collectionName);
   }
 
-  async findAll({ page, pageSize = 500 }: findAllOptions = {}): Promise<
+  async findAll({ where, page, pageSize = 500 }: findAllOptions = {}): Promise<
     FindAllResponse<TEntity>
   > {
-    let query = this.getCollection().find();
+    let query = this.getCollection().find(where as any);
     if (page) {
       const skip = (page - 1) * pageSize;
       query = query.skip(skip).limit(pageSize);
