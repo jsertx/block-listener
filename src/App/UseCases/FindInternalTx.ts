@@ -8,14 +8,14 @@ import { IBroker } from "../../Interfaces/IBroker";
 import PromiseThrottle from "promise-throttle";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 
-import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
-import { RawBlock } from "../Models/RawBlock";
+import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
+import { RawBlock } from "../Types/RawBlock";
 import { IContractRepository } from "../Repository/IContractRepository";
 import { BlockchainId } from "../Values/Blockchain";
 import { Contract } from "../Entities/Contract";
 import { ethers } from "ethers";
 import { flattenReducer, onlyUniqueFilter } from "../Utils/Array";
-import { RawTxId } from "../Models/RawTxId";
+import { RawTxId } from "../Types/RawTxId";
 
 interface BlockFetchingConfig {
   fromBlock: number;
@@ -25,7 +25,7 @@ interface BlockFetchingConfig {
 }
 
 @injectable()
-export class FindInternalTx implements IListenerUseCase {
+export class FindInternalTx implements IStandaloneApps {
   constructor(
     @inject(IocKey.EventBus) private eventBus: IBroker,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
@@ -34,7 +34,7 @@ export class FindInternalTx implements IListenerUseCase {
     @inject(IocKey.Logger) private logger: ILogger
   ) {}
 
-  async listen() {
+  async start() {
     this.eventBus.subscribe(EventChannel.NewBlock, this.onNewBlock.bind(this));
   }
 

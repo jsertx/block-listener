@@ -34,4 +34,11 @@ export class Blockchain {
 
     return chainId;
   }
+
+  equals(blockchain: Blockchain | BlockchainId): boolean {
+    if (blockchain instanceof Blockchain) {
+      return this.equals(blockchain.id);
+    }
+    return this.id === blockchain;
+  }
 }

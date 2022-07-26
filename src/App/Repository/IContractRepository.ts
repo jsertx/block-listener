@@ -1,5 +1,6 @@
-import { Contract } from "../Entities/Contract";
+import { Contract, ContractRaw } from "../Entities/Contract";
 import { BlockchainId } from "../Values/Blockchain";
+import { Dex } from "../Values/Dex";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface IContractRepository extends IBaseRepository<Contract> {
@@ -7,4 +8,14 @@ export interface IContractRepository extends IBaseRepository<Contract> {
     address: string,
     blockchain: BlockchainId
   ): Promise<Contract | null>;
+
+  findContractsBy(filters: Partial<ContractRaw>): Promise<Contract[]>;
+
+  countDexPairs({
+    dex,
+    blockchain,
+  }: {
+    dex: Dex;
+    blockchain: BlockchainId;
+  }): Promise<number>;
 }

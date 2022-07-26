@@ -30,3 +30,5 @@ export const createAddrMap = <T>(
     },
   });
 };
+
+export const ZERO_ADDRESS = ethers.constants.AddressZero;

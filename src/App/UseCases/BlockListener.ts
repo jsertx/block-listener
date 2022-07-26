@@ -7,10 +7,10 @@ import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IocKey } from "../../Ioc/IocKey";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { EventChannel } from "../Enums/Channel";
-import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
+import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 
 @injectable()
-export class BlockListener implements IListenerUseCase {
+export class BlockListener implements IStandaloneApps {
   protected _blockchain: BlockchainId = BlockchainId.Ethereum;
   protected get blockchain() {
     return new Blockchain(this._blockchain);
@@ -21,7 +21,7 @@ export class BlockListener implements IListenerUseCase {
     @inject(IocKey.EventBus) private eventBus: IBroker
   ) {}
 
-  async listen() {
+  async start() {
     this.logger.log({
       type: "block-listener.start",
     });

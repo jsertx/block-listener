@@ -3,15 +3,15 @@ import "dotenv/config";
 import { initializeContainer } from "./Ioc/container";
 
 import { IocKey } from "./Ioc/IocKey";
-import { IListenerUseCase } from "./App/Interfaces/IListenerUseCase";
+import { IStandaloneApps } from "./App/Interfaces/IStandaloneApps";
 import { IAdapter } from "./Interfaces/IAdapter";
 
 (async () => {
   const container = await initializeContainer();
 
   container
-    .getAll<IListenerUseCase>(IocKey.ListenerUseCases)
-    .forEach((listener) => listener.listen());
+    .getAll<IStandaloneApps>(IocKey.StandAloneApps)
+    .forEach((listener) => listener.start());
 
   container
     .getAll<IAdapter>(IocKey.Adapters)

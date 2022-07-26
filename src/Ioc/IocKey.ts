@@ -10,7 +10,7 @@ export const IocKey = {
   // Events
   EventBus: Symbol.for("EventBus"),
   // UseCases
-  ListenerUseCases: Symbol.for("ListenerUseCases"),
+  StandAloneApps: Symbol.for("StandAloneApps"),
   // Broker
   BrokerClient: Symbol.for("BrokerClient"),
   Broker: Symbol.for("Broker"),

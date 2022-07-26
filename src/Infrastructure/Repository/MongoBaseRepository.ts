@@ -54,7 +54,16 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
       total,
     };
   }
+  async saveMany(items: TEntity[]): Promise<number> {
+    if (items.length === 0) {
+      return 0;
+    }
+    const res = await this.getCollection().insertMany(
+      items.map((item) => item.toRaw())
+    );
 
+    return res.insertedCount;
+  }
   async save(item: TEntity): Promise<TEntity> {
     const filter = this.getMatchCriteriaFromEntity(item);
     const doc = { $set: item.toRaw() };

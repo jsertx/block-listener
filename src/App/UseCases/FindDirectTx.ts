@@ -5,19 +5,19 @@ import { IConfig } from "../../Interfaces/IConfig";
 import { createAddrMap } from "../Utils/Address";
 import { isNativeTokenTx } from "../Utils/Tx";
 import { ContractMap } from "../Types/Mappings";
-import { RawTransaction } from "../Models/RawTransaction";
+import { RawTransaction } from "../Types/RawTransaction";
 import { EventChannel } from "../Enums/Channel";
 import { IocKey } from "../../Ioc/IocKey";
 import { IAddressService } from "../Interfaces/IAddressService";
-import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
+import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { toPrecision } from "../Utils/Amount";
 
-import { RawBlock } from "../Models/RawBlock";
+import { RawBlock } from "../Types/RawBlock";
 import { IContractRepository } from "../Repository/IContractRepository";
-import { RawTxId } from "../Models/RawTxId";
+import { RawTxId } from "../Types/RawTxId";
 
 @injectable()
-export class FindDirectTx implements IListenerUseCase {
+export class FindDirectTx implements IStandaloneApps {
   constructor(
     @inject(IocKey.Logger) private logger: ILogger,
     @inject(IocKey.Config) private config: IConfig,
@@ -26,7 +26,7 @@ export class FindDirectTx implements IListenerUseCase {
     private contractRepository: IContractRepository
   ) {}
 
-  async listen() {
+  async start() {
     this.logger.log({
       type: "find-direct-tx.start",
     });

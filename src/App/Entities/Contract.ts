@@ -9,11 +9,23 @@ import {
   blockchainIdList,
 } from "../Values/Blockchain";
 import Joi from "joi";
+import { Dex } from "../Values/Dex";
 
-interface ContractProps {
+export interface PairData {
+  tokenA: string;
+  tokenB: string;
+  dex: Dex;
+}
+
+export interface FactoryData {
+  dex: Dex;
+  initCodeHash: string;
+}
+export interface ContractProps<DataProps> {
   blockchain: BlockchainId;
   address: HexAddress;
   alias?: string;
+  data?: DataProps;
   createdAt: Date;
   type: ContractType;
   customAbi?: any;
@@ -22,11 +34,11 @@ interface ContractProps {
 const contractTypeToAbi = {
   [ContractType.TokenErc20]: ABI.ERC20,
   [ContractType.UniswapRouterV2Like]: ABI.UniswapRouter02,
-  [ContractType.ArbBot]: undefined,
-  [ContractType.MevBot]: undefined,
+  [ContractType.UniswapPairV2Like]: ABI.UniswapPair,
+  [ContractType.UniswapFactoryV2Like]: ABI.UniswapFactory,
 };
 
-export interface ContractRaw extends ContractProps {}
+export interface ContractRaw<DataRaw = any> extends ContractProps<DataRaw> {}
 
 export const ContractSchema = Joi.object({
   blockchain: Joi.string()
@@ -37,11 +49,14 @@ export const ContractSchema = Joi.object({
     .valid(...contractTypeList)
     .required(),
   alias: Joi.string().optional(),
+  data: Joi.any().optional(),
   createdAt: Joi.date().required(),
   customAbi: Joi.any(),
 }).options({ stripUnknown: true });
 
-export class Contract extends Entity<ContractProps> {
+export class Contract<DataTypeRaw = any> extends Entity<
+  ContractProps<DataTypeRaw>
+> {
   get address(): HexAddress {
     return this.props.address;
   }
@@ -49,7 +64,9 @@ export class Contract extends Entity<ContractProps> {
   get blockchain(): Blockchain {
     return new Blockchain(this.props.blockchain);
   }
-
+  get data(): DataTypeRaw | undefined {
+    return this.props.data;
+  }
   get type(): ContractType {
     return this.props.type;
   }
@@ -58,7 +75,7 @@ export class Contract extends Entity<ContractProps> {
     return this.props.customAbi || contractTypeToAbi[this.type];
   }
 
-  static create(props: ContractRaw, _id?: string): Contract {
+  static create(props: ContractRaw<any>, _id?: string): Contract {
     validateOrThrowError(props, ContractSchema);
     return new Contract(props, _id);
   }

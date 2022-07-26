@@ -5,20 +5,19 @@ import { IocKey } from "../../Ioc/IocKey";
 import { EventChannel } from "../Enums/Channel";
 import { IBroker } from "../../Interfaces/IBroker";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
-import { IListenerUseCase } from "../Interfaces/IListenerUseCase";
+import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { RawTx, Tx } from "../Entities/Tx";
 import { TxType } from "../Values/Tx";
-import { RawTxId } from "../Models/RawTxId";
+import { RawTxId } from "../Types/RawTxId";
 import { isSmartContractCall } from "../Utils/Tx";
 import { IContractRepository } from "../Repository/IContractRepository";
 import { LogDecoder, TxDecoder } from "@maticnetwork/eth-decoder";
 import { ethers } from "ethers";
-import { TransactionLog } from "../Models/TransactionLog";
-import { Blockchain, BlockchainId } from "../Values/Blockchain";
+import { TransactionLog } from "../Types/TransactionLog";
 import { allAbiList } from "../Services/SmartContract/ABI";
 
 @injectable()
-export class SaveTx implements IListenerUseCase {
+export class SaveTx implements IStandaloneApps {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
     @inject(IocKey.ContractRepository)
@@ -28,7 +27,7 @@ export class SaveTx implements IListenerUseCase {
     @inject(IocKey.Logger) private logger: ILogger
   ) {}
 
-  async listen() {
+  async start() {
     this.eventBus.subscribe(EventChannel.SaveTx, this.onNewTx.bind(this));
   }
 

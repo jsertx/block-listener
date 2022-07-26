@@ -9,6 +9,8 @@ import { PartialObjectDeep } from "type-fest/source/partial-deep";
 import { BlockchainId } from "../../App/Values/Blockchain";
 import { Contract, ContractRaw } from "../../App/Entities/Contract";
 import { IContractRepository } from "../../App/Repository/IContractRepository";
+import { ContractType } from "../../App/Values/ContractType";
+import { Dex, dexList } from "../../App/Values/Dex";
 
 @injectable()
 export class ContractRepository
@@ -31,6 +33,25 @@ export class ContractRepository
 
   protected modelToEntityMapper(model: WithId<ContractRaw>): Contract {
     return new Contract(model, model._id.toString());
+  }
+
+  async findContractsBy(filters: Partial<ContractRaw>): Promise<Contract[]> {
+    const contracts = await this.getCollection().find(filters).toArray();
+    return contracts.map(this.modelToEntityMapper.bind(this));
+  }
+
+  async countDexPairs({
+    dex,
+    blockchain,
+  }: {
+    dex: Dex;
+    blockchain: BlockchainId;
+  }): Promise<number> {
+    return this.getCollection().countDocuments({
+      "data.dex": dex,
+      type: ContractType.UniswapPairV2Like,
+      blockchain,
+    });
   }
 
   findContract(

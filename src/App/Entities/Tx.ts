@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import Joi from "joi";
 import { Format } from "logform";
-import { TransactionLog } from "../Models/TransactionLog";
+import { TransactionLog } from "../Types/TransactionLog";
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddress } from "../Values/Address";
 import { FormattedAmount } from "../Values/Amount";
