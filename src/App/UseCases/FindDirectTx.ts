@@ -8,7 +8,6 @@ import { ContractMap } from "../Types/Mappings";
 import { RawTransaction } from "../Types/RawTransaction";
 import { EventChannel } from "../Enums/Channel";
 import { IocKey } from "../../Ioc/IocKey";
-import { IAddressService } from "../Interfaces/IAddressService";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { toPrecision } from "../Utils/Amount";
 
@@ -51,7 +50,7 @@ export class FindDirectTx implements IStandaloneApps {
   private isBigNativeTx({ raw }: RawTransaction): boolean {
     return (
       isNativeTokenTx(raw) &&
-      raw.value.gte(toPrecision(this.config.txRules.minEthValue))
+      raw.value.gte(toPrecision(this.config.txRules.minNativeTransferValue))
     );
   }
 

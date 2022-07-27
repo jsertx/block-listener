@@ -11,6 +11,8 @@ export const IocKey = {
   EventBus: Symbol.for("EventBus"),
   // UseCases
   StandAloneApps: Symbol.for("StandAloneApps"),
+  TxProcessor: Symbol.for("TxProcessor"),
+  TxProcessorStrategy: Symbol.for("TxProcessorStrategy"),
   // Broker
   BrokerClient: Symbol.for("BrokerClient"),
   Broker: Symbol.for("Broker"),

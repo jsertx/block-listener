@@ -17,6 +17,7 @@ export const Config: IConfig = {
     brokerUri: getEnv("BROKER_URI"),
   },
   txRules: {
-    minEthValue: "10",
+    minNativeTransferValue: "10",
+    minDexSwapValueInUsd: `${100_000}`,
   },
 };

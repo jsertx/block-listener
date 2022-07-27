@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { HexAddress } from "../../../App/Values/Address";
+import { HexAddressStr } from "../../../App/Values/Address";
 import { BlockchainId, blockchainIdList } from "../../../App/Values/Blockchain";
 import {
   ContractType,
@@ -7,7 +7,7 @@ import {
 } from "../../../App/Values/ContractType";
 
 export interface CreateTokenDto {
-  address: HexAddress;
+  address: HexAddressStr;
   blockchain: BlockchainId;
   symbol: string;
   name: string;

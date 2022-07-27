@@ -14,6 +14,7 @@ export interface IConfig {
     brokerUri: string;
   };
   txRules: {
-    minEthValue: string;
+    minNativeTransferValue: string;
+    minDexSwapValueInUsd: string;
   };
 }

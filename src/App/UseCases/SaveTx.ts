@@ -15,6 +15,8 @@ import { LogDecoder, TxDecoder } from "@maticnetwork/eth-decoder";
 import { ethers } from "ethers";
 import { TransactionLog } from "../Types/TransactionLog";
 import { allAbiList } from "../Services/SmartContract/ABI";
+import { ITxProcessor } from "../Services/TxProcessor/ITxProcessor";
+import { Blockchain } from "../Values/Blockchain";
 
 @injectable()
 export class SaveTx implements IStandaloneApps {
@@ -24,7 +26,8 @@ export class SaveTx implements IStandaloneApps {
     private contractRepository: IContractRepository,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
     @inject(IocKey.EventBus) private eventBus: IBroker,
-    @inject(IocKey.Logger) private logger: ILogger
+    @inject(IocKey.Logger) private logger: ILogger,
+    @inject(IocKey.TxProcessor) private txProcessor: ITxProcessor
   ) {}
 
   async start() {
@@ -36,15 +39,16 @@ export class SaveTx implements IStandaloneApps {
     if (!successfullTx) {
       return;
     }
-    const tx = await this.txRepository.save(
-      Tx.create({
-        blockchain: blockchain.id,
-        hash,
-        raw: successfullTx,
-        type: TxType.Unknown,
-      })
-    );
-    this.eventBus.publish(EventChannel.ProcessTx, tx);
+    const unknownTx = Tx.create({
+      blockchain,
+      hash,
+      raw: successfullTx,
+      type: TxType.Unknown,
+    });
+    const tx = await this.txProcessor.process(unknownTx);
+    if (tx) {
+      await this.txRepository.save(tx);
+    }
     this.logger.log({
       type: "save-tx.saved",
       context: { txHash: hash },
@@ -55,7 +59,9 @@ export class SaveTx implements IStandaloneApps {
     blockchain,
     hash,
   }: RawTxId): Promise<RawTx | undefined> {
-    const provider = this.providerFactory.getProvider(blockchain);
+    const provider = this.providerFactory.getProvider(
+      new Blockchain(blockchain)
+    );
     const [res, receipt] = await Promise.all([
       provider.getTransaction(hash),
       provider.getTransactionReceipt(hash),

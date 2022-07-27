@@ -3,5 +3,4 @@ export enum EventChannel {
   FindDirectTx = "find_direct_tx",
   FindInternalTx = "find_internal_tx",
   SaveTx = "save_tx",
-  ProcessTx = "process_tx",
 }

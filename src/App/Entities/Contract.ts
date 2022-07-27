@@ -2,7 +2,7 @@ import { ABI } from "../Services/SmartContract/ABI";
 import { validateOrThrowError } from "../Utils/Validation";
 import { ContractType, contractTypeList } from "../Values/ContractType";
 import { Entity } from "./Base/Entity";
-import { HexAddress } from "../Values/Address";
+import { HexAddressStr } from "../Values/Address";
 import {
   Blockchain,
   BlockchainId,
@@ -23,7 +23,7 @@ export interface FactoryData {
 }
 export interface ContractProps<DataProps> {
   blockchain: BlockchainId;
-  address: HexAddress;
+  address: HexAddressStr;
   alias?: string;
   data?: DataProps;
   createdAt: Date;
@@ -57,7 +57,7 @@ export const ContractSchema = Joi.object({
 export class Contract<DataTypeRaw = any> extends Entity<
   ContractProps<DataTypeRaw>
 > {
-  get address(): HexAddress {
+  get address(): HexAddressStr {
     return this.props.address;
   }
 

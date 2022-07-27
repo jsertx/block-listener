@@ -4,6 +4,8 @@ export const checksumed = (address: string): string =>
   ethers.utils.getAddress(address.toLowerCase());
 
 export const isSameAddress = (address1: string, address2: string) =>
+  address1 &&
+  address2 &&
   checksumed(address1.toLowerCase()) === checksumed(address2.toLowerCase());
 
 export const isAddreddIn = (address1: string, addresses: string[]) =>

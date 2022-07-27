@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
-import { Blockchain } from "../Values/Blockchain";
+import { BlockchainId } from "../Values/Blockchain";
 
 export interface RawTransaction {
-  blockchain: Blockchain;
+  blockchain: BlockchainId;
   raw: ethers.providers.TransactionResponse;
 }

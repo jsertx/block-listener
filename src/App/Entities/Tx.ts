@@ -3,7 +3,7 @@ import Joi from "joi";
 import { Format } from "logform";
 import { TransactionLog } from "../Types/TransactionLog";
 import { validateOrThrowError } from "../Utils/Validation";
-import { HexAddress } from "../Values/Address";
+import { HexAddressStr } from "../Values/Address";
 import { FormattedAmount } from "../Values/Amount";
 import {
   Blockchain,
@@ -39,14 +39,14 @@ export interface TxProps<TxDataType = any> {
 }
 
 export interface EthNativeTransferData {
-  from: HexAddress;
-  to: HexAddress;
+  from: HexAddressStr;
+  to: HexAddressStr;
   value: FormattedAmount;
 }
 
 interface TokenTransferData {
-  from: HexAddress;
-  to: HexAddress;
+  from: HexAddressStr;
+  to: HexAddressStr;
   value: FormattedAmount;
   token: Token;
 }
@@ -65,7 +65,7 @@ const TxSchema = Joi.object({
   type: Joi.string().valid(...txTypeList),
 });
 
-export class Tx<DataTypeRaw> extends Entity<TxProps<DataTypeRaw>> {
+export class Tx<DataTypeRaw = any> extends Entity<TxProps<DataTypeRaw>> {
   protected _blockchain: Blockchain;
   constructor(props: TxProps<DataTypeRaw>, _id?: string) {
     super(props, _id);
@@ -93,6 +93,10 @@ export class Tx<DataTypeRaw> extends Entity<TxProps<DataTypeRaw>> {
 
   get type(): TxType {
     return this.props.type;
+  }
+
+  get from(): string {
+    return this.props.raw.from;
   }
 
   get raw(): RawTx {

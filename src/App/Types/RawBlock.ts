@@ -1,7 +1,7 @@
 import { BlockWithTransactions } from "./BlockWithTransactions";
-import { Blockchain } from "../Values/Blockchain";
+import { BlockchainId } from "../Values/Blockchain";
 
 export interface RawBlock {
-  blockchain: Blockchain;
+  blockchain: BlockchainId;
   block: BlockWithTransactions;
 }

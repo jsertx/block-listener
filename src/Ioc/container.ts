@@ -16,9 +16,11 @@ import { BlockListener } from "../App/UseCases/BlockListener";
 import { HttpAdapter } from "../Api/Http/HttpAdapter";
 import { AddressService } from "../App/Services/AddressService";
 import { SaveTx } from "../App/UseCases/SaveTx";
-import { ProcessTx } from "../App/UseCases/ProcessTx";
+import { TxProcessor } from "../App/Services/TxProcessor/TxProcessor";
 import { SelectivePairDiscoverer } from "../App/UseCases/SelectivePairDiscoverer";
 import { TokenRepository } from "../Infrastructure/Repository/TokenRepository";
+import { NativeTransferProcessor } from "../App/Services/TxProcessor/Strategies/NativeTransferProcessor";
+import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwapProcessor";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -28,13 +30,20 @@ export const initializeContainer = async () => {
     bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
     bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
     bind(IocKey.AddressService).to(AddressService).inSingletonScope();
+    // TxProcessor
+    bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();
+    [NativeTransferProcessor, DexSwapProcessor].forEach((processor) =>
+      bind(IocKey.TxProcessorStrategy).to(processor).inSingletonScope()
+    );
     // UseCases
-    bind(IocKey.StandAloneApps).to(ProcessTx).inSingletonScope();
-    bind(IocKey.StandAloneApps).to(SaveTx).inSingletonScope();
-    bind(IocKey.StandAloneApps).to(FindDirectTx).inSingletonScope();
-    bind(IocKey.StandAloneApps).to(FindInternalTx).inSingletonScope();
-    bind(IocKey.StandAloneApps).to(BlockListener).inSingletonScope();
-    bind(IocKey.StandAloneApps).to(SelectivePairDiscoverer).inSingletonScope();
+    [
+      SaveTx,
+      FindDirectTx,
+      FindInternalTx,
+      BlockListener,
+      SelectivePairDiscoverer,
+    ].forEach((app) => bind(IocKey.StandAloneApps).to(app).inSingletonScope());
+
     // Broker & DB Connections
     const dbClient = await createConnection(Config.database.connectionUri);
     //const brokerClient = await createBrokerConnection(Config.broker.brokerUri),

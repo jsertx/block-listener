@@ -8,7 +8,10 @@ import { PartialObjectDeep } from "type-fest/source/partial-deep";
 
 import { BlockchainId } from "../../App/Values/Blockchain";
 import { Token, TokenProps } from "../../App/Entities/Token";
-import { ITokenRepository } from "../../App/Repository/ITokenRepository";
+import {
+  findTokensByBlockchainAddressParams,
+  ITokenRepository,
+} from "../../App/Repository/ITokenRepository";
 
 @injectable()
 export class TokenRepository
@@ -22,6 +25,19 @@ export class TokenRepository
     super("tokens", client, config);
   }
 
+  findTokensByBlockchainAddress({
+    blockchain,
+    addresses,
+  }: findTokensByBlockchainAddressParams): Promise<Token[]> {
+    return this.getCollection()
+      .find({
+        blockchain: blockchain.id,
+        address: { $in: addresses },
+      })
+      .toArray()
+      .then(this.modelToEntityArrMapper);
+  }
+
   protected getMatchCriteriaFromEntity(
     token: Token
   ): PartialObjectDeep<TokenProps> {
@@ -33,6 +49,12 @@ export class TokenRepository
     return new Token(model, model._id.toString());
   }
 
+  protected modelToEntityArrMapper(models: Array<WithId<TokenProps>>): Token[] {
+    return models.map(
+      (model: WithId<TokenProps>) => new Token(model, model._id.toString())
+    );
+  }
+
   async findPairBaseTokensWhere(
     filters: Partial<TokenProps>
   ): Promise<Token[]> {
@@ -42,6 +64,6 @@ export class TokenRepository
         useAsBaseForPairDiscovery: true,
       })
       .toArray()
-      .then((res) => res.map(this.modelToEntityMapper));
+      .then(this.modelToEntityArrMapper);
   }
 }

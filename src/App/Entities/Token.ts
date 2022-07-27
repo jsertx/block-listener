@@ -1,11 +1,11 @@
 import Joi from "joi";
 import { validateOrThrowError } from "../Utils/Validation";
-import { HexAddress } from "../Values/Address";
+import { HexAddressStr } from "../Values/Address";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { Entity } from "./Base/Entity";
 
 export interface TokenProps {
-  address: HexAddress;
+  address: HexAddressStr;
   blockchain: BlockchainId;
   symbol: string;
   name: string;

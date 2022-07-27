@@ -2,7 +2,7 @@ import Joi from "joi";
 import { SetOptional } from "type-fest";
 
 import { validateOrThrowError } from "../Utils/Validation";
-import { HexAddress } from "../Values/Address";
+import { HexAddressStr } from "../Values/Address";
 import {
   Blockchain,
   BlockchainId,
@@ -14,7 +14,7 @@ import { Entity } from "./Base/Entity";
 
 interface WalletProps {
   blockchain: BlockchainId;
-  address: HexAddress;
+  address: HexAddressStr;
   alias?: string;
 
   type: WalletType;
@@ -82,7 +82,7 @@ export class Wallet extends Entity<WalletProps> {
     return this.props.type;
   }
 
-  get address(): HexAddress {
+  get address(): HexAddressStr {
     return this.props.address;
   }
 
