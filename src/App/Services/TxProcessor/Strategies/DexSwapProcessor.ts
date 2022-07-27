@@ -18,6 +18,8 @@ import { Contract } from "../../../Entities/Contract";
 import { isSameAddress } from "../../../Utils/Address";
 import { TransactionLog } from "../../../Types/TransactionLog";
 import { IPriceService } from "../../../Interfaces/IPriceService";
+import { BigNumber } from "bignumber.js";
+import { IConfig } from "../../../../Interfaces/IConfig";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -26,6 +28,7 @@ const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
 export class DexSwapProcessor implements ITxProcessStrategy {
   constructor(
     @inject(IocKey.Logger) private logger: ILogger,
+    @inject(IocKey.Config) private config: IConfig,
     @inject(IocKey.TokenRepository) private tokenRepository: ITokenRepository,
     @inject(IocKey.PriceService) private priceService: IPriceService,
     @inject(IocKey.ContractRepository)
@@ -56,8 +59,14 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     }
 
     const dexSwapData = await this.getDexSwapData(tx);
-    tx.setTypeAndData(TxType.DexSwap, dexSwapData);
-    return tx;
+    if (
+      new BigNumber(dexSwapData.usdValue).gte(
+        this.config.txRules.minDexSwapValueInUsd
+      )
+    ) {
+      tx.setTypeAndData(TxType.DexSwap, dexSwapData);
+      return tx;
+    }
   }
 
   async getDexSwapData(tx: Tx<any>): Promise<DexSwapData> {
@@ -116,6 +125,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
       tx.blockchain,
       weth.toFormatted(nativeValue)
     );
+
     const details: DexSwapData = {
       nativeValue: weth.toFormatted(nativeValue),
       usdValue: usdValue.toFixed(),
