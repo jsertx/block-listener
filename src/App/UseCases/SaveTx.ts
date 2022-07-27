@@ -10,20 +10,17 @@ import { RawTx, Tx } from "../Entities/Tx";
 import { TxType } from "../Values/Tx";
 import { RawTxId } from "../Types/RawTxId";
 import { isSmartContractCall } from "../Utils/Tx";
-import { IContractRepository } from "../Repository/IContractRepository";
+
 import { LogDecoder, TxDecoder } from "@maticnetwork/eth-decoder";
 import { ethers } from "ethers";
 import { TransactionLog } from "../Types/TransactionLog";
 import { allAbiList } from "../Services/SmartContract/ABI";
 import { ITxProcessor } from "../Services/TxProcessor/ITxProcessor";
-import { Blockchain } from "../Values/Blockchain";
 
 @injectable()
 export class SaveTx implements IStandaloneApps {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
-    @inject(IocKey.ContractRepository)
-    private contractRepository: IContractRepository,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
     @inject(IocKey.EventBus) private eventBus: IBroker,
     @inject(IocKey.Logger) private logger: ILogger,
@@ -40,18 +37,23 @@ export class SaveTx implements IStandaloneApps {
       return;
     }
     const unknownTx = Tx.create({
-      blockchain,
+      blockchain: blockchain.id,
       hash,
       raw: successfullTx,
       type: TxType.Unknown,
     });
     const tx = await this.txProcessor.process(unknownTx);
-    if (tx) {
-      await this.txRepository.save(tx);
+    if (!tx) {
+      this.logger.log({
+        type: "save-tx.skipped",
+        context: { txHash: hash, blockchain },
+      });
+      return;
     }
+    await this.txRepository.save(tx);
     this.logger.log({
       type: "save-tx.saved",
-      context: { txHash: hash },
+      context: { txHash: hash, blockchain },
     });
   }
 
@@ -59,9 +61,7 @@ export class SaveTx implements IStandaloneApps {
     blockchain,
     hash,
   }: RawTxId): Promise<RawTx | undefined> {
-    const provider = this.providerFactory.getProvider(
-      new Blockchain(blockchain)
-    );
+    const provider = this.providerFactory.getProvider(blockchain);
     const [res, receipt] = await Promise.all([
       provider.getTransaction(hash),
       provider.getTransactionReceipt(hash),

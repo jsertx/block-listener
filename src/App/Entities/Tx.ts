@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
 import Joi from "joi";
-import { Format } from "logform";
 import { TransactionLog } from "../Types/TransactionLog";
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddressStr } from "../Values/Address";
@@ -51,11 +50,17 @@ interface TokenTransferData {
   token: Token;
 }
 
-interface DexSwapData {
-  inputToken: Token;
-  inputAmount: FormattedAmount;
-  outputToken: Token;
-  outputAmount: Format;
+export interface DexSwapData {
+  nativeValue: string;
+  usdValue: string;
+  input: {
+    token: HexAddressStr;
+    amount: string;
+  };
+  output: {
+    token: HexAddressStr;
+    amount: string;
+  };
 }
 
 const TxSchema = Joi.object({

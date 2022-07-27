@@ -16,6 +16,7 @@
   "dependencies": {
     "@maticnetwork/eth-decoder": "git+https://github.com/jsertx/eth-decoder.git",
     "amqplib": "0.5.5",
+    "axios": "^0.27.2",
     "bignumber.js": "^9.0.2",
     "body-parser": "^1.20.0",
     "dotenv": "^16.0.1",

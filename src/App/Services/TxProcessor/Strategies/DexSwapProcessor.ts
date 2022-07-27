@@ -4,7 +4,7 @@ import { IocKey } from "../../../../Ioc/IocKey";
 import { EventChannel } from "../../../Enums/Channel";
 import { IBroker } from "../../../../Interfaces/IBroker";
 import { IStandaloneApps } from "../../../Interfaces/IStandaloneApps";
-import { EthNativeTransferData, Tx } from "../../../Entities/Tx";
+import { DexSwapData, EthNativeTransferData, Tx } from "../../../Entities/Tx";
 import { ITxRepository } from "../../../Repository/ITxRepository";
 import { TxType } from "../../../Values/Tx";
 import { toFormatted } from "../../../Utils/Amount";
@@ -16,22 +16,18 @@ import { ContractType } from "../../../Values/ContractType";
 import { UniswapV2RouterSwapMethods } from "../../../Types/UniswapV2RouterSwapMethods";
 import { Contract } from "../../../Entities/Contract";
 import { isSameAddress } from "../../../Utils/Address";
+import { TransactionLog } from "../../../Types/TransactionLog";
+import { IPriceService } from "../../../Interfaces/IPriceService";
 
-interface SwapDetails {
-  input: {
-    token: string | "native";
-    amount: string;
-  };
-  output: {
-    token: string | "native";
-    amount: string;
-  };
-}
+const transferSignature = "Transfer(address,address,uint256)";
+const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
+
 @injectable()
 export class DexSwapProcessor implements ITxProcessStrategy {
   constructor(
     @inject(IocKey.Logger) private logger: ILogger,
     @inject(IocKey.TokenRepository) private tokenRepository: ITokenRepository,
+    @inject(IocKey.PriceService) private priceService: IPriceService,
     @inject(IocKey.ContractRepository)
     private contractRepository: IContractRepository
   ) {}
@@ -59,67 +55,101 @@ export class DexSwapProcessor implements ITxProcessStrategy {
       throw new Error("Contract not found for this swap tx");
     }
 
-    const swapDetails = getSwapDetails(tx, router);
-    tx.setTypeAndData(TxType.DexSwap, swapDetails);
+    const dexSwapData = await this.getDexSwapData(tx);
+    tx.setTypeAndData(TxType.DexSwap, dexSwapData);
     return tx;
   }
+
+  async getDexSwapData(tx: Tx<any>): Promise<DexSwapData> {
+    const { method, args } = tx.raw.smartContractCall!;
+    const path = args.path.split(",");
+    const outDest = args.to;
+    const from = tx.from;
+    let inputToken = path[0];
+    let outToken = path[path.length - 1];
+    let outAmount: string | undefined;
+    let inputAmount: string | undefined;
+    const weth = tx.blockchain.wrappedToken!;
+    const nativeValue = getNativeValueFromLogs(weth, tx.raw.logs);
+
+    switch (method) {
+      case UniswapV2RouterSwapMethods.swapETHForExactTokens:
+        inputAmount = tx.raw.value;
+
+        outAmount =
+          getOutputTokenTransferAmount(tx, outToken, outDest) || args.amountOut;
+        break;
+      case UniswapV2RouterSwapMethods.swapExactETHForTokens:
+      case UniswapV2RouterSwapMethods.swapExactETHForTokensSupportingFeeOnTransferTokens:
+        inputAmount = tx.raw.value;
+        outAmount =
+          getOutputTokenTransferAmount(tx, outToken, outDest) ||
+          args.amountOutMin;
+        break;
+      case UniswapV2RouterSwapMethods.swapExactTokensForETH:
+      case UniswapV2RouterSwapMethods.swapExactTokensForETHSupportingFeeOnTransferTokens:
+        inputAmount = args.amountIn;
+        outAmount =
+          getOutputTokenTransferAmount(tx, outToken, outDest) ||
+          args.amountOutMin;
+
+        break;
+      case UniswapV2RouterSwapMethods.swapExactTokensForTokens:
+      case UniswapV2RouterSwapMethods.swapExactTokensForTokensSupportingFeeOnTransferTokens:
+        inputAmount = args.amountIn;
+        outAmount =
+          getOutputTokenTransferAmount(tx, outToken, outDest) ||
+          args.amountOutMin;
+        break;
+      case UniswapV2RouterSwapMethods.swapTokensForExactTokens:
+        inputAmount =
+          getInputTokenTransferAmount(tx, inputToken, from) || args.amountInMax;
+        outAmount = args.amountOut;
+        break;
+    }
+
+    if (!inputAmount || !outAmount || !nativeValue) {
+      throw new Error("Could not get swapdetails");
+    }
+
+    const usdValue = await this.priceService.getBlockchainNativeTokenUsdValue(
+      tx.blockchain,
+      weth.toFormatted(nativeValue)
+    );
+    const details: DexSwapData = {
+      nativeValue: weth.toFormatted(nativeValue),
+      usdValue: usdValue.toFixed(),
+      input: { amount: inputAmount, token: inputToken },
+      output: { amount: outAmount, token: outToken },
+    };
+
+    return details;
+  }
 }
 
-function getSwapDetails(tx: Tx<any>, router: Contract): SwapDetails {
-  const { method, args } = tx.raw.smartContractCall!;
-  const path = args.path.split(",");
-  const outDest = args.to;
-  const from = tx.from;
-  let inputToken = path[0];
-  let outToken = path[path.length - 1];
-  let outAmount: string | undefined;
-  let inputAmount: string | undefined;
-
-  switch (method) {
-    case UniswapV2RouterSwapMethods.swapETHForExactTokens:
-      inputAmount = tx.raw.value;
-      outAmount =
-        getOutputTokenTransferAmount(tx, outToken, outDest) || args.amountOut;
-      break;
-    case UniswapV2RouterSwapMethods.swapExactETHForTokens:
-    case UniswapV2RouterSwapMethods.swapExactETHForTokensSupportingFeeOnTransferTokens:
-      inputAmount = tx.raw.value;
-      outAmount =
-        getOutputTokenTransferAmount(tx, outToken, outDest) ||
-        args.amountOutMin;
-      break;
-    case UniswapV2RouterSwapMethods.swapExactTokensForETH:
-      inputAmount = args.amountIn;
-      outAmount =
-        getOutputTokenTransferAmount(tx, outToken, outDest) ||
-        args.amountOutMin;
-      break;
-    case UniswapV2RouterSwapMethods.swapExactTokensForTokens:
-    case UniswapV2RouterSwapMethods.swapExactTokensForTokensSupportingFeeOnTransferTokens:
-      inputAmount = args.amountIn;
-      outAmount =
-        getOutputTokenTransferAmount(tx, outToken, outDest) ||
-        args.amountOutMin;
-      break;
-    case UniswapV2RouterSwapMethods.swapTokensForExactTokens:
-      inputAmount =
-        getInputTokenTransferAmount(tx, inputToken, from) || args.amountInMax;
-      outAmount = args.amountOut;
-      break;
+function getNativeValueFromLogs(
+  wethToken: Token,
+  logs: TransactionLog[]
+): string | undefined {
+  // 1) Find Swap Logs
+  for (const swapLog of logs) {
+    if (swapLog.signature !== swapSignature) {
+      continue;
+    }
+    // 2) Find incoming or outgoing transfer of WETH to/from this pair address
+    for (const log of logs) {
+      if (
+        isSameAddress(log.address, wethToken.address) &&
+        log.signature === transferSignature &&
+        (isSameAddress(log.args.to, swapLog.address) ||
+          isSameAddress(log.args.from, swapLog.address))
+      ) {
+        // 3) If found, we have the native value of this TX
+        return log.args.value;
+      }
+    }
   }
-
-  if (!inputAmount || !outAmount) {
-    throw new Error("Could not get swapdetails");
-  }
-
-  const details: SwapDetails = {
-    input: { amount: inputAmount, token: inputToken },
-    output: { amount: outAmount, token: outToken },
-  };
-
-  return details;
 }
-
 function getOutputTokenTransferAmount(
   tx: Tx,
   outputAddr: string,
@@ -129,7 +159,7 @@ function getOutputTokenTransferAmount(
     return (
       isSameAddress(log.address, outputAddr) &&
       isSameAddress(log.args.to, destAddr) &&
-      log.signature === "Transfer(address,address,uint256)"
+      log.signature === transferSignature
     );
   });
   if (!transferLog) {
@@ -147,7 +177,7 @@ function getInputTokenTransferAmount(
     (log) =>
       isSameAddress(log.address, tokenAddress) &&
       isSameAddress(log.args.from, fromAddr) &&
-      log.signature === "Transfer(address,address,uint256)"
+      log.signature === transferSignature
   );
   if (!transferLog) {
     return;

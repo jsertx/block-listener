@@ -21,6 +21,7 @@ import { SelectivePairDiscoverer } from "../App/UseCases/SelectivePairDiscoverer
 import { TokenRepository } from "../Infrastructure/Repository/TokenRepository";
 import { NativeTransferProcessor } from "../App/Services/TxProcessor/Strategies/NativeTransferProcessor";
 import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwapProcessor";
+import { PriceService } from "../App/Services/PriceService";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -30,6 +31,7 @@ export const initializeContainer = async () => {
     bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
     bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
     bind(IocKey.AddressService).to(AddressService).inSingletonScope();
+    bind(IocKey.PriceService).to(PriceService).inSingletonScope();
     // TxProcessor
     bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();
     [NativeTransferProcessor, DexSwapProcessor].forEach((processor) =>

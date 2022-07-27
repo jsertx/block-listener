@@ -1,6 +1,6 @@
-import { BlockchainId } from "../Values/Blockchain";
+import { Blockchain } from "../Values/Blockchain";
 
 export interface RawTxId {
-  blockchain: BlockchainId;
+  blockchain: Blockchain;
   hash: string;
 }

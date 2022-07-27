@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { toFormatted, toPrecision } from "../Utils/Amount";
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddressStr } from "../Values/Address";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
@@ -29,6 +30,7 @@ export class Token extends Entity<TokenProps> {
   get useAsBaseForPairDiscovery(): boolean {
     return this.props.useAsBaseForPairDiscovery;
   }
+
   get address(): string {
     return this.props.address;
   }
@@ -45,6 +47,13 @@ export class Token extends Entity<TokenProps> {
     return this.props.decimals;
   }
 
+  toFormatted(value: string) {
+    return toFormatted(value, this.decimals);
+  }
+
+  toPrecision(value: string) {
+    return toPrecision(value, this.decimals);
+  }
   static create(props: TokenProps, _id?: string): Token {
     return new Token(validateOrThrowError(props, TokenSchema), _id);
   }
