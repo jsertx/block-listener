@@ -12,9 +12,11 @@ import { WalletTag, walletTagNameList } from "../Values/WalletTag";
 import { WalletType, walletTypeList } from "../Values/WalletType";
 import { Entity } from "./Base/Entity";
 
-interface WalletProps {
+export interface WalletIdProps {
   blockchain: BlockchainId;
   address: HexAddressStr;
+}
+export interface WalletProps extends WalletIdProps {
   alias?: string;
 
   type: WalletType;

@@ -19,9 +19,14 @@ import { ITokenRepository } from "../Repository/ITokenRepository";
 import { Token } from "../Entities/Token";
 import { ZERO_ADDRESS } from "../Utils/Address";
 
+type PairAndTokens = {
+  address: string;
+  tokenA: Token;
+  tokenBase: Token;
+};
 type FactoryByChainMap = Partial<Record<BlockchainId, Contract[]>>;
 type PairByChainAndFactoryMap = Partial<
-  Record<BlockchainId, Record<string, string[]>>
+  Record<BlockchainId, Record<string, PairAndTokens[]>>
 >;
 
 @injectable()
@@ -65,8 +70,8 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
       for (const [factory, pairs] of Object.entries(pairsByFactory)) {
         const dex = factory as Dex;
         const contracts = await Promise.all(
-          pairs.map((address) =>
-            this.buildPairContracts(address, blockchain, dex)
+          pairs.map((pairData) =>
+            this.buildPairContracts(pairData, blockchain, dex)
           )
         );
         await this.contractRepository.saveMany(contracts);
@@ -75,36 +80,23 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
   }
 
   async buildPairContracts(
-    address: string,
+    { address, tokenA, tokenBase }: PairAndTokens,
     blockchain: BlockchainId,
     dex: Dex
   ): Promise<Contract> {
     const provider = this.providerFactory.getProvider(
       new Blockchain(blockchain)
     );
-    const pairContract = new ethers.Contract(
-      address,
-      ABI.UniswapPair,
-      provider
-    );
-    const [tokenA, tokenB] = await Promise.all([
-      pairContract.token0(),
-      pairContract.token1(),
-    ]);
 
-    const tokenAContract = new ethers.Contract(tokenA, ABI.ERC20, provider);
-    const tokenBContract = new ethers.Contract(tokenB, ABI.ERC20, provider);
-
-    const [symbolA, symbolB] = await Promise.all([
-      tokenAContract.symbol(),
-      tokenBContract.symbol(),
-    ]);
-
-    const data: PairData = { dex, tokenA, tokenB };
+    const data: PairData = {
+      dex,
+      tokenA: tokenA.address,
+      tokenB: tokenBase.address,
+    };
     return Contract.create({
       address,
       type: ContractType.UniswapPairV2Like,
-      alias: `${dex}:${symbolA}-${symbolB}`,
+      alias: `${dex}:${tokenA.symbol}-${tokenBase.symbol}`,
       blockchain,
       createdAt: new Date(),
       data,
@@ -129,7 +121,7 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
     blockchain: BlockchainId,
     factories: Contract<FactoryData>[],
     tokens: Token[]
-  ): Promise<Record<string, string[]>> {
+  ): Promise<Record<string, PairAndTokens[]>> {
     const pairs = await this.contractRepository.findContractsBy({
       type: ContractType.UniswapPairV2Like,
       blockchain,
@@ -152,7 +144,7 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
     const provider = this.providerFactory.getProvider(
       new Blockchain(blockchain)
     );
-    const addressesByFactory: Record<string, string[]> = {};
+    const addressesByFactory: Record<string, PairAndTokens[]> = {};
     for (const factory of factories) {
       const dex = factory.data!.dex;
       const factoryContract = new ethers.Contract(
@@ -163,14 +155,18 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
       addressesByFactory[dex] = [];
       for (const baseToken of baseTokens) {
         for (const otherToken of otherTokens) {
-          const pairAddress = await factoryContract.getPair(
+          const pairAddress: string = await factoryContract.getPair(
             baseToken.address,
             otherToken.address
           );
           if (skipPair(pairAddress, pairs)) {
             continue;
           }
-          addressesByFactory[dex].push(pairAddress);
+          addressesByFactory[dex].push({
+            address: pairAddress,
+            tokenA: otherToken,
+            tokenBase: baseToken,
+          });
         }
       }
     }

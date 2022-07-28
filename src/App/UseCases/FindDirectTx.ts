@@ -14,7 +14,6 @@ import { toPrecision } from "../Utils/Amount";
 import { RawBlock } from "../Types/RawBlock";
 import { IContractRepository } from "../Repository/IContractRepository";
 import { RawTxId } from "../Types/RawTxId";
-import { Blockchain } from "../Values/Blockchain";
 
 @injectable()
 export class FindDirectTx implements IStandaloneApps {

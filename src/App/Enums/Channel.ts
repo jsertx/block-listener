@@ -3,4 +3,6 @@ export enum EventChannel {
   FindDirectTx = "find_direct_tx",
   FindInternalTx = "find_internal_tx",
   SaveTx = "save_tx",
+  WhaleDetected = "whale.evt.detected",
+  TokenDiscovered = "token.evt.discovered",
 }

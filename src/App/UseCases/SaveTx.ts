@@ -28,6 +28,10 @@ export class SaveTx implements IStandaloneApps {
   ) {}
 
   async start() {
+    this.logger.log({
+      type: "save-tx.started",
+      message: "Save tx listener has started",
+    });
     this.eventBus.subscribe(EventChannel.SaveTx, this.onNewTx.bind(this));
   }
 

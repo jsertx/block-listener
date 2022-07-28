@@ -11,7 +11,11 @@ export interface FindAllResponse<TEntity> {
   total: number;
   data: Array<TEntity>;
 }
-export interface IBaseRepository<TEntity extends Entity<any>> {
+export interface IBaseRepository<
+  TEntity extends Entity<any>,
+  TId extends Record<string, any>
+> {
+  findOne(id: TId): Promise<TEntity | undefined>;
   findAll(options?: findAllOptions): Promise<FindAllResponse<TEntity>>;
   save(item: TEntity): Promise<TEntity>;
   saveMany(items: TEntity[]): Promise<number>;

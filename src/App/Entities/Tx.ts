@@ -29,9 +29,11 @@ export interface RawTx {
   };
   original: ethers.providers.TransactionResponse;
 }
-export interface TxProps<TxDataType = any> {
+export interface TxIdProps {
   blockchain: BlockchainId;
   hash: string;
+}
+export interface TxProps<TxDataType = any> extends TxIdProps {
   type: TxType;
   raw: RawTx;
   data?: TxDataType;

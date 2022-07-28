@@ -22,6 +22,7 @@ import { TokenRepository } from "../Infrastructure/Repository/TokenRepository";
 import { NativeTransferProcessor } from "../App/Services/TxProcessor/Strategies/NativeTransferProcessor";
 import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwapProcessor";
 import { PriceService } from "../App/Services/PriceService";
+import { SaveToken } from "../App/UseCases/Tokens/SaveToken";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -40,6 +41,7 @@ export const initializeContainer = async () => {
     // UseCases
     [
       SaveTx,
+      SaveToken,
       FindDirectTx,
       FindInternalTx,
       BlockListener,

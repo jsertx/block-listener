@@ -1,9 +1,10 @@
-import { Contract, ContractRaw } from "../Entities/Contract";
+import { Contract, ContractIdProps, ContractRaw } from "../Entities/Contract";
 import { BlockchainId } from "../Values/Blockchain";
 import { Dex } from "../Values/Dex";
 import { IBaseRepository } from "./IBaseRepository";
 
-export interface IContractRepository extends IBaseRepository<Contract> {
+export interface IContractRepository
+  extends IBaseRepository<Contract, ContractIdProps> {
   findContract(
     address: string,
     blockchain: BlockchainId

@@ -21,9 +21,12 @@ export interface FactoryData {
   dex: Dex;
   initCodeHash: string;
 }
-export interface ContractProps<DataProps> {
+
+export interface ContractIdProps {
   blockchain: BlockchainId;
   address: HexAddressStr;
+}
+export interface ContractProps<DataProps> extends ContractIdProps {
   alias?: string;
   data?: DataProps;
   createdAt: Date;

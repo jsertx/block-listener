@@ -1,25 +1,22 @@
 import { inject, injectable } from "inversify";
 import { ILogger } from "../../../../Interfaces/ILogger";
 import { IocKey } from "../../../../Ioc/IocKey";
-import { EventChannel } from "../../../Enums/Channel";
-import { IBroker } from "../../../../Interfaces/IBroker";
-import { IStandaloneApps } from "../../../Interfaces/IStandaloneApps";
-import { DexSwapData, EthNativeTransferData, Tx } from "../../../Entities/Tx";
-import { ITxRepository } from "../../../Repository/ITxRepository";
+import { DexSwapData, Tx } from "../../../Entities/Tx";
 import { TxType } from "../../../Values/Tx";
-import { toFormatted } from "../../../Utils/Amount";
 import { ITxProcessStrategy } from "../ITxProcessStrategy";
 import { ITokenRepository } from "../../../Repository/ITokenRepository";
 import { Token } from "../../../Entities/Token";
 import { IContractRepository } from "../../../Repository/IContractRepository";
-import { ContractType } from "../../../Values/ContractType";
 import { UniswapV2RouterSwapMethods } from "../../../Types/UniswapV2RouterSwapMethods";
-import { Contract } from "../../../Entities/Contract";
 import { isSameAddress } from "../../../Utils/Address";
 import { TransactionLog } from "../../../Types/TransactionLog";
 import { IPriceService } from "../../../Interfaces/IPriceService";
 import { BigNumber } from "bignumber.js";
 import { IConfig } from "../../../../Interfaces/IConfig";
+import { IBroker } from "../../../../Interfaces/IBroker";
+import { EventChannel } from "../../../Enums/Channel";
+import { HexAddressStr } from "../../../Values/Address";
+import { checksumed } from "../../../Utils/Address";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -28,6 +25,7 @@ const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
 export class DexSwapProcessor implements ITxProcessStrategy {
   constructor(
     @inject(IocKey.Logger) private logger: ILogger,
+    @inject(IocKey.EventBus) private eventBus: IBroker,
     @inject(IocKey.Config) private config: IConfig,
     @inject(IocKey.TokenRepository) private tokenRepository: ITokenRepository,
     @inject(IocKey.PriceService) private priceService: IPriceService,
@@ -59,12 +57,20 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     }
 
     const dexSwapData = await this.getDexSwapData(tx);
+
     if (
       new BigNumber(dexSwapData.usdValue).gte(
         this.config.txRules.minDexSwapValueInUsd
       )
     ) {
       tx.setTypeAndData(TxType.DexSwap, dexSwapData);
+      [dexSwapData.input.token, dexSwapData.output.token].forEach((address) => {
+        this.eventBus.publish(EventChannel.TokenDiscovered, {
+          blockchain: tx.blockchain,
+          address,
+        });
+      });
+
       return tx;
     }
   }
@@ -74,8 +80,8 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     const path = args.path.split(",");
     const outDest = args.to;
     const from = tx.from;
-    let inputToken = path[0];
-    let outToken = path[path.length - 1];
+    let inputToken: HexAddressStr = path[0];
+    let outToken: HexAddressStr = path[path.length - 1];
     let outAmount: string | undefined;
     let inputAmount: string | undefined;
     const weth = tx.blockchain.wrappedToken!;
@@ -129,8 +135,8 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     const details: DexSwapData = {
       nativeValue: weth.toFormatted(nativeValue),
       usdValue: usdValue.toFixed(),
-      input: { amount: inputAmount, token: inputToken },
-      output: { amount: outAmount, token: outToken },
+      input: { amount: inputAmount, token: checksumed(inputToken) },
+      output: { amount: outAmount, token: checksumed(outToken) },
     };
 
     return details;

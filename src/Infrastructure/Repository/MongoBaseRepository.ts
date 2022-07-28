@@ -12,8 +12,11 @@ import { Entity } from "../../App/Entities/Base/Entity";
 export type MongoProvider = () => Promise<MongoClient>;
 
 @injectable()
-export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
-  implements IBaseRepository<TEntity>
+export abstract class MongoBaseRepository<
+  TModel,
+  TEntity extends Entity<any>,
+  TId = Record<string, any>
+> implements IBaseRepository<TEntity, TId>
 {
   constructor(
     @unmanaged() protected collectionName: string,
@@ -64,6 +67,17 @@ export abstract class MongoBaseRepository<TModel, TEntity extends Entity<any>>
 
     return res.insertedCount;
   }
+
+  findOne(id: TId): Promise<TEntity | undefined> {
+    return this.getCollection()
+      .findOne(id)
+      .then((res) => {
+        if (res) {
+          return this.modelToEntityMapper(res);
+        }
+      });
+  }
+
   async save(item: TEntity): Promise<TEntity> {
     const filter = this.getMatchCriteriaFromEntity(item);
     const doc = { $set: item.toRaw() };

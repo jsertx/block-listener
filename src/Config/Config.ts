@@ -18,6 +18,6 @@ export const Config: IConfig = {
   },
   txRules: {
     minNativeTransferValue: "10",
-    minDexSwapValueInUsd: `${50_000}`,
+    minDexSwapValueInUsd: `${100}`,
   },
 };

@@ -1,13 +1,17 @@
+import { ethers } from "ethers";
 import Joi from "joi";
+import { ERC20 } from "../Services/SmartContract/ABI/ERC20";
 import { toFormatted, toPrecision } from "../Utils/Amount";
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddressStr } from "../Values/Address";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { Entity } from "./Base/Entity";
 
-export interface TokenProps {
+export interface TokenIdProps {
   address: HexAddressStr;
   blockchain: BlockchainId;
+}
+export interface TokenProps extends TokenIdProps {
   symbol: string;
   name: string;
   decimals: number;
