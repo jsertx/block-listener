@@ -17,6 +17,7 @@ import { IBroker } from "../../../../Interfaces/IBroker";
 import { EventChannel } from "../../../Enums/Channel";
 import { HexAddressStr } from "../../../Values/Address";
 import { checksumed } from "../../../Utils/Address";
+import { onlyUniqueFilter } from "../../../Utils/Array";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -64,15 +65,26 @@ export class DexSwapProcessor implements ITxProcessStrategy {
       )
     ) {
       tx.setTypeAndData(TxType.DexSwap, dexSwapData);
-      [dexSwapData.input.token, dexSwapData.output.token].forEach((address) => {
-        this.eventBus.publish(EventChannel.TokenDiscovered, {
+      this.emitMessages(tx, dexSwapData);
+      return tx;
+    }
+  }
+  private emitMessages(tx: Tx<any>, dexSwapData: DexSwapData) {
+    [dexSwapData.input.token, dexSwapData.output.token].forEach((address) => {
+      this.eventBus.publish(EventChannel.TokenDiscovered, {
+        blockchain: tx.blockchain,
+        address,
+      });
+    });
+
+    [dexSwapData.from, dexSwapData.to]
+      .filter(onlyUniqueFilter)
+      .forEach((address) => {
+        this.eventBus.publish(EventChannel.WhaleDiscovered, {
           blockchain: tx.blockchain,
           address,
         });
       });
-
-      return tx;
-    }
   }
 
   async getDexSwapData(tx: Tx<any>): Promise<DexSwapData> {
@@ -135,6 +147,8 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     const details: DexSwapData = {
       nativeValue: weth.toFormatted(nativeValue),
       usdValue: usdValue.toFixed(),
+      from: checksumed(from),
+      to: checksumed(outDest),
       input: { amount: inputAmount, token: checksumed(inputToken) },
       output: { amount: outAmount, token: checksumed(outToken) },
     };

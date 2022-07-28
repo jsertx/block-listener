@@ -36,6 +36,13 @@ export class SaveTx implements IStandaloneApps {
   }
 
   async onNewTx({ blockchain, hash }: RawTxId) {
+    const existingTx = await this.txRepository.findOne({
+      blockchain: blockchain.id,
+      hash,
+    });
+    if (existingTx) {
+      return;
+    }
     const successfullTx = await this.getRawTransaction({ blockchain, hash });
     if (!successfullTx) {
       return;

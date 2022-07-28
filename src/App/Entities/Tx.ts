@@ -55,6 +55,8 @@ interface TokenTransferData {
 export interface DexSwapData {
   nativeValue: string;
   usdValue: string;
+  from: string;
+  to: string; //normally will be the same as "from"
   input: {
     token: HexAddressStr;
     amount: string;

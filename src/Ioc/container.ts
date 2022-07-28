@@ -23,6 +23,7 @@ import { NativeTransferProcessor } from "../App/Services/TxProcessor/Strategies/
 import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwapProcessor";
 import { PriceService } from "../App/Services/PriceService";
 import { SaveToken } from "../App/UseCases/Tokens/SaveToken";
+import { SaveWhale } from "../App/UseCases/Whales/SaveWhale";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -42,6 +43,7 @@ export const initializeContainer = async () => {
     [
       SaveTx,
       SaveToken,
+      SaveWhale,
       FindDirectTx,
       FindInternalTx,
       BlockListener,

@@ -15,7 +15,9 @@ import { EventChannel } from "./App/Enums/Channel";
   container
     .getAll<IStandaloneApps>(IocKey.StandAloneApps)
     .filter((listener) => {
-      return ["SaveTx", "SaveToken"].includes(listener.constructor.name);
+      return ["SaveWhale", "SaveTx", "SaveToken"].includes(
+        listener.constructor.name
+      );
     })
     .forEach((listener) => listener.start());
 
