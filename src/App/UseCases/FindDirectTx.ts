@@ -12,7 +12,7 @@ import { RawBlock } from "../Types/RawBlock";
 import { IContractRepository } from "../Repository/IContractRepository";
 import { IAppBroker } from "../Interfaces/IAppBroker";
 
-import { TxFoundMsg } from "../PubSub/Messages/TxFoundMsg";
+import { TxDiscoveredMsg } from "../PubSub/Messages/TxDiscoveredMsg";
 import { BlockReceivedMsgPayload } from "../PubSub/Messages/BlockReceivedMsg";
 import { ethers } from "ethers";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
@@ -43,7 +43,7 @@ export class FindDirectTx implements IStandaloneApps {
         this.isAgainstContractOfInterest(tx, contracts)
       ) {
         this.broker.publish(
-          new TxFoundMsg(blockchain, { blockchain, hash: tx.hash })
+          new TxDiscoveredMsg(blockchain, { blockchain, hash: tx.hash })
         );
       }
     }

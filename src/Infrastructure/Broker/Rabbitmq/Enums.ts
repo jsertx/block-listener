@@ -18,7 +18,7 @@ export type RoutingKeyCreator = (blockchain: string) => string;
 const routingKeyCreatorFactory = (binding: string) => (blockchain: string) =>
   `${blockchain}.${binding}`;
 
-export const RoutingKey: Record<string, RoutingKeyCreator> = {
+export const RoutingKey = {
   BlockReceived: routingKeyCreatorFactory("block.evt.received"),
   WhaleDiscovered: routingKeyCreatorFactory("wallet.evt.whale_discovered"),
   TokenDiscovered: routingKeyCreatorFactory("token.evt.discovered"),

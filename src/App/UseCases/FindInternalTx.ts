@@ -12,7 +12,7 @@ import { ethers } from "ethers";
 import { flattenReducer, onlyUniqueFilter } from "../Utils/Array";
 import { IAppBroker } from "../Interfaces/IAppBroker";
 import { BlockWithTransactions } from "../Types/BlockWithTransactions";
-import { TxFoundMsg } from "../PubSub/Messages/TxFoundMsg";
+import { TxDiscoveredMsg } from "../PubSub/Messages/TxDiscoveredMsg";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { BlockReceivedMsgPayload } from "../PubSub/Messages/BlockReceivedMsg";
 
@@ -62,7 +62,9 @@ export class FindInternalTx implements IStandaloneApps {
       .filter(onlyUniqueFilter);
 
     txHashes.forEach((hash) => {
-      this.broker.publish(new TxFoundMsg(blockchain, { blockchain, hash }));
+      this.broker.publish(
+        new TxDiscoveredMsg(blockchain, { blockchain, hash })
+      );
     });
   }
 

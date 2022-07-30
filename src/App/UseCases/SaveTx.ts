@@ -15,7 +15,7 @@ import { ethers } from "ethers";
 import { TransactionLog } from "../Types/TransactionLog";
 import { allAbiList } from "../Services/SmartContract/ABI";
 import { ITxProcessor } from "../Services/TxProcessor/ITxProcessor";
-import { TxFoundMsgPayload } from "../PubSub/Messages/TxFoundMsg";
+import { TxDiscoveredMsgPayload } from "../PubSub/Messages/TxDiscoveredMsg";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 
 @injectable()
@@ -36,7 +36,7 @@ export class SaveTx implements IStandaloneApps {
     this.broker.subscribe(Subscription.SaveTx, this.onNewTx.bind(this));
   }
 
-  async onNewTx({ blockchain, hash }: TxFoundMsgPayload) {
+  async onNewTx({ blockchain, hash }: TxDiscoveredMsgPayload) {
     const existingTx = await this.txRepository.findOne({
       blockchain,
       hash,
@@ -72,7 +72,7 @@ export class SaveTx implements IStandaloneApps {
   private async getRawTransaction({
     blockchain,
     hash,
-  }: TxFoundMsgPayload): Promise<RawTx | undefined> {
+  }: TxDiscoveredMsgPayload): Promise<RawTx | undefined> {
     const provider = this.providerFactory.getProvider(blockchain);
     const [res, receipt] = await Promise.all([
       provider.getTransaction(hash),

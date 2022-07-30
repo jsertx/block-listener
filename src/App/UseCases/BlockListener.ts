@@ -8,6 +8,7 @@ import { IocKey } from "../../Ioc/IocKey";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { BlockReceivedMsg } from "../PubSub/Messages/BlockReceivedMsg";
+import { BlockWithTransactions } from "../Types/BlockWithTransactions";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
@@ -20,15 +21,24 @@ export class BlockListener implements IStandaloneApps {
     @inject(IocKey.Logger) private logger: ILogger,
     @inject(IocKey.Broker) private broker: IBroker
   ) {}
-
+  get provider() {
+    return this.providerFactory.getProvider(this.blockchain);
+  }
   async start() {
     this.logger.log({
       type: "block-listener.start",
     });
-    const provider = this.providerFactory.getProvider(this.blockchain);
 
-    provider.on("block", async (blockNumber) => {
-      const block = await provider.getBlockWithTransactions(blockNumber);
+    this.provider.on("block", this.onBlock.bind(this));
+  }
+  private async onBlock(blockNumber: number) {
+    let block: BlockWithTransactions | undefined = undefined;
+    while (!block) {
+      block = await this.provider.getBlockWithTransactions(blockNumber);
+      if (!block) {
+        continue;
+      }
+
       this.broker.publish(
         new BlockReceivedMsg(this.blockchain.id, {
           blockchain: this.blockchain.id,
@@ -41,6 +51,6 @@ export class BlockListener implements IStandaloneApps {
           block: block.number,
         },
       });
-    });
+    }
   }
 }

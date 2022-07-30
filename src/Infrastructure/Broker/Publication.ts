@@ -5,9 +5,7 @@ const publicationCreatorFactory =
 
 export const Publication = {
   BlockReceived: publicationCreatorFactory("block_received"),
-  FindDirectTx: publicationCreatorFactory("find_direct_tx"),
-  FindInternalTx: publicationCreatorFactory("find_internal_tx"),
-  SaveTx: publicationCreatorFactory("save_tx"),
-  WhaleDiscovered: publicationCreatorFactory("whale.evt.discovered"),
-  TokenDiscovered: publicationCreatorFactory("token.evt.discovered"),
+  TxDiscovered: publicationCreatorFactory("tx_dicovered"),
+  WhaleDiscovered: publicationCreatorFactory("whale_discovered"),
+  TokenDiscovered: publicationCreatorFactory("token_discovered"),
 };

@@ -9,18 +9,15 @@ const getConnections = (brokerUrl: string) => {
   const BROKER_URL = new URL(brokerUrl);
   return [
     {
-      url: brokerUrl,
-    },
-    {
       hostname: BROKER_URL.hostname,
       user: BROKER_URL.username,
       password: BROKER_URL.password,
       port: BROKER_URL.port,
       options: {
-        heartbeat: 1,
+        heartbeat: 100,
       },
       socketOptions: {
-        timeout: 1000,
+        timeout: 100_000,
       },
     },
   ];
@@ -35,6 +32,9 @@ const bindingsSetup: BindingSetup[] = [
 ];
 const publicationsSetup: PublicationSetup[] = [
   [Publication.BlockReceived, Exchange.Block, RoutingKey.BlockReceived],
+  [Publication.TxDiscovered, Exchange.Tx, RoutingKey.TxDiscovered],
+  [Publication.TokenDiscovered, Exchange.Token, RoutingKey.TokenDiscovered],
+  [Publication.WhaleDiscovered, Exchange.Wallet, RoutingKey.WhaleDiscovered],
 ];
 export const createBrokerConnection = (config: IConfig) => {
   const bindings = bindingsSetup.reduce(
@@ -45,7 +45,7 @@ export const createBrokerConnection = (config: IConfig) => {
     expandPublicationsByBlockchain(config.enabledBlockchains),
     {}
   );
-  console.log(bindings, publications);
+
   let vhostConfig: VhostConfig = {
     connections: getConnections(config.broker.brokerUri),
     exchanges: Object.values(Exchange),
