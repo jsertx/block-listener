@@ -12,13 +12,19 @@ export interface IBrokerSubscription {
   off: () => void;
 }
 
-export interface IBroker<ChannelNames = string> {
+export abstract class BaseMessage<Publication, Payload> {
+  constructor(
+    public readonly channel: Publication,
+    public readonly payload: Payload
+  ) {}
+}
+
+export interface IBroker<Publications = string, Subscriptions = string> {
   publish<T = any>(
-    channel: ChannelNames,
-    message: T
+    msg: BaseMessage<Publications, T>
   ): Promise<IBrokerPublicationReceipt>;
   subscribe(
-    channel: ChannelNames,
+    channel: Subscriptions,
     callback: IBrokerSubCallback
   ): Promise<IBrokerSubscription>;
 }

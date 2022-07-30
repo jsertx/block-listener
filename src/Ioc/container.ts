@@ -1,6 +1,5 @@
 import { AsyncContainerModule, Container } from "inversify";
 import { Config } from "../Config/Config";
-import { EventBus } from "../App/Services/Broker/EventBroker";
 import { WinstonLogger } from "../Infrastructure/WinstonLogger";
 import { ProviderFactory } from "../App/Services/Providers/ProviderFactory";
 
@@ -24,12 +23,14 @@ import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwap
 import { PriceService } from "../App/Services/PriceService";
 import { SaveToken } from "../App/UseCases/Tokens/SaveToken";
 import { SaveWhale } from "../App/UseCases/Whales/SaveWhale";
+import { BrokerAdapter } from "../Api/Broker/BrokerAdapter";
+import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
+import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/ConfigCreation";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
     // Services
     bind(IocKey.Config).toConstantValue(Config);
-    bind(IocKey.EventBus).to(EventBus).inSingletonScope();
     bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
     bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
     bind(IocKey.AddressService).to(AddressService).inSingletonScope();
@@ -50,16 +51,18 @@ export const initializeContainer = async () => {
       SelectivePairDiscoverer,
     ].forEach((app) => bind(IocKey.StandAloneApps).to(app).inSingletonScope());
 
-    // Broker & DB Connections
-    const dbClient = await createConnection(Config.database.connectionUri);
-    //const brokerClient = await createBrokerConnection(Config.broker.brokerUri),
-
+    // Adapters
     bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
-    //bind(IocKey.Adapters).to(BrokerAdapter).inRequestScope();
-    //bind(IocKey.BrokerClient).toConstantValue(brokerClient);
-    //bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
-
-    bind(IocKey.DbClient).toConstantValue(dbClient);
+    bind(IocKey.Adapters).to(BrokerAdapter).inRequestScope();
+    // Brokers
+    bind(IocKey.BrokerClient).toConstantValue(
+      await createBrokerConnection(Config)
+    );
+    bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
+    // DB & Repos
+    bind(IocKey.DbClient).toConstantValue(
+      await createConnection(Config.database.connectionUri)
+    );
     bind(IocKey.TxRepository).to(TxRepository).inSingletonScope();
     bind(IocKey.ContractRepository).to(ContractRepository).inSingletonScope();
     bind(IocKey.TokenRepository).to(TokenRepository).inSingletonScope();

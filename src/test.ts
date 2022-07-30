@@ -7,7 +7,7 @@ import { IStandaloneApps } from "./App/Interfaces/IStandaloneApps";
 import { IBroker } from "./Interfaces/IBroker";
 import { SaveTx } from "./App/UseCases/SaveTx";
 import { Blockchain, BlockchainId } from "./App/Values/Blockchain";
-import { EventChannel } from "./App/Enums/Channel";
+import { Publication } from "./Infrastructure/Broker/Publication";
 
 (async () => {
   const container = await initializeContainer();
@@ -20,9 +20,4 @@ import { EventChannel } from "./App/Enums/Channel";
       );
     })
     .forEach((listener) => listener.start());
-
-  container.get<IBroker>(IocKey.EventBus).publish(EventChannel.SaveTx, {
-    blockchain: new Blockchain(BlockchainId.Ethereum),
-    hash: "0x292af104617f967b55f43e90afbd070f7d0cd8a3e80c59af3fe219207d4c4456",
-  });
 })();

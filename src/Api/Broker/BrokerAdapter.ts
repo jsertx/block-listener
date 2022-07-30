@@ -14,19 +14,5 @@ export class BrokerAdapter implements IAdapter {
     @inject(IocKey.AddressService) private addressService: IAddressService
   ) {}
 
-  start() {
-    this.broker.subscribe(
-      "create_wallet",
-      createSubHandler((wallet: WalletRaw) =>
-        this.addressService.saveWallet(Wallet.create(wallet))
-      )
-    );
-
-    this.broker.subscribe(
-      "create_contract",
-      createSubHandler((contract: ContractRaw) =>
-        this.addressService.saveContract(Contract.create(contract))
-      )
-    );
-  }
+  start() {}
 }

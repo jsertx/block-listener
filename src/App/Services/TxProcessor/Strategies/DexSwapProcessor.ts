@@ -4,7 +4,6 @@ import { IocKey } from "../../../../Ioc/IocKey";
 import { DexSwapData, Tx } from "../../../Entities/Tx";
 import { TxType } from "../../../Values/Tx";
 import { ITxProcessStrategy } from "../ITxProcessStrategy";
-import { ITokenRepository } from "../../../Repository/ITokenRepository";
 import { Token } from "../../../Entities/Token";
 import { IContractRepository } from "../../../Repository/IContractRepository";
 import { UniswapV2RouterSwapMethods } from "../../../Types/UniswapV2RouterSwapMethods";
@@ -14,10 +13,11 @@ import { IPriceService } from "../../../Interfaces/IPriceService";
 import { BigNumber } from "bignumber.js";
 import { IConfig } from "../../../../Interfaces/IConfig";
 import { IBroker } from "../../../../Interfaces/IBroker";
-import { EventChannel } from "../../../Enums/Channel";
 import { HexAddressStr } from "../../../Values/Address";
 import { checksumed } from "../../../Utils/Address";
 import { onlyUniqueFilter } from "../../../Utils/Array";
+import { WhaleDiscoveredMsg } from "../../../PubSub/Messages/WhaleDiscoveredMsg";
+import { TokenDiscoveredMsg } from "../../../PubSub/Messages/TokenDiscoveredMsg";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -26,9 +26,8 @@ const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
 export class DexSwapProcessor implements ITxProcessStrategy {
   constructor(
     @inject(IocKey.Logger) private logger: ILogger,
-    @inject(IocKey.EventBus) private eventBus: IBroker,
+    @inject(IocKey.Broker) private broker: IBroker,
     @inject(IocKey.Config) private config: IConfig,
-    @inject(IocKey.TokenRepository) private tokenRepository: ITokenRepository,
     @inject(IocKey.PriceService) private priceService: IPriceService,
     @inject(IocKey.ContractRepository)
     private contractRepository: IContractRepository
@@ -71,19 +70,23 @@ export class DexSwapProcessor implements ITxProcessStrategy {
   }
   private emitMessages(tx: Tx<any>, dexSwapData: DexSwapData) {
     [dexSwapData.input.token, dexSwapData.output.token].forEach((address) => {
-      this.eventBus.publish(EventChannel.TokenDiscovered, {
-        blockchain: tx.blockchain,
-        address,
-      });
+      this.broker.publish(
+        new TokenDiscoveredMsg(tx.blockchain.id, {
+          blockchain: tx.blockchain.id,
+          address,
+        })
+      );
     });
 
     [dexSwapData.from, dexSwapData.to]
       .filter(onlyUniqueFilter)
       .forEach((address) => {
-        this.eventBus.publish(EventChannel.WhaleDiscovered, {
-          blockchain: tx.blockchain,
-          address,
-        });
+        this.broker.publish(
+          new WhaleDiscoveredMsg(tx.blockchain.id, {
+            blockchain: tx.blockchain.id,
+            address,
+          })
+        );
       });
   }
 

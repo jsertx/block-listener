@@ -2,13 +2,12 @@ import { inject, injectable } from "inversify";
 import { ITxRepository } from "../Repository/ITxRepository";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IocKey } from "../../Ioc/IocKey";
-import { EventChannel } from "../Enums/Channel";
+import { Publication } from "../../Infrastructure/Broker/Publication";
 import { IBroker } from "../../Interfaces/IBroker";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { RawTx, Tx } from "../Entities/Tx";
 import { TxType } from "../Values/Tx";
-import { RawTxId } from "../Types/RawTxId";
 import { isSmartContractCall } from "../Utils/Tx";
 
 import { LogDecoder, TxDecoder } from "@maticnetwork/eth-decoder";
@@ -16,13 +15,15 @@ import { ethers } from "ethers";
 import { TransactionLog } from "../Types/TransactionLog";
 import { allAbiList } from "../Services/SmartContract/ABI";
 import { ITxProcessor } from "../Services/TxProcessor/ITxProcessor";
+import { TxFoundMsgPayload } from "../PubSub/Messages/TxFoundMsg";
+import { Subscription } from "../../Infrastructure/Broker/Subscription";
 
 @injectable()
 export class SaveTx implements IStandaloneApps {
   constructor(
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
-    @inject(IocKey.EventBus) private eventBus: IBroker,
+    @inject(IocKey.Broker) private broker: IBroker,
     @inject(IocKey.Logger) private logger: ILogger,
     @inject(IocKey.TxProcessor) private txProcessor: ITxProcessor
   ) {}
@@ -32,12 +33,12 @@ export class SaveTx implements IStandaloneApps {
       type: "save-tx.started",
       message: "Save tx listener has started",
     });
-    this.eventBus.subscribe(EventChannel.SaveTx, this.onNewTx.bind(this));
+    this.broker.subscribe(Subscription.SaveTx, this.onNewTx.bind(this));
   }
 
-  async onNewTx({ blockchain, hash }: RawTxId) {
+  async onNewTx({ blockchain, hash }: TxFoundMsgPayload) {
     const existingTx = await this.txRepository.findOne({
-      blockchain: blockchain.id,
+      blockchain,
       hash,
     });
     if (existingTx) {
@@ -48,7 +49,7 @@ export class SaveTx implements IStandaloneApps {
       return;
     }
     const unknownTx = Tx.create({
-      blockchain: blockchain.id,
+      blockchain,
       hash,
       raw: successfullTx,
       type: TxType.Unknown,
@@ -71,7 +72,7 @@ export class SaveTx implements IStandaloneApps {
   private async getRawTransaction({
     blockchain,
     hash,
-  }: RawTxId): Promise<RawTx | undefined> {
+  }: TxFoundMsgPayload): Promise<RawTx | undefined> {
     const provider = this.providerFactory.getProvider(blockchain);
     const [res, receipt] = await Promise.all([
       provider.getTransaction(hash),

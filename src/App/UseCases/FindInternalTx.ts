@@ -1,21 +1,20 @@
 import { inject, injectable } from "inversify";
-import { ITxRepository } from "../Repository/ITxRepository";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IocKey } from "../../Ioc/IocKey";
 
-import { EventChannel } from "../Enums/Channel";
-import { IBroker } from "../../Interfaces/IBroker";
 import PromiseThrottle from "promise-throttle";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
-import { RawBlock } from "../Types/RawBlock";
 import { IContractRepository } from "../Repository/IContractRepository";
-import { BlockchainId } from "../Values/Blockchain";
 import { Contract } from "../Entities/Contract";
 import { ethers } from "ethers";
 import { flattenReducer, onlyUniqueFilter } from "../Utils/Array";
-import { RawTxId } from "../Types/RawTxId";
+import { IAppBroker } from "../Interfaces/IAppBroker";
+import { BlockWithTransactions } from "../Types/BlockWithTransactions";
+import { TxFoundMsg } from "../PubSub/Messages/TxFoundMsg";
+import { Subscription } from "../../Infrastructure/Broker/Subscription";
+import { BlockReceivedMsgPayload } from "../PubSub/Messages/BlockReceivedMsg";
 
 interface BlockFetchingConfig {
   fromBlock: number;
@@ -27,7 +26,7 @@ interface BlockFetchingConfig {
 @injectable()
 export class FindInternalTx implements IStandaloneApps {
   constructor(
-    @inject(IocKey.EventBus) private eventBus: IBroker,
+    @inject(IocKey.Broker) private broker: IAppBroker,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
     @inject(IocKey.ContractRepository)
     private contractRepository: IContractRepository,
@@ -35,14 +34,14 @@ export class FindInternalTx implements IStandaloneApps {
   ) {}
 
   async start() {
-    this.eventBus.subscribe(EventChannel.NewBlock, this.onNewBlock.bind(this));
+    this.broker.subscribe(Subscription.FindInternalTx, this.onBlock.bind(this));
   }
 
-  async onNewBlock(rawBlock: RawBlock) {
+  async onBlock({ block, blockchain }: BlockReceivedMsgPayload) {
     const { data: contracts } = await this.contractRepository.findAll();
 
     const { fromBlock, toBlock, skip, requestsPerSecond } =
-      this.getBlockFetchingRange(rawBlock);
+      this.getBlockFetchingRange(block);
     if (skip) {
       return;
     }
@@ -63,8 +62,7 @@ export class FindInternalTx implements IStandaloneApps {
       .filter(onlyUniqueFilter);
 
     txHashes.forEach((hash) => {
-      const msg: RawTxId = { blockchain: rawBlock.blockchain, hash };
-      this.eventBus.publish(EventChannel.SaveTx, msg);
+      this.broker.publish(new TxFoundMsg(blockchain, { blockchain, hash }));
     });
   }
 
@@ -101,10 +99,9 @@ export class FindInternalTx implements IStandaloneApps {
       .filter(onlyUniqueFilter);
   }
 
-  private getBlockFetchingRange({
-    block,
-    blockchain,
-  }: RawBlock): BlockFetchingConfig {
+  private getBlockFetchingRange(
+    block: BlockWithTransactions
+  ): BlockFetchingConfig {
     const requestsPerSecond = 100;
     const blockBatchSize = 100;
     const blocksToSkipUntilFetch = blockBatchSize / 2;

@@ -2,6 +2,7 @@ import { inject, injectable } from "inversify";
 import { IocKey } from "../../Ioc/IocKey";
 import { BrokerAsPromised } from "rascal";
 import {
+  BaseMessage,
   IBroker,
   IBrokerPublicationReceipt,
   IBrokerSubscription,
@@ -9,17 +10,17 @@ import {
 import { ILogger } from "../../Interfaces/ILogger";
 
 @injectable()
-export class RabbitMQ implements IBroker<string> {
+export class RabbitMQ implements IBroker<any, any> {
   constructor(
     @inject(IocKey.BrokerClient) private client: BrokerAsPromised,
     @inject(IocKey.Logger) private logger: ILogger
   ) {}
 
-  async publish<T = any>(
-    channel: string,
-    message: T
-  ): Promise<IBrokerPublicationReceipt> {
-    await this.client.publish(channel, message).catch((error) => {
+  async publish({
+    channel,
+    payload,
+  }: BaseMessage<any, any>): Promise<IBrokerPublicationReceipt> {
+    await this.client.publish(channel, payload).catch((error) => {
       this.logger.error({
         message: "Failed message",
         type: "pubsub.publish",

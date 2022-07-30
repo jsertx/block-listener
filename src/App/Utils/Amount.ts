@@ -1,7 +1,9 @@
-import { ethers } from "ethers";
+import BigNumber from "bignumber.js";
 
-export const toPrecision = (num: ethers.BigNumberish, decimals = 18) =>
-  ethers.utils.parseUnits(`${num}`, decimals);
+const factor = (decimals: number) => new BigNumber(10).pow(decimals).toString();
 
-export const toFormatted = (num: ethers.BigNumberish, decimals = 18) =>
-  ethers.utils.formatUnits(`${num}`, decimals);
+export const toPrecision = (hex: string, decimals = 18) =>
+  new BigNumber(hex).multipliedBy(factor(decimals)).toString();
+
+export const toFormatted = (hex: string, decimals = 18) =>
+  new BigNumber(hex).div(factor(decimals)).toString();

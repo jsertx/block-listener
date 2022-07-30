@@ -8,8 +8,6 @@ export const IocKey = {
   PriceService: Symbol.for("PriceService"),
   // Adapters
   Adapters: Symbol.for("Adapters"),
-  // Events
-  EventBus: Symbol.for("EventBus"),
   // UseCases
   StandAloneApps: Symbol.for("StandAloneApps"),
   TxProcessor: Symbol.for("TxProcessor"),

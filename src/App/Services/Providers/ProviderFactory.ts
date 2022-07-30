@@ -11,7 +11,10 @@ const defaultBlockchain = new Blockchain(BlockchainId.Ethereum);
 export class ProviderFactory implements IProviderFactory {
   constructor(@inject(IocKey.Config) private config: IConfig) {}
 
-  getProvider(blockchain: Blockchain = defaultBlockchain) {
+  getProvider(blockchain: Blockchain | BlockchainId = defaultBlockchain) {
+    if (!(blockchain instanceof Blockchain)) {
+      blockchain = new Blockchain(blockchain);
+    }
     if (this.config.providers.alchemyJsonRpcUrl) {
       return new ethers.providers.StaticJsonRpcProvider(
         this.config.providers.alchemyJsonRpcUrl,

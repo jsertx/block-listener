@@ -1,13 +1,8 @@
+import { BlockchainId } from "../../Config/Blockchains";
 import { Token } from "../Entities/Token";
 import { NotEvmChainError } from "../Errors/NotEvmChainError";
 
-export enum BlockchainId {
-  Ethereum = "ethereum",
-  Bitcoin = "bitcoin",
-  Binance = "binance",
-  Polygon = "polygon",
-}
-
+export { BlockchainId } from "../../Config/Blockchains";
 export const blockchainIdList = Object.values(BlockchainId);
 
 const blockchainToChainId: Partial<Record<BlockchainId, number>> = {

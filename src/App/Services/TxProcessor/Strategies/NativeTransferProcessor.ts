@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { ILogger } from "../../../../Interfaces/ILogger";
 import { IocKey } from "../../../../Ioc/IocKey";
-import { EventChannel } from "../../../Enums/Channel";
+import { Publication } from "../../../../Infrastructure/Broker/Publication";
 import { IBroker } from "../../../../Interfaces/IBroker";
 import { IStandaloneApps } from "../../../Interfaces/IStandaloneApps";
 import { EthNativeTransferData, Tx } from "../../../Entities/Tx";

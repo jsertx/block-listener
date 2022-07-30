@@ -6,8 +6,8 @@ import { ILogger } from "../../Interfaces/ILogger";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IocKey } from "../../Ioc/IocKey";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
-import { EventChannel } from "../Enums/Channel";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
+import { BlockReceivedMsg } from "../PubSub/Messages/BlockReceivedMsg";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
@@ -18,7 +18,7 @@ export class BlockListener implements IStandaloneApps {
   constructor(
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
     @inject(IocKey.Logger) private logger: ILogger,
-    @inject(IocKey.EventBus) private eventBus: IBroker
+    @inject(IocKey.Broker) private broker: IBroker
   ) {}
 
   async start() {
@@ -29,10 +29,12 @@ export class BlockListener implements IStandaloneApps {
 
     provider.on("block", async (blockNumber) => {
       const block = await provider.getBlockWithTransactions(blockNumber);
-      this.eventBus.publish(EventChannel.NewBlock, {
-        blockchain: this.blockchain,
-        block,
-      });
+      this.broker.publish(
+        new BlockReceivedMsg(this.blockchain.id, {
+          blockchain: this.blockchain.id,
+          block,
+        })
+      );
       this.logger.log({
         type: "block-listener.new-block",
         context: {
