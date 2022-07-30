@@ -7,7 +7,7 @@ import { IStandaloneApps } from "../../Interfaces/IStandaloneApps";
 import { Wallet } from "../../Entities/Wallet";
 import { WalletType } from "../../Values/WalletType";
 import { IWalletRepository } from "../../Repository/IWalletRepository";
-import { WhaleDiscoveredMsgPayload } from "../../PubSub/Messages/WhaleDiscoveredMsg";
+import { WhaleDiscoveredPayload } from "../../PubSub/Messages/WhaleDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
 
 @injectable()
@@ -26,7 +26,7 @@ export class SaveWhale implements IStandaloneApps {
     this.broker.subscribe(Subscription.SaveWhale, this.execute.bind(this));
   }
 
-  async execute({ address, blockchain }: WhaleDiscoveredMsgPayload) {
+  async execute({ address, blockchain }: WhaleDiscoveredPayload) {
     const whale = Wallet.create({
       address,
       blockchain,

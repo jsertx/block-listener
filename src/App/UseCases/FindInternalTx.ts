@@ -12,9 +12,9 @@ import { ethers } from "ethers";
 import { flattenReducer, onlyUniqueFilter } from "../Utils/Array";
 import { IAppBroker } from "../Interfaces/IAppBroker";
 import { BlockWithTransactions } from "../Types/BlockWithTransactions";
-import { TxDiscoveredMsg } from "../PubSub/Messages/TxDiscoveredMsg";
+import { TxDiscovered } from "../PubSub/Messages/TxDiscovered";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
-import { BlockReceivedMsgPayload } from "../PubSub/Messages/BlockReceivedMsg";
+import { BlockReceivedPayload } from "../PubSub/Messages/BlockReceived";
 
 interface BlockFetchingConfig {
   fromBlock: number;
@@ -37,7 +37,7 @@ export class FindInternalTx implements IStandaloneApps {
     this.broker.subscribe(Subscription.FindInternalTx, this.onBlock.bind(this));
   }
 
-  async onBlock({ block, blockchain }: BlockReceivedMsgPayload) {
+  async onBlock({ block, blockchain }: BlockReceivedPayload) {
     const { data: contracts } = await this.contractRepository.findAll();
 
     const { fromBlock, toBlock, skip, requestsPerSecond } =
@@ -62,9 +62,7 @@ export class FindInternalTx implements IStandaloneApps {
       .filter(onlyUniqueFilter);
 
     txHashes.forEach((hash) => {
-      this.broker.publish(
-        new TxDiscoveredMsg(blockchain, { blockchain, hash })
-      );
+      this.broker.publish(new TxDiscovered(blockchain, { blockchain, hash }));
     });
   }
 

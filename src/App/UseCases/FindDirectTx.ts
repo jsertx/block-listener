@@ -12,8 +12,8 @@ import { RawBlock } from "../Types/RawBlock";
 import { IContractRepository } from "../Repository/IContractRepository";
 import { IAppBroker } from "../Interfaces/IAppBroker";
 
-import { TxDiscoveredMsg } from "../PubSub/Messages/TxDiscoveredMsg";
-import { BlockReceivedMsgPayload } from "../PubSub/Messages/BlockReceivedMsg";
+import { TxDiscovered } from "../PubSub/Messages/TxDiscovered";
+import { BlockReceivedPayload } from "../PubSub/Messages/BlockReceived";
 import { ethers } from "ethers";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import BigNumber from "bignumber.js";
@@ -35,7 +35,7 @@ export class FindDirectTx implements IStandaloneApps {
     this.broker.subscribe(Subscription.FindDirectTx, this.onBlock.bind(this));
   }
 
-  async onBlock({ block, blockchain }: BlockReceivedMsgPayload) {
+  async onBlock({ block, blockchain }: BlockReceivedPayload) {
     const contracts = await this.getSmartContractsOfInterest();
     for (const tx of block.transactions) {
       if (
@@ -43,7 +43,7 @@ export class FindDirectTx implements IStandaloneApps {
         this.isAgainstContractOfInterest(tx, contracts)
       ) {
         this.broker.publish(
-          new TxDiscoveredMsg(blockchain, { blockchain, hash: tx.hash })
+          new TxDiscovered(blockchain, { blockchain, hash: tx.hash })
         );
       }
     }

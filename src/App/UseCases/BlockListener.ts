@@ -7,7 +7,7 @@ import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IocKey } from "../../Ioc/IocKey";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
-import { BlockReceivedMsg } from "../PubSub/Messages/BlockReceivedMsg";
+import { BlockReceived } from "../PubSub/Messages/BlockReceived";
 import { BlockWithTransactions } from "../Types/BlockWithTransactions";
 
 @injectable()
@@ -40,7 +40,7 @@ export class BlockListener implements IStandaloneApps {
       }
 
       this.broker.publish(
-        new BlockReceivedMsg(this.blockchain.id, {
+        new BlockReceived(this.blockchain.id, {
           blockchain: this.blockchain.id,
           block,
         })

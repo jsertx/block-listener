@@ -16,8 +16,8 @@ import { IBroker } from "../../../../Interfaces/IBroker";
 import { HexAddressStr } from "../../../Values/Address";
 import { checksumed } from "../../../Utils/Address";
 import { onlyUniqueFilter } from "../../../Utils/Array";
-import { WhaleDiscoveredMsg } from "../../../PubSub/Messages/WhaleDiscoveredMsg";
-import { TokenDiscoveredMsg } from "../../../PubSub/Messages/TokenDiscoveredMsg";
+import { WhaleDiscovered } from "../../../PubSub/Messages/WhaleDiscovered";
+import { TokenDiscovered } from "../../../PubSub/Messages/TokenDiscovered";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -71,7 +71,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
   private emitMessages(tx: Tx<any>, dexSwapData: DexSwapData) {
     [dexSwapData.input.token, dexSwapData.output.token].forEach((address) => {
       this.broker.publish(
-        new TokenDiscoveredMsg(tx.blockchain.id, {
+        new TokenDiscovered(tx.blockchain.id, {
           blockchain: tx.blockchain.id,
           address,
         })
@@ -82,7 +82,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
       .filter(onlyUniqueFilter)
       .forEach((address) => {
         this.broker.publish(
-          new WhaleDiscoveredMsg(tx.blockchain.id, {
+          new WhaleDiscovered(tx.blockchain.id, {
             blockchain: tx.blockchain.id,
             address,
           })

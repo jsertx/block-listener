@@ -9,7 +9,7 @@ import { ITxProcessor } from "../../Services/TxProcessor/ITxProcessor";
 import { ITokenRepository } from "../../Repository/ITokenRepository";
 import { Token, TokenIdProps } from "../../Entities/Token";
 import { ERC20 } from "../../Services/SmartContract/ABI/ERC20";
-import { TokenDiscoveredMsgPayload } from "../../PubSub/Messages/TokenDiscoveredMsg";
+import { TokenDiscoveredPayload } from "../../PubSub/Messages/TokenDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
 
 @injectable()
@@ -30,7 +30,7 @@ export class SaveToken implements IStandaloneApps {
     this.broker.subscribe(Subscription.SaveToken, this.execute.bind(this));
   }
 
-  async execute({ address, blockchain }: TokenDiscoveredMsgPayload) {
+  async execute({ address, blockchain }: TokenDiscoveredPayload) {
     const existingToken = await this.tokenRepository.findOne({
       address,
       blockchain,
