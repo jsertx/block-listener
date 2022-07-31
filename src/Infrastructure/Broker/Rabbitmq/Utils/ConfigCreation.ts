@@ -37,7 +37,7 @@ const bindingsSetup: BindingSetup[] = [
   [Exchange.Tx, RoutingKey.TxDiscovered, Queue.SaveTx],
   [Exchange.Token, RoutingKey.TokenDiscovered, Queue.SaveToken],
   [Exchange.Wallet, RoutingKey.WhaleDiscovered, Queue.SaveWhale],
-  [Exchange.Wallet, RoutingKey.WhaleSaved, Queue.FindWhaleTxs],
+  // Not needed yet [Exchange.Wallet, RoutingKey.WhaleSaved, Queue.FindWhaleTxs],
 ];
 
 export const createBrokerConnection = (config: IConfig) => {
