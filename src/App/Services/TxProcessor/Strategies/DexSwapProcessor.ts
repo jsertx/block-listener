@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { ILogger } from "../../../../Interfaces/ILogger";
 import { IocKey } from "../../../../Ioc/IocKey";
 import { DexSwapData, Tx } from "../../../Entities/Tx";
-import { TxType } from "../../../Values/Tx";
+import { TxType } from "../../../Values/TxType";
 import { ITxProcessStrategy } from "../ITxProcessStrategy";
 import { Token } from "../../../Entities/Token";
 import { IContractRepository } from "../../../Repository/IContractRepository";

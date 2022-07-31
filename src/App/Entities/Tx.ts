@@ -9,7 +9,7 @@ import {
   BlockchainId,
   blockchainIdList,
 } from "../Values/Blockchain";
-import { TxType, txTypeList } from "../Values/Tx";
+import { TxType, txTypeList } from "../Values/TxType";
 import { Entity } from "./Base/Entity";
 import { Token } from "./Token";
 

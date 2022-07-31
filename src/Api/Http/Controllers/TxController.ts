@@ -6,7 +6,7 @@ import {
   queryParam,
 } from "inversify-express-utils";
 import { TxProps } from "../../../App/Entities/Tx";
-import { TxType } from "../../../App/Values/Tx";
+import { TxType } from "../../../App/Values/TxType";
 import { ITxRepository } from "../../../App/Repository/ITxRepository";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";

@@ -5,7 +5,7 @@ import { Publication } from "../../../../Infrastructure/Broker/Publication";
 import { IBroker } from "../../../../Interfaces/IBroker";
 import { IStandaloneApps } from "../../../Interfaces/IStandaloneApps";
 import { EthNativeTransferData, Tx } from "../../../Entities/Tx";
-import { TxType } from "../../../Values/Tx";
+import { TxType } from "../../../Values/TxType";
 import { toFormatted } from "../../../Utils/Amount";
 import { ITxProcessStrategy } from "../ITxProcessStrategy";
 

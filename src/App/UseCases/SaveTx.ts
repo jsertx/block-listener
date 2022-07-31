@@ -7,7 +7,7 @@ import { IBroker } from "../../Interfaces/IBroker";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { RawTx, Tx } from "../Entities/Tx";
-import { TxType } from "../Values/Tx";
+import { TxType } from "../Values/TxType";
 import { isSmartContractCall } from "../Utils/Tx";
 
 import { LogDecoder, TxDecoder } from "@maticnetwork/eth-decoder";
