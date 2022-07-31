@@ -13,7 +13,6 @@ import { FindInternalTx } from "../App/UseCases/FindInternalTx";
 import { BlockListener } from "../App/UseCases/BlockListener";
 
 import { HttpAdapter } from "../Api/Http/HttpAdapter";
-import { AddressService } from "../App/Services/AddressService";
 import { SaveTx } from "../App/UseCases/SaveTx";
 import { TxProcessor } from "../App/Services/TxProcessor/TxProcessor";
 import { SelectivePairDiscoverer } from "../App/UseCases/SelectivePairDiscoverer";
@@ -33,7 +32,6 @@ export const initializeContainer = async () => {
     bind(IocKey.Config).toConstantValue(Config);
     bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
     bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
-    bind(IocKey.AddressService).to(AddressService).inSingletonScope();
     bind(IocKey.PriceService).to(PriceService).inSingletonScope();
     // TxProcessor
     bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();

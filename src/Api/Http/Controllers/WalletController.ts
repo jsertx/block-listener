@@ -6,24 +6,25 @@ import {
   httpPost,
   requestBody,
 } from "inversify-express-utils";
-import { IAddressService } from "../../../App/Interfaces/IAddressService";
+
 import { IocKey } from "../../../Ioc/IocKey";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { validateOrThrowError } from "../../../App/Utils/Validation";
 import { Wallet, WalletRaw } from "../../../App/Entities/Wallet";
 import { CreateWalletDto, CreateWalletDtoSchema } from "../Dto/WalletDto";
+import { IWalletRepository } from "../../../App/Repository/IWalletRepository";
 
 @controller("/wallets")
 export class WalletController implements interfaces.Controller {
   constructor(
-    @inject(IocKey.AddressService)
-    private addressService: IAddressService
+    @inject(IocKey.WalletRepository)
+    private walletRepository: IWalletRepository
   ) {}
 
   @httpGet("/")
   async index(): Promise<IApiPaginatedResponse<WalletRaw>> {
-    const data = await this.addressService.findAllWallets();
+    const { data } = await this.walletRepository.findAll();
     return buildPaginatedResponse({
       data: data.map((data) => data.toRaw()),
     });
@@ -34,7 +35,7 @@ export class WalletController implements interfaces.Controller {
     @requestBody() body: CreateWalletDto
   ): Promise<IApiResponse> {
     validateOrThrowError(body, CreateWalletDtoSchema);
-    const wallet = await this.addressService.saveWallet(
+    const wallet = await this.walletRepository.save(
       Wallet.create({ ...body, createdAt: new Date() })
     );
     return {

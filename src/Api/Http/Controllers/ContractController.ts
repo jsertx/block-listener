@@ -6,24 +6,25 @@ import {
   httpPost,
   requestBody,
 } from "inversify-express-utils";
-import { IAddressService } from "../../../App/Interfaces/IAddressService";
+
 import { IocKey } from "../../../Ioc/IocKey";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { validateOrThrowError } from "../Utils/Validation";
 import { Contract, ContractRaw } from "../../../App/Entities/Contract";
 import { CreateContractDto, CreateContractDtoSchema } from "../Dto/ContractDto";
+import { IContractRepository } from "../../../App/Repository/IContractRepository";
 
 @controller("/contracts")
 export class ContractController implements interfaces.Controller {
   constructor(
-    @inject(IocKey.AddressService)
-    private addressService: IAddressService
+    @inject(IocKey.ContractRepository)
+    private contractRepository: IContractRepository
   ) {}
 
   @httpGet("/")
   async index(): Promise<IApiPaginatedResponse<ContractRaw>> {
-    const data = await this.addressService.findAllContracts();
+    const { data } = await this.contractRepository.findAll();
     return buildPaginatedResponse({
       data: data.map((data) => data.toRaw()),
     });
@@ -34,7 +35,7 @@ export class ContractController implements interfaces.Controller {
     @requestBody() body: CreateContractDto
   ): Promise<IApiResponse> {
     validateOrThrowError(body, CreateContractDtoSchema);
-    const contract = await this.addressService.saveContract(
+    const contract = await this.contractRepository.save(
       Contract.create({ ...body, createdAt: new Date() })
     );
     return {
