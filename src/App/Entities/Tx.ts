@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import Joi from "joi";
+import Joi, { ValidationResult } from "joi";
 import { TransactionLog } from "../Types/TransactionLog";
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddressStr } from "../Values/Address";
@@ -39,17 +39,10 @@ export interface TxProps<TxDataType = any> extends TxIdProps {
   data?: TxDataType;
 }
 
-export interface EthNativeTransferData {
+export interface EthTransferData {
   from: HexAddressStr;
   to: HexAddressStr;
   value: FormattedAmount;
-}
-
-interface TokenTransferData {
-  from: HexAddressStr;
-  to: HexAddressStr;
-  value: FormattedAmount;
-  token: Token;
 }
 
 export interface DexSwapData {
@@ -67,11 +60,37 @@ export interface DexSwapData {
   };
 }
 
+const EthTransferSchema = Joi.object({
+  value: Joi.string().required(),
+  from: Joi.string().required(),
+  to: Joi.string().required(),
+})
+  .unknown()
+  .options({ stripUnknown: true });
+
+const DexSwapDataSchema = Joi.object({
+  nativeValue: Joi.string().required(),
+  usdValue: Joi.string().required(),
+  from: Joi.string().required(),
+  to: Joi.string().required(),
+  input: Joi.object({
+    token: Joi.string().required(),
+    amount: Joi.string().required(),
+  }),
+  output: Joi.object({
+    token: Joi.string().required(),
+    amount: Joi.string().required(),
+  }).required(),
+})
+  .unknown()
+  .options({ stripUnknown: true });
+
 const TxSchema = Joi.object({
   blockchain: Joi.valid(...blockchainIdList).required(),
   hash: Joi.string().required(),
   raw: Joi.any(),
   type: Joi.string().valid(...txTypeList),
+  data: Joi.alternatives(DexSwapDataSchema, EthTransferSchema),
 });
 
 export class Tx<DataTypeRaw = any> extends Entity<TxProps<DataTypeRaw>> {
@@ -120,7 +139,19 @@ export class Tx<DataTypeRaw = any> extends Entity<TxProps<DataTypeRaw>> {
 
   setTypeAndData(type: TxType, data: DataTypeRaw) {
     this.props.type = type;
-    this.props.data = data;
+    let validation: ValidationResult;
+    switch (this.props.type) {
+      case TxType.DexSwap:
+        validation = DexSwapDataSchema.validate(data);
+        break;
+      case TxType.EthTransfer:
+        validation = EthTransferSchema.validate(data);
+        break;
+      default:
+        throw new Error("Not supported tx type:" + type);
+    }
+
+    this.props.data = validation.value;
   }
 
   static create(props: TxProps, _id?: string): Tx<any> {
@@ -129,12 +160,8 @@ export class Tx<DataTypeRaw = any> extends Entity<TxProps<DataTypeRaw>> {
   }
 }
 
-export interface EthNativeTransferTxRaw
-  extends TxProps<EthNativeTransferData> {}
-export class EthNativeTransferTx extends Tx<EthNativeTransferData> {}
-
-export interface TokenTransferTxRaw extends TxProps<TokenTransferData> {}
-export class TokenTransferTx extends Tx<TokenTransferData> {}
+export interface EthTransferTxRaw extends TxProps<EthTransferData> {}
+export class EthTransferTx extends Tx<EthTransferData> {}
 
 export interface DexSwapTransferTxRaw extends TxProps<DexSwapData> {}
 export class DexSwapTransferTx extends Tx<DexSwapData> {}

@@ -4,7 +4,7 @@ import { IocKey } from "../../../../Ioc/IocKey";
 import { Publication } from "../../../../Infrastructure/Broker/Publication";
 import { IBroker } from "../../../../Interfaces/IBroker";
 import { IStandaloneApps } from "../../../Interfaces/IStandaloneApps";
-import { EthNativeTransferData, Tx } from "../../../Entities/Tx";
+import { EthTransferData, Tx } from "../../../Entities/Tx";
 import { TxType } from "../../../Values/TxType";
 import { toFormatted } from "../../../Utils/Amount";
 import { ITxProcessStrategy } from "../ITxProcessStrategy";
@@ -17,7 +17,7 @@ export class NativeTransferProcessor implements ITxProcessStrategy {
     if (tx.isSmartContractCall) {
       return;
     }
-    const data: EthNativeTransferData = {
+    const data: EthTransferData = {
       from: tx.raw.from,
       to: tx.raw.to,
       value: toFormatted(tx.raw.value),

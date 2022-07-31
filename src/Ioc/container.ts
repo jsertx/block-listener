@@ -25,6 +25,7 @@ import { SaveWhale } from "../App/UseCases/Whales/SaveWhale";
 import { BrokerAdapter } from "../Api/Broker/BrokerAdapter";
 import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
 import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/ConfigCreation";
+import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
 
 export const initializeContainer = async () => {
   const bindings = new AsyncContainerModule(async (bind) => {
@@ -33,6 +34,7 @@ export const initializeContainer = async () => {
     bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
     bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
     bind(IocKey.PriceService).to(PriceService).inSingletonScope();
+    bind(IocKey.BlockchainService).to(CovalentApi).inSingletonScope();
     // TxProcessor
     bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();
     [NativeTransferProcessor, DexSwapProcessor].forEach((processor) =>
