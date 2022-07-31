@@ -23,19 +23,23 @@ const getConnections = (brokerUrl: string) => {
   ];
 };
 
+const publicationsSetup: PublicationSetup[] = [
+  [Publication.BlockReceived, Exchange.Block, RoutingKey.BlockReceived],
+  [Publication.TxDiscovered, Exchange.Tx, RoutingKey.TxDiscovered],
+  [Publication.TokenDiscovered, Exchange.Token, RoutingKey.TokenDiscovered],
+  [Publication.WhaleDiscovered, Exchange.Wallet, RoutingKey.WhaleDiscovered],
+  [Publication.WhaleSaved, Exchange.Wallet, RoutingKey.WhaleSaved],
+];
+
 const bindingsSetup: BindingSetup[] = [
   [Exchange.Block, RoutingKey.BlockReceived, Queue.FindDirectTx],
   [Exchange.Block, RoutingKey.BlockReceived, Queue.FindInternalTx],
   [Exchange.Tx, RoutingKey.TxDiscovered, Queue.SaveTx],
   [Exchange.Token, RoutingKey.TokenDiscovered, Queue.SaveToken],
   [Exchange.Wallet, RoutingKey.WhaleDiscovered, Queue.SaveWhale],
+  [Exchange.Wallet, RoutingKey.WhaleSaved, Queue.FindWhaleTxs],
 ];
-const publicationsSetup: PublicationSetup[] = [
-  [Publication.BlockReceived, Exchange.Block, RoutingKey.BlockReceived],
-  [Publication.TxDiscovered, Exchange.Tx, RoutingKey.TxDiscovered],
-  [Publication.TokenDiscovered, Exchange.Token, RoutingKey.TokenDiscovered],
-  [Publication.WhaleDiscovered, Exchange.Wallet, RoutingKey.WhaleDiscovered],
-];
+
 export const createBrokerConnection = (config: IConfig) => {
   const bindings = bindingsSetup.reduce(
     expandBindingsByBlockchain(config.enabledBlockchains),

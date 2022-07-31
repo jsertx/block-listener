@@ -6,6 +6,8 @@ export const IocKey = {
   ContractFactory: Symbol.for("ContractFactory"),
   Logger: Symbol.for("Logger"),
   PriceService: Symbol.for("PriceService"),
+  // BlockchainService
+  BlockchainService: Symbol.for("BlockchainService"),
   // Adapters
   Adapters: Symbol.for("Adapters"),
   // UseCases
