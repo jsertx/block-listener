@@ -17,6 +17,7 @@ import { allAbiList } from "../Services/SmartContract/ABI";
 import { ITxProcessor } from "../Services/TxProcessor/ITxProcessor";
 import { TxDiscoveredPayload } from "../PubSub/Messages/TxDiscovered";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
+import { WhaleDiscovered } from "../PubSub/Messages/WhaleDiscovered";
 
 @injectable()
 export class SaveTx implements IStandaloneApps {
@@ -67,6 +68,13 @@ export class SaveTx implements IStandaloneApps {
       type: "save-tx.saved",
       context: { txHash: hash, blockchain },
     });
+
+    await this.broker.publish(
+      new WhaleDiscovered(tx.blockchain.id, {
+        blockchain: tx.blockchain.id,
+        address: tx.from,
+      })
+    );
   }
 
   private async getRawTransaction({

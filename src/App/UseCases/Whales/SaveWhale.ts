@@ -33,6 +33,13 @@ export class SaveWhale implements IStandaloneApps {
   }
 
   async execute({ address, blockchain }: WhaleDiscoveredPayload) {
+    const existingWhale = await this.walletRepository.findOne({
+      address,
+      blockchain,
+    });
+    if (existingWhale) {
+      return;
+    }
     const whale = Wallet.create({
       address,
       blockchain,
@@ -41,13 +48,6 @@ export class SaveWhale implements IStandaloneApps {
       relations: [],
       tags: [],
     });
-    const existingWhale = await this.walletRepository.findOne({
-      address,
-      blockchain,
-    });
-    if (existingWhale) {
-      return;
-    }
     this.findWhaleTxsAndPublish({ address, blockchain });
     await this.walletRepository.save(whale);
     this.broker.publish(new WhaleSaved(blockchain, { blockchain, address }));

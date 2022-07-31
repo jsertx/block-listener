@@ -77,17 +77,14 @@ export class DexSwapProcessor implements ITxProcessStrategy {
         })
       );
     });
-
-    [dexSwapData.from, dexSwapData.to]
-      .filter(onlyUniqueFilter)
-      .forEach((address) => {
-        this.broker.publish(
-          new WhaleDiscovered(tx.blockchain.id, {
-            blockchain: tx.blockchain.id,
-            address,
-          })
-        );
-      });
+    if (dexSwapData.from !== dexSwapData.to) {
+      this.broker.publish(
+        new WhaleDiscovered(tx.blockchain.id, {
+          blockchain: tx.blockchain.id,
+          address: dexSwapData.to,
+        })
+      );
+    }
   }
 
   async getDexSwapData(tx: Tx<any>): Promise<DexSwapData> {

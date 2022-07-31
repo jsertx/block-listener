@@ -55,7 +55,7 @@ export class RabbitMQ implements IBroker<any, any> {
       .on("message", (message, content, ackOrNack) => {
         const ack = () => ackOrNack();
         const nack = (...args: any[]) => ackOrNack(...args);
-        callback(content, ack, nack);
+        callback(content, ack, nack).then(ack).catch(nack);
       })
       .on("error", (error) => {
         this.logger.error({
