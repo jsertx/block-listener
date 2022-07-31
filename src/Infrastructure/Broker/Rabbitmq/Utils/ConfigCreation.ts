@@ -5,14 +5,11 @@ import { Subscription } from "../../Subscription";
 import { RoutingKey, Exchange, Queue } from "../Enums";
 import { BindingSetup, PublicationSetup } from "./Types";
 
-const getConnections = (brokerUrl: string) => {
+const getConnections = (brokerUrl: string): VhostConfig["connections"] => {
   const BROKER_URL = new URL(brokerUrl);
   return [
     {
-      hostname: BROKER_URL.hostname,
-      user: BROKER_URL.username,
-      password: BROKER_URL.password,
-      port: BROKER_URL.port,
+      url: brokerUrl,
       options: {
         heartbeat: 100,
       },
