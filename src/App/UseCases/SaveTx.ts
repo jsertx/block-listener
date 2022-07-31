@@ -72,10 +72,11 @@ export class SaveTx implements IStandaloneApps {
   private async getRawTransaction({
     blockchain,
     hash,
+    txRes,
   }: TxDiscoveredPayload): Promise<RawTx | undefined> {
     const provider = this.providerFactory.getProvider(blockchain);
     const [res, receipt] = await Promise.all([
-      provider.getTransaction(hash),
+      txRes || provider.getTransaction(hash),
       provider.getTransactionReceipt(hash),
     ]);
 

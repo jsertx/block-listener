@@ -6,6 +6,9 @@ export interface IConfig {
     alchemyJsonRpcUrl?: string;
   };
   enabledBlockchains: BlockchainId[];
+  covalent: {
+    apiKey: string;
+  };
   database: {
     database?: string;
     connectionUri: string;

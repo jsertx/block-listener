@@ -43,7 +43,11 @@ export class FindDirectTx implements IStandaloneApps {
         this.isAgainstContractOfInterest(tx, contracts)
       ) {
         this.broker.publish(
-          new TxDiscovered(blockchain, { blockchain, hash: tx.hash })
+          new TxDiscovered(blockchain, {
+            blockchain,
+            hash: tx.hash,
+            txRes: tx,
+          })
         );
       }
     }

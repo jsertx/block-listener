@@ -9,11 +9,17 @@ import { WalletType } from "../../Values/WalletType";
 import { IWalletRepository } from "../../Repository/IWalletRepository";
 import { WhaleDiscoveredPayload } from "../../PubSub/Messages/WhaleDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
+import { WhaleSaved } from "../../PubSub/Messages/WhaleSaved";
+import { IBlockchainService } from "../../Interfaces/IBlockchainService";
+import { add } from "winston";
+import { TxDiscovered } from "../../PubSub/Messages/TxDiscovered";
 
 @injectable()
 export class SaveWhale implements IStandaloneApps {
   constructor(
     @inject(IocKey.TokenRepository) private walletRepository: IWalletRepository,
+    @inject(IocKey.BlockchainService)
+    private blockchainService: IBlockchainService,
     @inject(IocKey.Broker) private broker: IBroker,
     @inject(IocKey.Logger) private logger: ILogger
   ) {}
@@ -42,6 +48,20 @@ export class SaveWhale implements IStandaloneApps {
     if (existingWhale) {
       return;
     }
+    this.findWhaleTxsAndPublish({ address, blockchain });
     await this.walletRepository.save(whale);
+    this.broker.publish(new WhaleSaved(blockchain, { blockchain, address }));
+  }
+  private async findWhaleTxsAndPublish({
+    address,
+    blockchain,
+  }: WhaleDiscoveredPayload) {
+    const txs = await this.blockchainService.getTransactionsForAddress(
+      blockchain,
+      address
+    );
+    txs.forEach((hash) => {
+      this.broker.publish(new TxDiscovered(blockchain, { blockchain, hash }));
+    });
   }
 }
