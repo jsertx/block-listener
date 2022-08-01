@@ -148,7 +148,7 @@ function getNativeValueFromLogs(
 	}
 }
 function getOutputTokenTransferAmount(
-	tx: Tx,
+	tx: DexSwapTx,
 	outputAddr: string,
 	destAddr: string
 ): string | undefined {
@@ -166,7 +166,7 @@ function getOutputTokenTransferAmount(
 }
 
 function getInputTokenTransferAmount(
-	tx: Tx,
+	tx: DexSwapTx,
 	tokenAddress: string,
 	fromAddr: string
 ): string | undefined {

@@ -93,7 +93,7 @@ const TxSchema = Joi.object({
 	data: Joi.alternatives(DexSwapDataSchema, EthTransferSchema)
 });
 
-export class Tx<DataTypeRaw> extends Entity<TxProps<DataTypeRaw>> {
+export class Tx<DataTypeRaw = undefined> extends Entity<TxProps<DataTypeRaw>> {
 	protected _blockchain: Blockchain;
 	constructor(props: TxProps<DataTypeRaw>, _id?: string) {
 		super(props, _id);

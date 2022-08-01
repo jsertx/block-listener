@@ -36,7 +36,7 @@ export class ContractController implements interfaces.Controller {
 	): Promise<IApiResponse> {
 		validateOrThrowError(body, CreateContractDtoSchema);
 		const contract = await this.contractRepository.save(
-			Contract.create({ ...body, createdAt: new Date() })
+			Contract.create({ ...body, data: undefined, createdAt: new Date() })
 		);
 		return {
 			success: true,
