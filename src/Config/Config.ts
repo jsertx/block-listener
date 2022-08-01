@@ -20,7 +20,7 @@ export const Config: IConfig = {
   },
   txRules: {
     minNativeTransferValue: "10",
-    minDexSwapValueInUsd: `${100000}`,
+    minDexSwapValueInUsd: `${10_000}`,
   },
   covalent: {
     apiKey: getEnv("COVALENT_API_KEY"),
