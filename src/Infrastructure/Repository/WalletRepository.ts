@@ -7,6 +7,7 @@ import { PartialObjectDeep } from "type-fest/source/partial-deep";
 import { BlockchainId } from "../../App/Values/Blockchain";
 import { Wallet, WalletRaw } from "../../App/Entities/Wallet";
 import { IWalletRepository } from "../../App/Repository/IWalletRepository";
+import { checksumed } from "../../App/Utils/Address";
 
 @injectable()
 export class WalletRepository
@@ -37,7 +38,7 @@ export class WalletRepository
   ): Promise<Wallet | null> {
     return this.getCollection()
       .findOne({
-        address,
+        address: checksumed(address),
         blockchain,
       })
       .then((res) => {

@@ -16,7 +16,9 @@ export interface IBaseRepository<
   TId extends Record<string, any>
 > {
   findOne(id: TId): Promise<TEntity | undefined>;
-  findAll(options?: findAllOptions): Promise<FindAllResponse<TEntity>>;
+  findAll(
+    options?: findAllOptions<TEntity["props"]>
+  ): Promise<FindAllResponse<TEntity>>;
   save(item: TEntity): Promise<TEntity>;
   saveMany(items: TEntity[]): Promise<number>;
 }

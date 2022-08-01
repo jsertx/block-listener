@@ -12,6 +12,7 @@ const getConnections = (brokerUrl: string): VhostConfig["connections"] => {
       url: brokerUrl,
       options: {
         heartbeat: 100,
+        timeout: 100_000,
       },
       socketOptions: {
         timeout: 100_000,
@@ -104,6 +105,7 @@ function expandPublicationsByBlockchain(blockchains: string[]) {
         [publicationCreator(blockchain)]: {
           exchange,
           routingKey: routingKeyCreator(blockchain),
+          timeout: 100_000,
         },
       };
     }, {} as Pubs);

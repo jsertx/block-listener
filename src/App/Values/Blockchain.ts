@@ -47,7 +47,11 @@ const blockchainToWrappedToken: Partial<Record<BlockchainId, Token>> = {
 };
 
 export class Blockchain {
-  constructor(public id: BlockchainId) {}
+  constructor(public id: BlockchainId) {
+    if (!Object.values(BlockchainId).find((bid) => bid === id)) {
+      throw new Error(`Invalid blockchain id "${id}"`);
+    }
+  }
 
   get chainId(): number {
     return Blockchain.toChainId(this.id);

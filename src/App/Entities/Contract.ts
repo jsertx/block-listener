@@ -10,6 +10,7 @@ import {
 } from "../Values/Blockchain";
 import Joi from "joi";
 import { Dex } from "../Values/Dex";
+import { checksumed } from "../Utils/Address";
 
 export interface PairData {
   tokenA: string;
@@ -47,7 +48,7 @@ export const ContractSchema = Joi.object({
   blockchain: Joi.string()
     .valid(...blockchainIdList)
     .required(),
-  address: Joi.string().required(),
+  address: Joi.string().custom(checksumed).required(),
   type: Joi.string()
     .valid(...contractTypeList)
     .required(),
@@ -55,7 +56,9 @@ export const ContractSchema = Joi.object({
   data: Joi.any().optional(),
   createdAt: Joi.date().required(),
   customAbi: Joi.any(),
-}).options({ stripUnknown: true });
+})
+  .unknown()
+  .options({ stripUnknown: true });
 
 export class Contract<DataTypeRaw = any> extends Entity<
   ContractProps<DataTypeRaw>
@@ -79,7 +82,6 @@ export class Contract<DataTypeRaw = any> extends Entity<
   }
 
   static create(props: ContractRaw<any>, _id?: string): Contract {
-    validateOrThrowError(props, ContractSchema);
-    return new Contract(props, _id);
+    return new Contract(validateOrThrowError(props, ContractSchema), _id);
   }
 }

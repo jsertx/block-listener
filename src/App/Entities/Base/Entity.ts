@@ -1,5 +1,5 @@
 export class Entity<Props> {
-  constructor(protected props: Props, protected _id?: string) {}
+  constructor(public readonly props: Props, protected _id?: string) {}
 
   get id(): string | undefined {
     return this._id;

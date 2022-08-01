@@ -155,8 +155,7 @@ export class Tx<DataTypeRaw = any> extends Entity<TxProps<DataTypeRaw>> {
   }
 
   static create(props: TxProps, _id?: string): Tx<any> {
-    validateOrThrowError(props, TxSchema);
-    return new Tx(props, _id);
+    return new Tx(validateOrThrowError(props, TxSchema), _id);
   }
 }
 

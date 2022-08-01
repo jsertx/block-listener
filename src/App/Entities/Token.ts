@@ -1,6 +1,5 @@
-import { ethers } from "ethers";
 import Joi from "joi";
-import { ERC20 } from "../Services/SmartContract/ABI/ERC20";
+import { checksumed } from "../Utils/Address";
 import { toFormatted, toPrecision } from "../Utils/Amount";
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddressStr } from "../Values/Address";
@@ -19,13 +18,15 @@ export interface TokenProps extends TokenIdProps {
 }
 
 const TokenSchema = Joi.object({
-  address: Joi.string().required(),
+  address: Joi.string().custom(checksumed).required(),
   blockchain: Joi.string().required(),
   symbol: Joi.string().required(),
   name: Joi.string().required(),
   decimals: Joi.number().greater(-1).required(),
   useAsBaseForPairDiscovery: Joi.boolean().default(false),
-}).options({ stripUnknown: true });
+})
+  .unknown()
+  .options({ stripUnknown: true });
 
 export class Token extends Entity<TokenProps> {
   get blockchain(): Blockchain {

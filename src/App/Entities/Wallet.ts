@@ -1,5 +1,6 @@
 import Joi from "joi";
 import { SetOptional } from "type-fest";
+import { checksumed } from "../Utils/Address";
 
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddressStr } from "../Values/Address";
@@ -62,7 +63,7 @@ export const WalletSchema = Joi.object({
   blockchain: Joi.string()
     .valid(...blockchainIdList)
     .required(),
-  address: Joi.string().required(),
+  address: Joi.string().custom(checksumed).required(),
   type: Joi.string()
     .valid(...walletTypeList)
     .required(),
@@ -70,7 +71,9 @@ export const WalletSchema = Joi.object({
   alias: Joi.string().optional(),
   tags: Joi.array().items(WalletAddressTagSchema).optional(),
   createdAt: Joi.date().required(),
-}).options({ stripUnknown: true });
+})
+  .unknown()
+  .options({ stripUnknown: true });
 
 export class Wallet extends Entity<WalletProps> {
   constructor(props: WalletPropsConstructor, _id?: string) {
@@ -93,7 +96,6 @@ export class Wallet extends Entity<WalletProps> {
   }
 
   static create(props: WalletRaw, _id?: string): Wallet {
-    validateOrThrowError(props, WalletSchema);
-    return new Wallet(props, _id);
+    return new Wallet(validateOrThrowError(props, WalletSchema), _id);
   }
 }

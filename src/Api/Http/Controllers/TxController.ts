@@ -4,19 +4,26 @@ import {
   controller,
   httpGet,
   queryParam,
+  httpPost,
+  requestParam,
+  response,
 } from "inversify-express-utils";
-import { TxProps } from "../../../App/Entities/Tx";
 import { TxType } from "../../../App/Values/TxType";
 import { ITxRepository } from "../../../App/Repository/ITxRepository";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { TxSimplifiedDto } from "../Dto/TxDto";
+import { IBroker } from "../../../Interfaces/IBroker";
+import { TxDiscovered } from "../../../App/PubSub/Messages/TxDiscovered";
+import { BlockchainId } from "../../../Config/Blockchains";
+import { Response } from "express";
 
 @controller("/txs")
 export class TxController implements interfaces.Controller {
   constructor(
-    @inject(IocKey.TxRepository) private txRepository: ITxRepository
+    @inject(IocKey.TxRepository) private txRepository: ITxRepository,
+    @inject(IocKey.Broker) private broker: IBroker
   ) {}
   @httpGet("/")
   async getAll(
@@ -66,5 +73,17 @@ export class TxController implements interfaces.Controller {
         };
       }),
     });
+  }
+
+  @httpPost("/save/:blockchain/:hash")
+  async saveTx(
+    @requestParam("blockchain") blockchain: BlockchainId,
+    @requestParam("hash") hash: string,
+    @response() res: Response
+  ) {
+    await this.broker.publish(
+      new TxDiscovered(blockchain, { blockchain, hash })
+    );
+    return res.sendStatus(202);
   }
 }

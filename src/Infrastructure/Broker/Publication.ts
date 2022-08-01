@@ -1,7 +1,9 @@
+import { Blockchain } from "../../App/Values/Blockchain";
+
 export type PublicationCreator = (blockchain: string) => string;
 const publicationCreatorFactory =
   (publication: string) => (blockchain: string) =>
-    `${blockchain}.${publication}`;
+    `${new Blockchain(blockchain as any).id}.${publication}`;
 
 export const Publication = {
   BlockReceived: publicationCreatorFactory("block_received"),
