@@ -48,7 +48,7 @@ export const createBrokerConnection = (config: IConfig) => {
 		{}
 	);
 
-	let vhostConfig: VhostConfig = {
+	const vhostConfig: VhostConfig = {
 		connections: getConnections(config.broker.brokerUri),
 		exchanges: Object.values(Exchange),
 		queues: Object.values(Queue),

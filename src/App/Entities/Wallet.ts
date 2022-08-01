@@ -27,7 +27,7 @@ export interface WalletProps extends WalletIdProps {
 }
 type WalletPropsConstructor = SetOptional<WalletProps, "relations" | "tags">;
 
-export interface WalletRaw extends WalletProps {}
+export type WalletRaw = WalletProps;
 
 enum AddressRelationType {
 	TransferedAsset = "transfer.sent",

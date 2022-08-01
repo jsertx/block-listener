@@ -160,8 +160,8 @@ export class Tx<DataTypeRaw = undefined> extends Entity<TxProps<DataTypeRaw>> {
 	}
 }
 
-export interface EthTransferTxRaw extends TxProps<EthTransferData> {}
+export type EthTransferTxRaw = TxProps<EthTransferData>;
 export class EthTransferTx extends Tx<EthTransferData> {}
 
-export interface DexSwapTxRaw extends TxProps<DexSwapData> {}
+export type DexSwapTxRaw = TxProps<DexSwapData>;
 export class DexSwapTx extends Tx<DexSwapData> {}

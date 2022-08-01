@@ -49,7 +49,7 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
 		const tokens = await this.tokenRepository
 			.findAll()
 			.then((res) => res.data);
-		let pairsByChainAndFactory: PairByChainAndFactoryMap = {};
+		const pairsByChainAndFactory: PairByChainAndFactoryMap = {};
 
 		for (const [_blockchain, factories] of Object.entries(
 			factoriesByChain

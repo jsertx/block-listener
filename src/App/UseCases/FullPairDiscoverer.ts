@@ -37,7 +37,7 @@ export class FullPairDiscoverer implements IStandaloneApps {
 	async execute() {
 		const factoriesByChain = await this.getFactoriesByBlockchain();
 
-		let pairsByChainAndFactory: PairByChainAndFactoryMap = {};
+		const pairsByChainAndFactory: PairByChainAndFactoryMap = {};
 
 		for (const [_blockchain, factories] of Object.entries(
 			factoriesByChain

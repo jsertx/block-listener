@@ -42,7 +42,7 @@ const contractTypeToAbi = {
 	[ContractType.UniswapFactoryV2Like]: ABI.UniswapFactory
 };
 
-export interface ContractRaw<DataRaw = any> extends ContractProps<DataRaw> {}
+export type ContractRaw<DataRaw = any> = ContractProps<DataRaw>;
 
 export const ContractSchema = Joi.object({
 	blockchain: Joi.string()

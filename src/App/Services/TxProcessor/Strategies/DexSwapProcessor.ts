@@ -58,8 +58,8 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		const path = args.path.split(",");
 		const outDest = args.to;
 		const from = tx.from;
-		let inputToken: HexAddressStr = path[0];
-		let outToken: HexAddressStr = path[path.length - 1];
+		const inputToken: HexAddressStr = path[0];
+		const outToken: HexAddressStr = path[path.length - 1];
 		let outAmount: string | undefined;
 		let inputAmount: string | undefined;
 		const weth = tx.blockchain.wrappedToken!;
