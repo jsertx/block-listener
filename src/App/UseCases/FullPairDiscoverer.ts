@@ -1,8 +1,5 @@
 import { inject, injectable } from "inversify";
-import { ITxRepository } from "../Repository/ITxRepository";
-import { ILogger } from "../../Interfaces/ILogger";
 import { IocKey } from "../../Ioc/IocKey";
-import { IBroker } from "../../Interfaces/IBroker";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { IContractRepository } from "../Repository/IContractRepository";

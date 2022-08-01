@@ -6,7 +6,6 @@ import { IocKey } from "../../Ioc/IocKey";
 import { MongoBaseRepository } from "./MongoBaseRepository";
 import { PartialObjectDeep } from "type-fest/source/partial-deep";
 
-import { BlockchainId } from "../../App/Values/Blockchain";
 import { Token, TokenProps } from "../../App/Entities/Token";
 import {
 	findTokensByBlockchainAddressParams,

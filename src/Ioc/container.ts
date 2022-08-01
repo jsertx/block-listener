@@ -22,7 +22,6 @@ import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwap
 import { PriceService } from "../App/Services/PriceService";
 import { SaveToken } from "../App/UseCases/Tokens/SaveToken";
 import { SaveWhale } from "../App/UseCases/Whales/SaveWhale";
-import { BrokerAdapter } from "../Api/Broker/BrokerAdapter";
 import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
 import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/ConfigCreation";
 import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
@@ -55,7 +54,6 @@ export const initializeContainer = async () => {
 
 		// Adapters
 		bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
-		bind(IocKey.Adapters).to(BrokerAdapter).inRequestScope();
 		// Brokers
 		bind(IocKey.BrokerClient).toConstantValue(
 			await createBrokerConnection(Config)

@@ -11,7 +11,7 @@ import {
 import { TxType } from "../../../App/Values/TxType";
 import { ITxRepository } from "../../../App/Repository/ITxRepository";
 import { IocKey } from "../../../Ioc/IocKey";
-import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
+import { IApiPaginatedResponse } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { TxSimplifiedDto } from "../Dto/TxDto";
 import { IBroker } from "../../../Interfaces/IBroker";

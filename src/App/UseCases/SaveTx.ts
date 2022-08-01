@@ -2,17 +2,10 @@ import { inject, injectable } from "inversify";
 import { ITxRepository } from "../Repository/ITxRepository";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IocKey } from "../../Ioc/IocKey";
-import { Publication } from "../../Infrastructure/Broker/Publication";
 import { IBroker } from "../../Interfaces/IBroker";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
-import {
-	DexSwapData,
-	DexSwapTx,
-	EthTransferTx,
-	RawTx,
-	Tx
-} from "../Entities/Tx";
+import { DexSwapTx, EthTransferTx, RawTx, Tx } from "../Entities/Tx";
 import { TxType } from "../Values/TxType";
 import { isSmartContractCall } from "../Utils/Tx";
 
@@ -28,7 +21,6 @@ import { onlyUniqueFilter } from "../Utils/Array";
 import { TokenDiscovered } from "../PubSub/Messages/TokenDiscovered";
 import { IWalletRepository } from "../Repository/IWalletRepository";
 import { checksumed } from "../Utils/Address";
-import { Wallet } from "../Entities/Wallet";
 import BigNumber from "bignumber.js";
 import { IConfig } from "../../Interfaces/IConfig";
 

@@ -12,7 +12,6 @@ import {
 } from "../Values/Blockchain";
 import { TxType, txTypeList } from "../Values/TxType";
 import { Entity } from "./Base/Entity";
-import { Token } from "./Token";
 
 export interface RawTx {
 	hash: string;

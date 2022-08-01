@@ -10,7 +10,6 @@ import { isSameAddress } from "../../../Utils/Address";
 import { TransactionLog } from "../../../Types/TransactionLog";
 import { IPriceService } from "../../../Interfaces/IPriceService";
 import { HexAddressStr } from "../../../Values/Address";
-import { checksumed } from "../../../Utils/Address";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";

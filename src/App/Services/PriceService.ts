@@ -1,6 +1,5 @@
 import axios from "axios";
 import BigNumber from "bignumber.js";
-import { BigNumberish } from "ethers";
 import { injectable } from "inversify";
 
 import { IPriceService } from "../Interfaces/IPriceService";

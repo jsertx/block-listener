@@ -10,7 +10,7 @@ import { BlockchainId } from "../../App/Values/Blockchain";
 import { Contract, ContractRaw } from "../../App/Entities/Contract";
 import { IContractRepository } from "../../App/Repository/IContractRepository";
 import { ContractType } from "../../App/Values/ContractType";
-import { Dex, dexList } from "../../App/Values/Dex";
+import { Dex } from "../../App/Values/Dex";
 import { checksumed } from "../../App/Utils/Address";
 
 @injectable()

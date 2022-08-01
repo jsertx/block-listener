@@ -7,7 +7,7 @@ import { IStandaloneApps } from "../../Interfaces/IStandaloneApps";
 import { ethers } from "ethers";
 import { ITxProcessor } from "../../Services/TxProcessor/ITxProcessor";
 import { ITokenRepository } from "../../Repository/ITokenRepository";
-import { Token, TokenIdProps } from "../../Entities/Token";
+import { Token } from "../../Entities/Token";
 import { ERC20 } from "../../Services/SmartContract/ABI/ERC20";
 import { TokenDiscoveredPayload } from "../../PubSub/Messages/TokenDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";

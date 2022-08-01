@@ -1,5 +1,5 @@
 import { injectable, unmanaged } from "inversify";
-import { Filter, MongoClient, ObjectId, WithId } from "mongodb";
+import { Filter, MongoClient, WithId } from "mongodb";
 import { IConfig } from "../../Interfaces/IConfig";
 import {
 	findAllOptions,
