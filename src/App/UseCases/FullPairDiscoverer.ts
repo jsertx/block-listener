@@ -128,7 +128,7 @@ export class FullPairDiscoverer implements IStandaloneApps {
 		);
 		const addressesByFactory: Record<string, string[]> = {};
 		for (const factory of factories) {
-			const dex = factory.data!.dex;
+			const dex = factory.data.dex;
 			const factoryPairsCount =
 				await this.contractRepository.countDexPairs({
 					dex,

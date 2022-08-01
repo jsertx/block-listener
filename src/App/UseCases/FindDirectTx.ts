@@ -78,7 +78,7 @@ export class FindDirectTx implements IStandaloneApps {
 		wallets: Wallet[]
 	): boolean {
 		return wallets.some((wallet) =>
-			isSameAddress(wallet.address, txRes.from!)
+			isSameAddress(wallet.address, txRes.from)
 		);
 	}
 
@@ -87,7 +87,7 @@ export class FindDirectTx implements IStandaloneApps {
 		addressesOfInterest: Contract[]
 	): boolean {
 		return addressesOfInterest.some((contract) =>
-			isSameAddress(contract.address, txRes.to!)
+			isSameAddress(contract.address, txRes.to)
 		);
 	}
 }

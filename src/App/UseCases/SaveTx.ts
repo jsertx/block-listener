@@ -66,6 +66,7 @@ export class SaveTx implements IStandaloneApps {
 			Tx.create({
 				blockchain,
 				hash,
+				data: undefined,
 				raw: successfullTx,
 				type: TxType.Unknown
 			})
@@ -180,8 +181,10 @@ export class SaveTx implements IStandaloneApps {
 		if (receipt.status === 0) {
 			return;
 		}
-
-		const block = await provider.getBlock(res.blockNumber!);
+		if (!res.blockNumber) {
+			throw new Error("Missing block number");
+		}
+		const block = await provider.getBlock(res.blockNumber);
 
 		const logsDecoder = new LogDecoder(allAbiList);
 		const logs: TransactionLog[] = this.decodeTxLogs(receipt, logsDecoder);
@@ -198,7 +201,7 @@ export class SaveTx implements IStandaloneApps {
 			blockHeight: receipt.blockNumber,
 			timestamp: block.timestamp,
 			data: res.data,
-			to: checksumed(res.to!),
+			to: checksumed(res.to),
 			from: checksumed(res.from),
 			value: res.value.toString(),
 			smartContractCall,

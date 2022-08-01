@@ -33,10 +33,10 @@ export interface TxIdProps {
 	blockchain: BlockchainId;
 	hash: string;
 }
-export interface TxProps<TxDataType = any> extends TxIdProps {
+export interface TxProps<TxDataType = undefined> extends TxIdProps {
 	type: TxType;
 	raw: RawTx;
-	data?: TxDataType;
+	data: TxDataType;
 }
 
 export interface EthTransferData {
@@ -93,7 +93,7 @@ const TxSchema = Joi.object({
 	data: Joi.alternatives(DexSwapDataSchema, EthTransferSchema)
 });
 
-export class Tx<DataTypeRaw = undefined> extends Entity<TxProps<DataTypeRaw>> {
+export class Tx<DataTypeRaw> extends Entity<TxProps<DataTypeRaw>> {
 	protected _blockchain: Blockchain;
 	constructor(props: TxProps<DataTypeRaw>, _id?: string) {
 		super(props, _id);
@@ -135,6 +135,12 @@ export class Tx<DataTypeRaw = undefined> extends Entity<TxProps<DataTypeRaw>> {
 	}
 	get original(): ethers.providers.TransactionResponse {
 		return this.props.raw.original;
+	}
+	get smartContractCall(): Required<TxProps["raw"]>["smartContractCall"] {
+		if (!this.props.raw.smartContractCall) {
+			throw new Error("Not available");
+		}
+		return this.props.raw.smartContractCall;
 	}
 
 	setTypeAndData(type: TxType, data: DataTypeRaw) {

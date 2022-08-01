@@ -84,10 +84,6 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
 		blockchain: BlockchainId,
 		dex: Dex
 	): Promise<Contract> {
-		const provider = this.providerFactory.getProvider(
-			new Blockchain(blockchain)
-		);
-
 		const data: PairData = {
 			dex,
 			tokenA: tokenA.address,
@@ -146,7 +142,7 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
 		);
 		const addressesByFactory: Record<string, PairAndTokens[]> = {};
 		for (const factory of factories) {
-			const dex = factory.data!.dex;
+			const dex = factory.data.dex;
 			const factoryContract = new ethers.Contract(
 				factory.address,
 				factory.abi,

@@ -29,7 +29,7 @@ export interface ContractIdProps {
 }
 export interface ContractProps<DataProps> extends ContractIdProps {
 	alias?: string;
-	data?: DataProps;
+	data: DataProps;
 	createdAt: Date;
 	type: ContractType;
 	customAbi?: any;
@@ -42,7 +42,7 @@ const contractTypeToAbi = {
 	[ContractType.UniswapFactoryV2Like]: ABI.UniswapFactory
 };
 
-export type ContractRaw<DataRaw = any> = ContractProps<DataRaw>;
+export type ContractRaw<DataRaw = undefined> = ContractProps<DataRaw>;
 
 export const ContractSchema = Joi.object({
 	blockchain: Joi.string()
@@ -70,7 +70,7 @@ export class Contract<DataTypeRaw = any> extends Entity<
 	get blockchain(): Blockchain {
 		return new Blockchain(this.props.blockchain);
 	}
-	get data(): DataTypeRaw | undefined {
+	get data(): DataTypeRaw {
 		return this.props.data;
 	}
 	get type(): ContractType {

@@ -5,21 +5,19 @@ import { NotEvmChainError } from "../Errors/NotEvmChainError";
 export { BlockchainId } from "../../Config/Blockchains";
 export const blockchainIdList = Object.values(BlockchainId);
 
-const blockchainToChainId: Partial<Record<BlockchainId, number>> = {
-	[BlockchainId.Bitcoin]: undefined,
+const blockchainToChainId: Record<BlockchainId, number> = {
 	[BlockchainId.Ethereum]: 1,
 	[BlockchainId.Binance]: 56,
 	[BlockchainId.Polygon]: 137
 };
 
 const blockchainToTokenSymbol: Record<BlockchainId, string> = {
-	[BlockchainId.Bitcoin]: "BTC",
 	[BlockchainId.Ethereum]: "ETH",
 	[BlockchainId.Binance]: "BNB",
 	[BlockchainId.Polygon]: "MATIC"
 };
 
-const blockchainToWrappedToken: Partial<Record<BlockchainId, Token>> = {
+const blockchainToWrappedToken: Record<BlockchainId, Token> = {
 	[BlockchainId.Ethereum]: Token.create({
 		address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 		blockchain: BlockchainId.Ethereum,
@@ -59,9 +57,10 @@ export class Blockchain {
 	get nativeTokenSymbol(): string {
 		return blockchainToTokenSymbol[this.id];
 	}
-	get wrappedToken(): Token | undefined {
+	get wrappedToken(): Token {
 		return blockchainToWrappedToken[this.id];
 	}
+
 	static toChainId(id: BlockchainId): number {
 		const chainId = blockchainToChainId[id];
 		if (chainId === undefined) {

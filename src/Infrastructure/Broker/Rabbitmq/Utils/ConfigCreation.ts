@@ -6,7 +6,6 @@ import { RoutingKey, Exchange, Queue } from "../Enums";
 import { BindingSetup, PublicationSetup } from "./Types";
 
 const getConnections = (brokerUrl: string): VhostConfig["connections"] => {
-	const BROKER_URL = new URL(brokerUrl);
 	return [
 		{
 			url: brokerUrl,

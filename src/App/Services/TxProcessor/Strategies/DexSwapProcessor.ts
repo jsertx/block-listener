@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { IocKey } from "../../../../Ioc/IocKey";
-import { DexSwapData, Tx } from "../../../Entities/Tx";
+import { DexSwapData, DexSwapTx, Tx } from "../../../Entities/Tx";
 import { TxType } from "../../../Values/TxType";
 import { ITxProcessStrategy } from "../ITxProcessStrategy";
 import { Token } from "../../../Entities/Token";
@@ -52,8 +52,8 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		return tx;
 	}
 
-	async getDexSwapData(tx: Tx<any>): Promise<DexSwapData> {
-		const { method, args } = tx.raw.smartContractCall!;
+	async getDexSwapData(tx: DexSwapTx): Promise<DexSwapData> {
+		const { method, args } = tx.smartContractCall;
 		const path = args.path.split(",");
 		const outDest = args.to;
 		const from = tx.from;
@@ -61,7 +61,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		const outToken: HexAddressStr = path[path.length - 1];
 		let outAmount: string | undefined;
 		let inputAmount: string | undefined;
-		const weth = tx.blockchain.wrappedToken!;
+		const weth = tx.blockchain.wrappedToken;
 		const nativeValue = getNativeValueFromLogs(weth, tx.raw.logs);
 
 		switch (method) {

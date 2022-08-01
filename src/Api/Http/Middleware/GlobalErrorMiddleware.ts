@@ -4,7 +4,7 @@ import { ValidationError } from "../Errors/ValidationError";
 
 export const GlobalErrorMiddleware =
 	(logger: ILogger) =>
-	(error: unknown, req: Request, res: Response, next: NextFunction) => {
+	(error: unknown, req: Request, res: Response, _next: NextFunction) => {
 		if (error instanceof ValidationError) {
 			const validation = error as ValidationError;
 			if (validation.originalError) {

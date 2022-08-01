@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 
-export const checksumed = (address: string): string =>
+export const checksumed = (address = ""): string =>
 	ethers.utils.getAddress(address.toLowerCase());
 
-export const isSameAddress = (address1: string, address2: string) =>
+export const isSameAddress = (address1?: string, address2?: string) =>
 	address1 &&
 	address2 &&
 	checksumed(address1.toLowerCase()) === checksumed(address2.toLowerCase());
