@@ -7,11 +7,11 @@ import { IBroker } from "../../Interfaces/IBroker";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import {
-  DexSwapData,
-  DexSwapTx,
-  EthTransferTx,
-  RawTx,
-  Tx,
+	DexSwapData,
+	DexSwapTx,
+	EthTransferTx,
+	RawTx,
+	Tx
 } from "../Entities/Tx";
 import { TxType } from "../Values/TxType";
 import { isSmartContractCall } from "../Utils/Tx";
@@ -34,230 +34,239 @@ import { IConfig } from "../../Interfaces/IConfig";
 
 @injectable()
 export class SaveTx implements IStandaloneApps {
-  constructor(
-    @inject(IocKey.Config) private config: IConfig,
-    @inject(IocKey.TxRepository) private txRepository: ITxRepository,
-    @inject(IocKey.WalletRepository)
-    private walletRepository: IWalletRepository,
-    @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
-    @inject(IocKey.Broker) private broker: IBroker,
-    @inject(IocKey.Logger) private logger: ILogger,
-    @inject(IocKey.TxProcessor) private txProcessor: ITxProcessor
-  ) {}
+	constructor(
+		@inject(IocKey.Config) private config: IConfig,
+		@inject(IocKey.TxRepository) private txRepository: ITxRepository,
+		@inject(IocKey.WalletRepository)
+		private walletRepository: IWalletRepository,
+		@inject(IocKey.ProviderFactory)
+		private providerFactory: IProviderFactory,
+		@inject(IocKey.Broker) private broker: IBroker,
+		@inject(IocKey.Logger) private logger: ILogger,
+		@inject(IocKey.TxProcessor) private txProcessor: ITxProcessor
+	) {}
 
-  async start() {
-    this.logger.log({
-      type: "save-tx.started",
-      message: "Save tx listener has started",
-    });
-    this.broker.subscribe(Subscription.SaveTx, this.onNewTx.bind(this));
-  }
+	async start() {
+		this.logger.log({
+			type: "save-tx.started",
+			message: "Save tx listener has started"
+		});
+		this.broker.subscribe(Subscription.SaveTx, this.onNewTx.bind(this));
+	}
 
-  async onNewTx({ blockchain, hash }: TxDiscoveredPayload) {
-    const existingTx = await this.txRepository.findOne({
-      blockchain,
-      hash,
-    });
-    if (existingTx) {
-      return;
-    }
-    const successfullTx = await this.getRawTransaction({ blockchain, hash });
-    if (!successfullTx) {
-      return;
-    }
+	async onNewTx({ blockchain, hash }: TxDiscoveredPayload) {
+		const existingTx = await this.txRepository.findOne({
+			blockchain,
+			hash
+		});
+		if (existingTx) {
+			return;
+		}
+		const successfullTx = await this.getRawTransaction({
+			blockchain,
+			hash
+		});
+		if (!successfullTx) {
+			return;
+		}
 
-    const tx = await this.txProcessor.process(
-      Tx.create({
-        blockchain,
-        hash,
-        raw: successfullTx,
-        type: TxType.Unknown,
-      })
-    );
+		const tx = await this.txProcessor.process(
+			Tx.create({
+				blockchain,
+				hash,
+				raw: successfullTx,
+				type: TxType.Unknown
+			})
+		);
 
-    const { saved } = await this.saveTxIfApplies(tx);
-    if (!saved) {
-      this.logger.debug({
-        type: "save-tx.skipped",
-        context: { txHash: hash, blockchain },
-      });
-    } else {
-      this.logger.log({
-        type: "save-tx.saved",
-        context: { txHash: hash, blockchain },
-      });
-    }
-  }
+		const { saved } = await this.saveTxIfApplies(tx);
+		if (!saved) {
+			this.logger.debug({
+				type: "save-tx.skipped",
+				context: { txHash: hash, blockchain }
+			});
+		} else {
+			this.logger.log({
+				type: "save-tx.saved",
+				context: { txHash: hash, blockchain }
+			});
+		}
+	}
 
-  private async saveTxIfApplies(tx: Tx<any>): Promise<{ saved: boolean }> {
-    const walletOfTxInDb = await this.walletRepository.findOne({
-      blockchain: tx.blockchain.id,
-      address: tx.from,
-    });
+	private async saveTxIfApplies(tx: Tx<any>): Promise<{ saved: boolean }> {
+		const walletOfTxInDb = await this.walletRepository.findOne({
+			blockchain: tx.blockchain.id,
+			address: tx.from
+		});
 
-    let saved = false;
+		let saved = false;
 
-    if (walletOfTxInDb) {
-      await this.txRepository.save(tx);
-      return { saved: true };
-    }
+		if (walletOfTxInDb) {
+			await this.txRepository.save(tx);
+			return { saved: true };
+		}
 
-    switch (tx.type) {
-      case TxType.DexSwap:
-        saved = await this.saveDexSwapTxHandler(tx);
-        break;
-      case TxType.EthTransfer:
-        saved = await this.saveEthTransferTxHandler(tx);
-        break;
-    }
+		switch (tx.type) {
+			case TxType.DexSwap:
+				saved = await this.saveDexSwapTxHandler(tx);
+				break;
+			case TxType.EthTransfer:
+				saved = await this.saveEthTransferTxHandler(tx);
+				break;
+		}
 
-    return { saved };
-  }
+		return { saved };
+	}
 
-  async saveDexSwapTxHandler(tx: DexSwapTx): Promise<boolean> {
-    if (
-      new BigNumber(tx.data.usdValue).lt(
-        this.config.txRules.minDexSwapValueInUsd
-      )
-    ) {
-      return false;
-    }
-    await this.txRepository.save(tx);
+	async saveDexSwapTxHandler(tx: DexSwapTx): Promise<boolean> {
+		if (
+			new BigNumber(tx.data.usdValue).lt(
+				this.config.txRules.minDexSwapValueInUsd
+			)
+		) {
+			return false;
+		}
+		await this.txRepository.save(tx);
 
-    [tx.data.input.token, tx.data.output.token].forEach((address) => {
-      this.broker.publish(
-        new TokenDiscovered(tx.blockchain.id, {
-          blockchain: tx.blockchain.id,
-          address,
-        })
-      );
-    });
+		[tx.data.input.token, tx.data.output.token].forEach((address) => {
+			this.broker.publish(
+				new TokenDiscovered(tx.blockchain.id, {
+					blockchain: tx.blockchain.id,
+					address
+				})
+			);
+		});
 
-    [tx.from, tx.data.from, tx.data.to]
-      .filter(onlyUniqueFilter)
-      .forEach((address) => {
-        this.broker.publish(
-          new WhaleDiscovered(tx.blockchain.id, {
-            blockchain: tx.blockchain.id,
-            address,
-          })
-        );
-      });
+		[tx.from, tx.data.from, tx.data.to]
+			.filter(onlyUniqueFilter)
+			.forEach((address) => {
+				this.broker.publish(
+					new WhaleDiscovered(tx.blockchain.id, {
+						blockchain: tx.blockchain.id,
+						address
+					})
+				);
+			});
 
-    return true;
-  }
+		return true;
+	}
 
-  async saveEthTransferTxHandler(tx: EthTransferTx): Promise<boolean> {
-    if (
-      new BigNumber(tx.data.value).lt(
-        this.config.txRules.minNativeTransferValue
-      )
-    ) {
-      return false;
-    }
-    await this.txRepository.save(tx);
-    [tx.data.from, tx.data.to].filter(onlyUniqueFilter).forEach((address) => {
-      this.broker.publish(
-        new WhaleDiscovered(tx.blockchain.id, {
-          blockchain: tx.blockchain.id,
-          address,
-        })
-      );
-    });
+	async saveEthTransferTxHandler(tx: EthTransferTx): Promise<boolean> {
+		if (
+			new BigNumber(tx.data.value).lt(
+				this.config.txRules.minNativeTransferValue
+			)
+		) {
+			return false;
+		}
+		await this.txRepository.save(tx);
+		[tx.data.from, tx.data.to]
+			.filter(onlyUniqueFilter)
+			.forEach((address) => {
+				this.broker.publish(
+					new WhaleDiscovered(tx.blockchain.id, {
+						blockchain: tx.blockchain.id,
+						address
+					})
+				);
+			});
 
-    return true;
-  }
+		return true;
+	}
 
-  private async getRawTransaction({
-    blockchain,
-    hash,
-    txRes,
-  }: TxDiscoveredPayload): Promise<RawTx | undefined> {
-    const provider = this.providerFactory.getProvider(blockchain);
-    const [res, receipt] = await Promise.all([
-      txRes || provider.getTransaction(hash),
-      provider.getTransactionReceipt(hash),
-    ]);
+	private async getRawTransaction({
+		blockchain,
+		hash,
+		txRes
+	}: TxDiscoveredPayload): Promise<RawTx | undefined> {
+		const provider = this.providerFactory.getProvider(blockchain);
+		const [res, receipt] = await Promise.all([
+			txRes || provider.getTransaction(hash),
+			provider.getTransactionReceipt(hash)
+		]);
 
-    if (receipt.status === 0) {
-      return;
-    }
+		if (receipt.status === 0) {
+			return;
+		}
 
-    const block = await provider.getBlock(res.blockNumber!);
+		const block = await provider.getBlock(res.blockNumber!);
 
-    const logsDecoder = new LogDecoder(allAbiList);
-    const logs: TransactionLog[] = this.decodeTxLogs(receipt, logsDecoder);
+		const logsDecoder = new LogDecoder(allAbiList);
+		const logs: TransactionLog[] = this.decodeTxLogs(receipt, logsDecoder);
 
-    let smartContractCall: RawTx["smartContractCall"];
-    if (isSmartContractCall(res)) {
-      const txDecoder = new TxDecoder(allAbiList);
-      smartContractCall = this.decodeTxDetails(res, txDecoder);
-    }
+		let smartContractCall: RawTx["smartContractCall"];
+		if (isSmartContractCall(res)) {
+			const txDecoder = new TxDecoder(allAbiList);
+			smartContractCall = this.decodeTxDetails(res, txDecoder);
+		}
 
-    return {
-      original: res,
-      hash,
-      blockHeight: receipt.blockNumber,
-      timestamp: block.timestamp,
-      data: res.data,
-      to: checksumed(res.to!),
-      from: checksumed(res.from),
-      value: res.value.toString(),
-      smartContractCall,
-      logs: logs,
-    };
-  }
+		return {
+			original: res,
+			hash,
+			blockHeight: receipt.blockNumber,
+			timestamp: block.timestamp,
+			data: res.data,
+			to: checksumed(res.to!),
+			from: checksumed(res.from),
+			value: res.value.toString(),
+			smartContractCall,
+			logs: logs
+		};
+	}
 
-  private decodeTxLogs(
-    txReceipt: ethers.providers.TransactionReceipt,
-    decoder: LogDecoder
-  ): TransactionLog[] {
-    const decodedLogs = decoder.decodeLogs(txReceipt.logs);
-    return decodedLogs.map((log: any) => {
-      const args = log.eventFragment.inputs.reduce(
-        (t: any, curr: any, i: number) => {
-          const argName: string = curr.name;
-          t[argName] = log.args[i].toString();
-          return t;
-        },
-        {}
-      );
+	private decodeTxLogs(
+		txReceipt: ethers.providers.TransactionReceipt,
+		decoder: LogDecoder
+	): TransactionLog[] {
+		const decodedLogs = decoder.decodeLogs(txReceipt.logs);
+		return decodedLogs.map((log: any) => {
+			const args = log.eventFragment.inputs.reduce(
+				(t: any, curr: any, i: number) => {
+					const argName: string = curr.name;
+					t[argName] = log.args[i].toString();
+					return t;
+				},
+				{}
+			);
 
-      return {
-        tx_hash: txReceipt.transactionHash,
-        name: log.name,
-        signature: log.signature,
-        topic: log.topic,
-        address: log.address,
-        args,
-      };
-    });
-  }
+			return {
+				tx_hash: txReceipt.transactionHash,
+				name: log.name,
+				signature: log.signature,
+				topic: log.topic,
+				address: log.address,
+				args
+			};
+		});
+	}
 
-  private decodeTxDetails(
-    txRes: ethers.providers.TransactionResponse,
-    decoder: TxDecoder
-  ) {
-    try {
-      const decodedTx = decoder.decodeTx(txRes);
+	private decodeTxDetails(
+		txRes: ethers.providers.TransactionResponse,
+		decoder: TxDecoder
+	) {
+		try {
+			const decodedTx = decoder.decodeTx(txRes);
 
-      const args = decodedTx.functionFragment.inputs.reduce((t, curr, i) => {
-        const argName: string = curr.name;
-        t[argName] = decodedTx.args[i].toString();
-        return t;
-      }, {} as Record<string, any>);
+			const args = decodedTx.functionFragment.inputs.reduce(
+				(t, curr, i) => {
+					const argName: string = curr.name;
+					t[argName] = decodedTx.args[i].toString();
+					return t;
+				},
+				{} as Record<string, any>
+			);
 
-      return {
-        method: decodedTx.name,
-        signature: decodedTx.signature,
-        args,
-      };
-    } catch (error) {
-      return {
-        method: "unknown",
-        signature: "external",
-        args: {},
-      };
-    }
-  }
+			return {
+				method: decodedTx.name,
+				signature: decodedTx.signature,
+				args
+			};
+		} catch (error) {
+			return {
+				method: "unknown",
+				signature: "external",
+				args: {}
+			};
+		}
+	}
 }

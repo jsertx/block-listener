@@ -1,3 +1,3 @@
 export interface IStandaloneApps {
-  start(): void;
+	start(): void;
 }

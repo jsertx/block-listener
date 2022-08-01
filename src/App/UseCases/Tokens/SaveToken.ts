@@ -15,45 +15,47 @@ import { checksumed } from "../../Utils/Address";
 
 @injectable()
 export class SaveToken implements IStandaloneApps {
-  constructor(
-    @inject(IocKey.TokenRepository) private tokenRepository: ITokenRepository,
-    @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
-    @inject(IocKey.Broker) private broker: IBroker,
-    @inject(IocKey.Logger) private logger: ILogger,
-    @inject(IocKey.TxProcessor) private txProcessor: ITxProcessor
-  ) {}
+	constructor(
+		@inject(IocKey.TokenRepository)
+		private tokenRepository: ITokenRepository,
+		@inject(IocKey.ProviderFactory)
+		private providerFactory: IProviderFactory,
+		@inject(IocKey.Broker) private broker: IBroker,
+		@inject(IocKey.Logger) private logger: ILogger,
+		@inject(IocKey.TxProcessor) private txProcessor: ITxProcessor
+	) {}
 
-  async start() {
-    this.logger.log({
-      type: "save-token.started",
-      message: "Save token listener has started",
-    });
-    this.broker.subscribe(Subscription.SaveToken, this.execute.bind(this));
-  }
+	async start() {
+		this.logger.log({
+			type: "save-token.started",
+			message: "Save token listener has started"
+		});
+		this.broker.subscribe(Subscription.SaveToken, this.execute.bind(this));
+	}
 
-  async execute({ address, blockchain }: TokenDiscoveredPayload) {
-    const existingToken = await this.tokenRepository.findOne({
-      address: checksumed(address),
-      blockchain,
-    });
-    if (existingToken) {
-      return;
-    }
-    const provider = this.providerFactory.getProvider(blockchain);
-    const contract = new ethers.Contract(address, ERC20, provider);
-    const [name, decimals, symbol] = await Promise.all([
-      contract.name(),
-      contract.decimals(),
-      contract.symbol(),
-    ]);
-    const token = Token.create({
-      address,
-      blockchain,
-      decimals,
-      name,
-      symbol,
-      useAsBaseForPairDiscovery: false,
-    });
-    await this.tokenRepository.save(token);
-  }
+	async execute({ address, blockchain }: TokenDiscoveredPayload) {
+		const existingToken = await this.tokenRepository.findOne({
+			address: checksumed(address),
+			blockchain
+		});
+		if (existingToken) {
+			return;
+		}
+		const provider = this.providerFactory.getProvider(blockchain);
+		const contract = new ethers.Contract(address, ERC20, provider);
+		const [name, decimals, symbol] = await Promise.all([
+			contract.name(),
+			contract.decimals(),
+			contract.symbol()
+		]);
+		const token = Token.create({
+			address,
+			blockchain,
+			decimals,
+			name,
+			symbol,
+			useAsBaseForPairDiscovery: false
+		});
+		await this.tokenRepository.save(token);
+	}
 }

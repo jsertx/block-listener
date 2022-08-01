@@ -28,49 +28,53 @@ import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/
 import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
 
 export const initializeContainer = async () => {
-  const bindings = new AsyncContainerModule(async (bind) => {
-    // Services
-    bind(IocKey.Config).toConstantValue(Config);
-    bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
-    bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
-    bind(IocKey.PriceService).to(PriceService).inSingletonScope();
-    bind(IocKey.BlockchainService).to(CovalentApi).inSingletonScope();
-    // TxProcessor
-    bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();
-    [NativeTransferProcessor, DexSwapProcessor].forEach((processor) =>
-      bind(IocKey.TxProcessorStrategy).to(processor).inSingletonScope()
-    );
-    // UseCases
-    [
-      SaveTx,
-      SaveToken,
-      SaveWhale,
-      FindDirectTx,
-      FindInternalTx,
-      BlockListener,
-      SelectivePairDiscoverer,
-    ].forEach((app) => bind(IocKey.StandAloneApps).to(app).inSingletonScope());
+	const bindings = new AsyncContainerModule(async (bind) => {
+		// Services
+		bind(IocKey.Config).toConstantValue(Config);
+		bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
+		bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
+		bind(IocKey.PriceService).to(PriceService).inSingletonScope();
+		bind(IocKey.BlockchainService).to(CovalentApi).inSingletonScope();
+		// TxProcessor
+		bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();
+		[NativeTransferProcessor, DexSwapProcessor].forEach((processor) =>
+			bind(IocKey.TxProcessorStrategy).to(processor).inSingletonScope()
+		);
+		// UseCases
+		[
+			SaveTx,
+			SaveToken,
+			SaveWhale,
+			FindDirectTx,
+			FindInternalTx,
+			BlockListener,
+			SelectivePairDiscoverer
+		].forEach((app) =>
+			bind(IocKey.StandAloneApps).to(app).inSingletonScope()
+		);
 
-    // Adapters
-    bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
-    bind(IocKey.Adapters).to(BrokerAdapter).inRequestScope();
-    // Brokers
-    bind(IocKey.BrokerClient).toConstantValue(
-      await createBrokerConnection(Config)
-    );
-    bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
-    // DB & Repos
-    bind(IocKey.DbClient).toConstantValue(
-      await createConnection(Config.database.connectionUri)
-    );
-    bind(IocKey.TxRepository).to(TxRepository).inSingletonScope();
-    bind(IocKey.ContractRepository).to(ContractRepository).inSingletonScope();
-    bind(IocKey.TokenRepository).to(TokenRepository).inSingletonScope();
-    bind(IocKey.WalletRepository).to(WalletRepository).inSingletonScope();
-  });
+		// Adapters
+		bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
+		bind(IocKey.Adapters).to(BrokerAdapter).inRequestScope();
+		// Brokers
+		bind(IocKey.BrokerClient).toConstantValue(
+			await createBrokerConnection(Config)
+		);
+		bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
+		// DB & Repos
+		bind(IocKey.DbClient).toConstantValue(
+			await createConnection(Config.database.connectionUri)
+		);
+		bind(IocKey.TxRepository).to(TxRepository).inSingletonScope();
+		bind(IocKey.ContractRepository)
+			.to(ContractRepository)
+			.inSingletonScope();
+		bind(IocKey.TokenRepository).to(TokenRepository).inSingletonScope();
+		bind(IocKey.WalletRepository).to(WalletRepository).inSingletonScope();
+	});
 
-  const container = new Container();
-  container.bind(IocKey.Container).toConstantValue(container);
-  await container.loadAsync(bindings);
-  return container;
+	const container = new Container();
+	container.bind(IocKey.Container).toConstantValue(container);
+	await container.loadAsync(bindings);
+	return container;
 };

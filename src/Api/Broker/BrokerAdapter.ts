@@ -3,7 +3,7 @@ import { IAdapter } from "../../Interfaces/IAdapter";
 
 @injectable()
 export class BrokerAdapter implements IAdapter {
-  constructor() {}
+	constructor() {}
 
-  start() {}
+	start() {}
 }

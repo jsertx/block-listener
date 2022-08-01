@@ -11,41 +11,41 @@ import { checksumed } from "../../App/Utils/Address";
 
 @injectable()
 export class WalletRepository
-  extends MongoBaseRepository<WalletRaw, Wallet>
-  implements IWalletRepository
+	extends MongoBaseRepository<WalletRaw, Wallet>
+	implements IWalletRepository
 {
-  constructor(
-    @inject(IocKey.DbClient) client: MongoClient,
-    @inject(IocKey.Config) config: IConfig
-  ) {
-    super("wallet", client, config);
-  }
+	constructor(
+		@inject(IocKey.DbClient) client: MongoClient,
+		@inject(IocKey.Config) config: IConfig
+	) {
+		super("wallet", client, config);
+	}
 
-  protected getMatchCriteriaFromEntity(
-    address: Wallet
-  ): PartialObjectDeep<WalletRaw> {
-    const { blockchain } = address.toRaw();
-    return { blockchain, address: address.address };
-  }
+	protected getMatchCriteriaFromEntity(
+		address: Wallet
+	): PartialObjectDeep<WalletRaw> {
+		const { blockchain } = address.toRaw();
+		return { blockchain, address: address.address };
+	}
 
-  protected modelToEntityMapper(model: WithId<WalletRaw>): Wallet {
-    return new Wallet(model, model._id.toString());
-  }
+	protected modelToEntityMapper(model: WithId<WalletRaw>): Wallet {
+		return new Wallet(model, model._id.toString());
+	}
 
-  findWallet(
-    address: string,
-    blockchain: BlockchainId
-  ): Promise<Wallet | null> {
-    return this.getCollection()
-      .findOne({
-        address: checksumed(address),
-        blockchain,
-      })
-      .then((res) => {
-        if (!res) {
-          return null;
-        }
-        return this.modelToEntityMapper(res);
-      });
-  }
+	findWallet(
+		address: string,
+		blockchain: BlockchainId
+	): Promise<Wallet | null> {
+		return this.getCollection()
+			.findOne({
+				address: checksumed(address),
+				blockchain
+			})
+			.then((res) => {
+				if (!res) {
+					return null;
+				}
+				return this.modelToEntityMapper(res);
+			});
+	}
 }

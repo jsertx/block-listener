@@ -1,3 +1,3 @@
 export interface IAdapter {
-  start(): void;
+	start(): void;
 }

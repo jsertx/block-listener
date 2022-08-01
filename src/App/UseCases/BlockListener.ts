@@ -12,45 +12,46 @@ import { BlockWithTransactions } from "../Types/BlockWithTransactions";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
-  protected _blockchain: BlockchainId = BlockchainId.Ethereum;
-  protected get blockchain() {
-    return new Blockchain(this._blockchain);
-  }
-  constructor(
-    @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
-    @inject(IocKey.Logger) private logger: ILogger,
-    @inject(IocKey.Broker) private broker: IBroker
-  ) {}
-  get provider() {
-    return this.providerFactory.getProvider(this.blockchain);
-  }
-  async start() {
-    this.logger.log({
-      type: "block-listener.start",
-    });
+	protected _blockchain: BlockchainId = BlockchainId.Ethereum;
+	protected get blockchain() {
+		return new Blockchain(this._blockchain);
+	}
+	constructor(
+		@inject(IocKey.ProviderFactory)
+		private providerFactory: IProviderFactory,
+		@inject(IocKey.Logger) private logger: ILogger,
+		@inject(IocKey.Broker) private broker: IBroker
+	) {}
+	get provider() {
+		return this.providerFactory.getProvider(this.blockchain);
+	}
+	async start() {
+		this.logger.log({
+			type: "block-listener.start"
+		});
 
-    this.provider.on("block", this.onBlock.bind(this));
-  }
-  private async onBlock(blockNumber: number) {
-    let block: BlockWithTransactions | undefined = undefined;
-    while (!block) {
-      block = await this.provider.getBlockWithTransactions(blockNumber);
-      if (!block) {
-        continue;
-      }
+		this.provider.on("block", this.onBlock.bind(this));
+	}
+	private async onBlock(blockNumber: number) {
+		let block: BlockWithTransactions | undefined = undefined;
+		while (!block) {
+			block = await this.provider.getBlockWithTransactions(blockNumber);
+			if (!block) {
+				continue;
+			}
 
-      this.broker.publish(
-        new BlockReceived(this.blockchain.id, {
-          blockchain: this.blockchain.id,
-          block,
-        })
-      );
-      this.logger.log({
-        type: "block-listener.new-block",
-        context: {
-          block: block.number,
-        },
-      });
-    }
-  }
+			this.broker.publish(
+				new BlockReceived(this.blockchain.id, {
+					blockchain: this.blockchain.id,
+					block
+				})
+			);
+			this.logger.log({
+				type: "block-listener.new-block",
+				context: {
+					block: block.number
+				}
+			});
+		}
+	}
 }

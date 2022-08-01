@@ -9,24 +9,24 @@ import { PartialObjectDeep } from "type-fest/source/partial-deep";
 
 @injectable()
 export class TxRepository
-  extends MongoBaseRepository<TxProps<any>, Tx<any>>
-  implements ITxRepository
+	extends MongoBaseRepository<TxProps<any>, Tx<any>>
+	implements ITxRepository
 {
-  constructor(
-    @inject(IocKey.DbClient) client: MongoClient,
-    @inject(IocKey.Config) config: IConfig
-  ) {
-    super("tx", client, config);
-  }
+	constructor(
+		@inject(IocKey.DbClient) client: MongoClient,
+		@inject(IocKey.Config) config: IConfig
+	) {
+		super("tx", client, config);
+	}
 
-  protected getMatchCriteriaFromEntity(
-    tx: Tx<any>
-  ): PartialObjectDeep<TxProps<any>> {
-    const { hash, blockchain } = tx.toRaw();
-    return { blockchain, hash };
-  }
+	protected getMatchCriteriaFromEntity(
+		tx: Tx<any>
+	): PartialObjectDeep<TxProps<any>> {
+		const { hash, blockchain } = tx.toRaw();
+		return { blockchain, hash };
+	}
 
-  protected modelToEntityMapper(model: WithId<TxProps<any>>): Tx<any> {
-    return new Tx(model, model._id.toString());
-  }
+	protected modelToEntityMapper(model: WithId<TxProps<any>>): Tx<any> {
+		return new Tx(model, model._id.toString());
+	}
 }

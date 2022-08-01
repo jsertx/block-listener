@@ -17,100 +17,107 @@ import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { BlockReceivedPayload } from "../PubSub/Messages/BlockReceived";
 
 interface BlockFetchingConfig {
-  fromBlock: number;
-  toBlock: number;
-  skip: boolean;
-  requestsPerSecond: number;
+	fromBlock: number;
+	toBlock: number;
+	skip: boolean;
+	requestsPerSecond: number;
 }
 
 @injectable()
 export class FindInternalTx implements IStandaloneApps {
-  constructor(
-    @inject(IocKey.Broker) private broker: IAppBroker,
-    @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
-    @inject(IocKey.ContractRepository)
-    private contractRepository: IContractRepository,
-    @inject(IocKey.Logger) private logger: ILogger
-  ) {}
+	constructor(
+		@inject(IocKey.Broker) private broker: IAppBroker,
+		@inject(IocKey.ProviderFactory)
+		private providerFactory: IProviderFactory,
+		@inject(IocKey.ContractRepository)
+		private contractRepository: IContractRepository,
+		@inject(IocKey.Logger) private logger: ILogger
+	) {}
 
-  async start() {
-    this.broker.subscribe(Subscription.FindInternalTx, this.onBlock.bind(this));
-  }
+	async start() {
+		this.broker.subscribe(
+			Subscription.FindInternalTx,
+			this.onBlock.bind(this)
+		);
+	}
 
-  async onBlock({ block, blockchain }: BlockReceivedPayload) {
-    const { data: contracts } = await this.contractRepository.findAll();
+	async onBlock({ block, blockchain }: BlockReceivedPayload) {
+		const { data: contracts } = await this.contractRepository.findAll();
 
-    const { fromBlock, toBlock, skip, requestsPerSecond } =
-      this.getBlockFetchingRange(block);
-    if (skip) {
-      return;
-    }
+		const { fromBlock, toBlock, skip, requestsPerSecond } =
+			this.getBlockFetchingRange(block);
+		if (skip) {
+			return;
+		}
 
-    if (contracts.length === 0) {
-      return;
-    }
+		if (contracts.length === 0) {
+			return;
+		}
 
-    const txHashesBulks: Array<string[]> = await new PromiseThrottle({
-      requestsPerSecond,
-    }).addAll(
-      contracts.map(
-        (contract) => () => this.getContractEvents(contract, fromBlock, toBlock)
-      )
-    );
-    const txHashes = txHashesBulks
-      .reduce<string[]>(flattenReducer, [])
-      .filter(onlyUniqueFilter);
+		const txHashesBulks: Array<string[]> = await new PromiseThrottle({
+			requestsPerSecond
+		}).addAll(
+			contracts.map(
+				(contract) => () =>
+					this.getContractEvents(contract, fromBlock, toBlock)
+			)
+		);
+		const txHashes = txHashesBulks
+			.reduce<string[]>(flattenReducer, [])
+			.filter(onlyUniqueFilter);
 
-    txHashes.forEach((hash) => {
-      this.broker.publish(new TxDiscovered(blockchain, { blockchain, hash }));
-    });
-  }
+		txHashes.forEach((hash) => {
+			this.broker.publish(
+				new TxDiscovered(blockchain, { blockchain, hash })
+			);
+		});
+	}
 
-  private async getContractEvents(
-    contract: Contract,
-    fromBlock: number | undefined,
-    toBlock: number | undefined
-  ): Promise<string[]> {
-    if (!contract.abi) {
-      throw new Error(
-        `This contract has no ABI:  ${contract.address}@${contract.blockchain}`
-      );
-    }
+	private async getContractEvents(
+		contract: Contract,
+		fromBlock: number | undefined,
+		toBlock: number | undefined
+	): Promise<string[]> {
+		if (!contract.abi) {
+			throw new Error(
+				`This contract has no ABI:  ${contract.address}@${contract.blockchain}`
+			);
+		}
 
-    const provider = await this.providerFactory.getProvider(
-      contract.blockchain
-    );
+		const provider = await this.providerFactory.getProvider(
+			contract.blockchain
+		);
 
-    const ethersContract = new ethers.Contract(
-      contract.address,
-      contract.abi,
-      provider
-    );
+		const ethersContract = new ethers.Contract(
+			contract.address,
+			contract.abi,
+			provider
+		);
 
-    const events = await ethersContract.queryFilter(
-      {
-        address: contract.address,
-      },
-      fromBlock,
-      toBlock
-    );
-    return events
-      .map((event) => event.transactionHash)
-      .filter(onlyUniqueFilter);
-  }
+		const events = await ethersContract.queryFilter(
+			{
+				address: contract.address
+			},
+			fromBlock,
+			toBlock
+		);
+		return events
+			.map((event) => event.transactionHash)
+			.filter(onlyUniqueFilter);
+	}
 
-  private getBlockFetchingRange(
-    block: BlockWithTransactions
-  ): BlockFetchingConfig {
-    const requestsPerSecond = 100;
-    const blockBatchSize = 100;
-    const blocksToSkipUntilFetch = blockBatchSize / 2;
+	private getBlockFetchingRange(
+		block: BlockWithTransactions
+	): BlockFetchingConfig {
+		const requestsPerSecond = 100;
+		const blockBatchSize = 100;
+		const blocksToSkipUntilFetch = blockBatchSize / 2;
 
-    const fromBlock = block.number + blockBatchSize;
-    const toBlock = block.number;
-    // we want to iterate over same block twice to try to get lost transactions in previous query
-    const skip = block.number % blocksToSkipUntilFetch > 0;
+		const fromBlock = block.number + blockBatchSize;
+		const toBlock = block.number;
+		// we want to iterate over same block twice to try to get lost transactions in previous query
+		const skip = block.number % blocksToSkipUntilFetch > 0;
 
-    return { fromBlock, toBlock, skip, requestsPerSecond };
-  }
+		return { fromBlock, toBlock, skip, requestsPerSecond };
+	}
 }

@@ -5,97 +5,97 @@ import { checksumed } from "../Utils/Address";
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddressStr } from "../Values/Address";
 import {
-  Blockchain,
-  BlockchainId,
-  blockchainIdList,
+	Blockchain,
+	BlockchainId,
+	blockchainIdList
 } from "../Values/Blockchain";
 import { WalletTag, walletTagNameList } from "../Values/WalletTag";
 import { WalletType, walletTypeList } from "../Values/WalletType";
 import { Entity } from "./Base/Entity";
 
 export interface WalletIdProps {
-  blockchain: BlockchainId;
-  address: HexAddressStr;
+	blockchain: BlockchainId;
+	address: HexAddressStr;
 }
 export interface WalletProps extends WalletIdProps {
-  alias?: string;
+	alias?: string;
 
-  type: WalletType;
-  tags: WalletTag[];
-  relations: AddressRelation[];
-  createdAt: Date;
+	type: WalletType;
+	tags: WalletTag[];
+	relations: AddressRelation[];
+	createdAt: Date;
 }
 type WalletPropsConstructor = SetOptional<WalletProps, "relations" | "tags">;
 
 export interface WalletRaw extends WalletProps {}
 
 enum AddressRelationType {
-  TransferedAsset = "transfer.sent",
-  ReceivedAsset = "transfer.received",
+	TransferedAsset = "transfer.sent",
+	ReceivedAsset = "transfer.received"
 }
 
 export const addressRelationTypeList = Object.values(AddressRelationType);
 
 export interface AddressRelation {
-  address: string;
-  type: AddressRelationType;
-  createdAt: Date;
-  metadata: {
-    txHash?: string;
-  };
+	address: string;
+	type: AddressRelationType;
+	createdAt: Date;
+	metadata: {
+		txHash?: string;
+	};
 }
 
 export const WalletRelationSchema = Joi.object({
-  address: Joi.string().required(),
-  type: Joi.string()
-    .valid(...addressRelationTypeList)
-    .required(),
-  metadata: Joi.object({
-    txHash: Joi.string().optional(),
-  }).optional(),
+	address: Joi.string().required(),
+	type: Joi.string()
+		.valid(...addressRelationTypeList)
+		.required(),
+	metadata: Joi.object({
+		txHash: Joi.string().optional()
+	}).optional()
 });
 
 export const WalletAddressTagSchema = Joi.object({
-  tag: Joi.string().valid(...walletTagNameList),
+	tag: Joi.string().valid(...walletTagNameList)
 });
 
 export const WalletSchema = Joi.object({
-  blockchain: Joi.string()
-    .valid(...blockchainIdList)
-    .required(),
-  address: Joi.string().custom(checksumed).required(),
-  type: Joi.string()
-    .valid(...walletTypeList)
-    .required(),
-  relations: Joi.array().items(WalletRelationSchema).optional(),
-  alias: Joi.string().optional(),
-  tags: Joi.array().items(WalletAddressTagSchema).optional(),
-  createdAt: Joi.date().required(),
+	blockchain: Joi.string()
+		.valid(...blockchainIdList)
+		.required(),
+	address: Joi.string().custom(checksumed).required(),
+	type: Joi.string()
+		.valid(...walletTypeList)
+		.required(),
+	relations: Joi.array().items(WalletRelationSchema).optional(),
+	alias: Joi.string().optional(),
+	tags: Joi.array().items(WalletAddressTagSchema).optional(),
+	createdAt: Joi.date().required()
 })
-  .unknown()
-  .options({ stripUnknown: true });
+	.unknown()
+	.options({ stripUnknown: true });
 
 export class Wallet extends Entity<WalletProps> {
-  constructor(props: WalletPropsConstructor, _id?: string) {
-    super({ relations: [], tags: [], ...props }, _id);
-  }
-  addRelation(addressRelation: AddressRelation) {
-    this.props.relations.push(addressRelation);
-  }
+	constructor(props: WalletPropsConstructor, _id?: string) {
+		super({ relations: [], tags: [], ...props }, _id);
+	}
+	addRelation(addressRelation: AddressRelation) {
+		this.props.relations.push(addressRelation);
+	}
 
-  get type(): WalletType {
-    return this.props.type;
-  }
+	get type(): WalletType {
+		return this.props.type;
+	}
 
-  get address(): HexAddressStr {
-    return this.props.address;
-  }
+	get address(): HexAddressStr {
+		return this.props.address;
+	}
 
-  get blockchain(): Blockchain {
-    return new Blockchain(this.props.blockchain);
-  }
+	get blockchain(): Blockchain {
+		return new Blockchain(this.props.blockchain);
+	}
 
-  static create(props: WalletRaw, _id?: string): Wallet {
-    return new Wallet(validateOrThrowError(props, WalletSchema), _id);
-  }
+	static create(props: WalletRaw, _id?: string): Wallet {
+		return new Wallet(validateOrThrowError(props, WalletSchema), _id);
+	}
 }

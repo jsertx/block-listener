@@ -1,12 +1,12 @@
 import { inject } from "inversify";
 import {
-  interfaces,
-  controller,
-  httpGet,
-  httpPost,
-  requestBody,
-  requestParam,
-  response,
+	interfaces,
+	controller,
+	httpGet,
+	httpPost,
+	requestBody,
+	requestParam,
+	response
 } from "inversify-express-utils";
 
 import { IocKey } from "../../../Ioc/IocKey";
@@ -23,44 +23,44 @@ import { Response } from "express";
 
 @controller("/wallets")
 export class WalletController implements interfaces.Controller {
-  constructor(
-    @inject(IocKey.WalletRepository)
-    private walletRepository: IWalletRepository,
-    @inject(IocKey.Broker)
-    private broker: IBroker
-  ) {}
+	constructor(
+		@inject(IocKey.WalletRepository)
+		private walletRepository: IWalletRepository,
+		@inject(IocKey.Broker)
+		private broker: IBroker
+	) {}
 
-  @httpGet("/")
-  async index(): Promise<IApiPaginatedResponse<WalletRaw>> {
-    const { data } = await this.walletRepository.findAll();
-    return buildPaginatedResponse({
-      data: data.map((data) => data.toRaw()),
-    });
-  }
+	@httpGet("/")
+	async index(): Promise<IApiPaginatedResponse<WalletRaw>> {
+		const { data } = await this.walletRepository.findAll();
+		return buildPaginatedResponse({
+			data: data.map((data) => data.toRaw())
+		});
+	}
 
-  @httpPost("/")
-  async createWallet(
-    @requestBody() body: CreateWalletDto
-  ): Promise<IApiResponse> {
-    validateOrThrowError(body, CreateWalletDtoSchema);
-    const wallet = await this.walletRepository.save(
-      Wallet.create({ ...body, createdAt: new Date() })
-    );
-    return {
-      success: true,
-      data: wallet.toRaw(),
-    };
-  }
+	@httpPost("/")
+	async createWallet(
+		@requestBody() body: CreateWalletDto
+	): Promise<IApiResponse> {
+		validateOrThrowError(body, CreateWalletDtoSchema);
+		const wallet = await this.walletRepository.save(
+			Wallet.create({ ...body, createdAt: new Date() })
+		);
+		return {
+			success: true,
+			data: wallet.toRaw()
+		};
+	}
 
-  @httpPost("/save/:blockchain/:address")
-  async saveTx(
-    @requestParam("blockchain") blockchain: BlockchainId,
-    @requestParam("address") address: string,
-    @response() res: Response
-  ) {
-    await this.broker.publish(
-      new WhaleDiscovered(blockchain, { blockchain, address })
-    );
-    return res.sendStatus(202);
-  }
+	@httpPost("/save/:blockchain/:address")
+	async saveTx(
+		@requestParam("blockchain") blockchain: BlockchainId,
+		@requestParam("address") address: string,
+		@response() res: Response
+	) {
+		await this.broker.publish(
+			new WhaleDiscovered(blockchain, { blockchain, address })
+		);
+		return res.sendStatus(202);
+	}
 }

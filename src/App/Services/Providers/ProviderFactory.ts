@@ -9,22 +9,22 @@ const defaultBlockchain = new Blockchain(BlockchainId.Ethereum);
 
 @injectable()
 export class ProviderFactory implements IProviderFactory {
-  constructor(@inject(IocKey.Config) private config: IConfig) {}
+	constructor(@inject(IocKey.Config) private config: IConfig) {}
 
-  getProvider(blockchain: Blockchain | BlockchainId = defaultBlockchain) {
-    if (!(blockchain instanceof Blockchain)) {
-      blockchain = new Blockchain(blockchain);
-    }
-    if (this.config.providers.alchemyJsonRpcUrl) {
-      return new ethers.providers.StaticJsonRpcProvider(
-        this.config.providers.alchemyJsonRpcUrl,
-        blockchain.chainId
-      );
-    }
+	getProvider(blockchain: Blockchain | BlockchainId = defaultBlockchain) {
+		if (!(blockchain instanceof Blockchain)) {
+			blockchain = new Blockchain(blockchain);
+		}
+		if (this.config.providers.alchemyJsonRpcUrl) {
+			return new ethers.providers.StaticJsonRpcProvider(
+				this.config.providers.alchemyJsonRpcUrl,
+				blockchain.chainId
+			);
+		}
 
-    return new ethers.providers.EtherscanProvider(
-      blockchain.chainId,
-      this.config.providers.etherScanApiKey
-    );
-  }
+		return new ethers.providers.EtherscanProvider(
+			blockchain.chainId,
+			this.config.providers.etherScanApiKey
+		);
+	}
 }

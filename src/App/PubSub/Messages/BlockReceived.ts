@@ -4,11 +4,11 @@ import { Publication } from "../../../Infrastructure/Broker/Publication";
 import { BaseMessage } from "../../../Infrastructure/Broker/BaseMessage";
 
 export interface BlockReceivedPayload {
-  blockchain: BlockchainId;
-  block: BlockWithTransactions;
+	blockchain: BlockchainId;
+	block: BlockWithTransactions;
 }
 export class BlockReceived extends BaseMessage<BlockReceivedPayload> {
-  constructor(blockchain: BlockchainId, payload: BlockReceivedPayload) {
-    super(Publication.BlockReceived(blockchain), payload);
-  }
+	constructor(blockchain: BlockchainId, payload: BlockReceivedPayload) {
+		super(Publication.BlockReceived(blockchain), payload);
+	}
 }

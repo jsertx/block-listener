@@ -4,19 +4,19 @@ import { Dex } from "../Values/Dex";
 import { IBaseRepository } from "./IBaseRepository";
 
 export interface IContractRepository
-  extends IBaseRepository<Contract, ContractIdProps> {
-  findContract(
-    address: string,
-    blockchain: BlockchainId
-  ): Promise<Contract | null>;
+	extends IBaseRepository<Contract, ContractIdProps> {
+	findContract(
+		address: string,
+		blockchain: BlockchainId
+	): Promise<Contract | null>;
 
-  findContractsBy(filters: Partial<ContractRaw>): Promise<Contract[]>;
+	findContractsBy(filters: Partial<ContractRaw>): Promise<Contract[]>;
 
-  countDexPairs({
-    dex,
-    blockchain,
-  }: {
-    dex: Dex;
-    blockchain: BlockchainId;
-  }): Promise<number>;
+	countDexPairs({
+		dex,
+		blockchain
+	}: {
+		dex: Dex;
+		blockchain: BlockchainId;
+	}): Promise<number>;
 }

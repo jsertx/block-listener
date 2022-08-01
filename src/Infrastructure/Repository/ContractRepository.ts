@@ -15,60 +15,60 @@ import { checksumed } from "../../App/Utils/Address";
 
 @injectable()
 export class ContractRepository
-  extends MongoBaseRepository<ContractRaw, Contract>
-  implements IContractRepository
+	extends MongoBaseRepository<ContractRaw, Contract>
+	implements IContractRepository
 {
-  constructor(
-    @inject(IocKey.DbClient) client: MongoClient,
-    @inject(IocKey.Config) config: IConfig
-  ) {
-    super("contracts", client, config);
-  }
+	constructor(
+		@inject(IocKey.DbClient) client: MongoClient,
+		@inject(IocKey.Config) config: IConfig
+	) {
+		super("contracts", client, config);
+	}
 
-  protected getMatchCriteriaFromEntity(
-    contract: Contract
-  ): PartialObjectDeep<ContractRaw> {
-    const { blockchain, address } = contract.toRaw();
-    return { blockchain, address };
-  }
+	protected getMatchCriteriaFromEntity(
+		contract: Contract
+	): PartialObjectDeep<ContractRaw> {
+		const { blockchain, address } = contract.toRaw();
+		return { blockchain, address };
+	}
 
-  protected modelToEntityMapper(model: WithId<ContractRaw>): Contract {
-    return new Contract(model, model._id.toString());
-  }
+	protected modelToEntityMapper(model: WithId<ContractRaw>): Contract {
+		return new Contract(model, model._id.toString());
+	}
 
-  async findContractsBy(filters: Partial<ContractRaw>): Promise<Contract[]> {
-    const contracts = await this.getCollection().find(filters).toArray();
-    return contracts.map(this.modelToEntityMapper.bind(this));
-  }
+	async findContractsBy(filters: Partial<ContractRaw>): Promise<Contract[]> {
+		const contracts = await this.getCollection().find(filters).toArray();
+		return contracts.map(this.modelToEntityMapper.bind(this));
+	}
 
-  async countDexPairs({
-    dex,
-    blockchain,
-  }: {
-    dex: Dex;
-    blockchain: BlockchainId;
-  }): Promise<number> {
-    return this.getCollection().countDocuments({
-      "data.dex": dex,
-      type: ContractType.UniswapPairV2Like,
-      blockchain,
-    });
-  }
+	async countDexPairs({
+		dex,
+		blockchain
+	}: {
+		dex: Dex;
+		blockchain: BlockchainId;
+	}): Promise<number> {
+		return this.getCollection().countDocuments({
+			"data.dex": dex,
+			type: ContractType.UniswapPairV2Like,
+			blockchain
+		});
+	}
 
-  findContract(
-    address: string,
-    blockchain: BlockchainId
-  ): Promise<Contract | null> {
-    return this.getCollection()
-      .findOne({
-        address: checksumed(address),
-        blockchain,
-      })
-      .then((res) => {
-        if (!res) {
-          return null;
-        }
-        return this.modelToEntityMapper(res);
-      });
-  }
+	findContract(
+		address: string,
+		blockchain: BlockchainId
+	): Promise<Contract | null> {
+		return this.getCollection()
+			.findOne({
+				address: checksumed(address),
+				blockchain
+			})
+			.then((res) => {
+				if (!res) {
+					return null;
+				}
+				return this.modelToEntityMapper(res);
+			});
+	}
 }

@@ -6,12 +6,12 @@ import { UniswapRouter02 } from "./UniswapRouter02";
 import { Wrapped } from "./Wrapped";
 
 export const ABI = {
-  UniswapRouter02,
-  UniswapFactory,
-  UniswapController,
-  UniswapPair,
-  ERC20,
-  Wrapped,
+	UniswapRouter02,
+	UniswapFactory,
+	UniswapController,
+	UniswapPair,
+	ERC20,
+	Wrapped
 };
 
 export const allAbiList = Object.values(ABI);
