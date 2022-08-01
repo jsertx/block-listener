@@ -213,15 +213,14 @@ export class SaveTx implements IStandaloneApps {
     decoder: LogDecoder
   ): TransactionLog[] {
     const decodedLogs = decoder.decodeLogs(txReceipt.logs);
-    return decodedLogs.map((rawLog: any) => {
-      const log = rawLog;
+    return decodedLogs.map((log: any) => {
       const args = log.eventFragment.inputs.reduce(
         (t: any, curr: any, i: number) => {
           const argName: string = curr.name;
           t[argName] = log.args[i].toString();
           return t;
         },
-        {} as Record<string, any>
+        {}
       );
 
       return {
