@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import Joi, { ValidationResult } from "joi";
 import { TransactionLog } from "../Types/TransactionLog";
+import { checksumed } from "../Utils/Address";
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddressStr } from "../Values/Address";
 import { FormattedAmount } from "../Values/Amount";
@@ -62,8 +63,8 @@ export interface DexSwapData {
 
 const EthTransferSchema = Joi.object({
   value: Joi.string().required(),
-  from: Joi.string().required(),
-  to: Joi.string().required(),
+  from: Joi.string().custom(checksumed).required(),
+  to: Joi.string().custom(checksumed).required(),
 })
   .unknown()
   .options({ stripUnknown: true });
@@ -71,14 +72,14 @@ const EthTransferSchema = Joi.object({
 const DexSwapDataSchema = Joi.object({
   nativeValue: Joi.string().required(),
   usdValue: Joi.string().required(),
-  from: Joi.string().required(),
-  to: Joi.string().required(),
+  from: Joi.string().custom(checksumed).required(),
+  to: Joi.string().custom(checksumed).required(),
   input: Joi.object({
-    token: Joi.string().required(),
+    token: Joi.string().custom(checksumed).required(),
     amount: Joi.string().required(),
   }),
   output: Joi.object({
-    token: Joi.string().required(),
+    token: Joi.string().custom(checksumed).required(),
     amount: Joi.string().required(),
   }).required(),
 })

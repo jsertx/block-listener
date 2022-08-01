@@ -18,6 +18,7 @@ import { checksumed } from "../../../Utils/Address";
 import { onlyUniqueFilter } from "../../../Utils/Array";
 import { WhaleDiscovered } from "../../../PubSub/Messages/WhaleDiscovered";
 import { TokenDiscovered } from "../../../PubSub/Messages/TokenDiscovered";
+import { IWalletRepository } from "../../../Repository/IWalletRepository";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -30,10 +31,12 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     @inject(IocKey.Config) private config: IConfig,
     @inject(IocKey.PriceService) private priceService: IPriceService,
     @inject(IocKey.ContractRepository)
-    private contractRepository: IContractRepository
+    private contractRepository: IContractRepository,
+    @inject(IocKey.WalletRepository)
+    private walletRepository: IWalletRepository
   ) {}
 
-  private async shouldProcess(tx: Tx<any>): Promise<boolean> {
+  private shouldProcess(tx: Tx<any>): boolean {
     if (!tx.raw.smartContractCall) {
       return false;
     }
@@ -43,7 +46,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
   }
 
   async process(tx: Tx<any>) {
-    if (!(await this.shouldProcess(tx))) {
+    if (!this.shouldProcess(tx)) {
       return;
     }
 
@@ -57,8 +60,12 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     }
 
     const dexSwapData = await this.getDexSwapData(tx);
-
+    const existingWallet = await this.walletRepository.findWallet(
+      tx.from,
+      tx.blockchain.id
+    );
     if (
+      existingWallet ||
       new BigNumber(dexSwapData.usdValue).gte(
         this.config.txRules.minDexSwapValueInUsd
       )
@@ -77,14 +84,16 @@ export class DexSwapProcessor implements ITxProcessStrategy {
         })
       );
     });
-    if (dexSwapData.from !== dexSwapData.to) {
-      this.broker.publish(
-        new WhaleDiscovered(tx.blockchain.id, {
-          blockchain: tx.blockchain.id,
-          address: dexSwapData.to,
-        })
-      );
-    }
+    [dexSwapData.from, dexSwapData.to]
+      .filter(onlyUniqueFilter)
+      .forEach((address) => {
+        this.broker.publish(
+          new WhaleDiscovered(tx.blockchain.id, {
+            blockchain: tx.blockchain.id,
+            address,
+          })
+        );
+      });
   }
 
   async getDexSwapData(tx: Tx<any>): Promise<DexSwapData> {

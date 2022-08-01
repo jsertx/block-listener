@@ -57,7 +57,7 @@ export class SaveTx implements IStandaloneApps {
     });
     const tx = await this.txProcessor.process(unknownTx);
     if (!tx) {
-      this.logger.log({
+      this.logger.debug({
         type: "save-tx.skipped",
         context: { txHash: hash, blockchain },
       });

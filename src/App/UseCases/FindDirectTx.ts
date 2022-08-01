@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IConfig } from "../../Interfaces/IConfig";
-import { createAddrMap } from "../Utils/Address";
+import { createAddrMap, isSameAddress } from "../Utils/Address";
 import { isNativeTokenTx } from "../Utils/Tx";
 import { ContractMap } from "../Types/Mappings";
 import { IocKey } from "../../Ioc/IocKey";
@@ -17,6 +17,9 @@ import { BlockReceivedPayload } from "../PubSub/Messages/BlockReceived";
 import { ethers } from "ethers";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import BigNumber from "bignumber.js";
+import { IWalletRepository } from "../Repository/IWalletRepository";
+import { Wallet } from "../Entities/Wallet";
+import { Contract } from "../Entities/Contract";
 
 @injectable()
 export class FindDirectTx implements IStandaloneApps {
@@ -25,7 +28,9 @@ export class FindDirectTx implements IStandaloneApps {
     @inject(IocKey.Config) private config: IConfig,
     @inject(IocKey.Broker) private broker: IAppBroker,
     @inject(IocKey.ContractRepository)
-    private contractRepository: IContractRepository
+    private contractRepository: IContractRepository,
+    @inject(IocKey.WalletRepository)
+    private walletRepository: IWalletRepository
   ) {}
 
   async start() {
@@ -36,11 +41,18 @@ export class FindDirectTx implements IStandaloneApps {
   }
 
   async onBlock({ block, blockchain }: BlockReceivedPayload) {
-    const contracts = await this.getSmartContractsOfInterest();
+    const [contracts, wallets] = await Promise.all([
+      this.contractRepository.findAll({
+        where: { blockchain },
+      }),
+      this.walletRepository.findAll({ where: { blockchain } }),
+    ]);
+
     for (const tx of block.transactions) {
       if (
         this.isBigNativeTx(tx) ||
-        this.isAgainstContractOfInterest(tx, contracts)
+        this.isAgainstContractOfInterest(tx, contracts.data) ||
+        this.isDoneByTrackedWallet(tx, wallets.data)
       ) {
         this.broker.publish(
           new TxDiscovered(blockchain, {
@@ -62,22 +74,19 @@ export class FindDirectTx implements IStandaloneApps {
     );
   }
 
-  private isAgainstContractOfInterest(
+  private isDoneByTrackedWallet(
     txRes: ethers.providers.TransactionResponse,
-    addressesOfInterest: ContractMap
+    wallets: Wallet[]
   ): boolean {
-    return !!addressesOfInterest[txRes.to!];
+    return wallets.some((wallet) => isSameAddress(wallet.address, txRes.from!));
   }
 
-  private async getSmartContractsOfInterest(): Promise<ContractMap> {
-    const { data: contracts } = await this.contractRepository.findAll();
-    return createAddrMap(
-      contracts.reduce((map, contract) => {
-        return {
-          ...map,
-          [contract.address]: contract,
-        };
-      }, {})
+  private isAgainstContractOfInterest(
+    txRes: ethers.providers.TransactionResponse,
+    addressesOfInterest: Contract[]
+  ): boolean {
+    return addressesOfInterest.some((contract) =>
+      isSameAddress(contract.address, txRes.to!)
     );
   }
 }

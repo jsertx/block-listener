@@ -9,8 +9,7 @@ import { ITxProcessor } from "./ITxProcessor";
 export class TxProcessor implements ITxProcessor {
   constructor(
     @multiInject(IocKey.TxProcessorStrategy)
-    private txProcessorStrategies: ITxProcessStrategy[],
-    @inject(IocKey.TxRepository) private txRepository: ITxRepository
+    private txProcessorStrategies: ITxProcessStrategy[]
   ) {}
 
   async process(tx: Tx<any>) {

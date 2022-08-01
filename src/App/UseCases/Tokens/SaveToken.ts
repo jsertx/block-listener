@@ -11,6 +11,7 @@ import { Token, TokenIdProps } from "../../Entities/Token";
 import { ERC20 } from "../../Services/SmartContract/ABI/ERC20";
 import { TokenDiscoveredPayload } from "../../PubSub/Messages/TokenDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
+import { checksumed } from "../../Utils/Address";
 
 @injectable()
 export class SaveToken implements IStandaloneApps {
@@ -32,7 +33,7 @@ export class SaveToken implements IStandaloneApps {
 
   async execute({ address, blockchain }: TokenDiscoveredPayload) {
     const existingToken = await this.tokenRepository.findOne({
-      address,
+      address: checksumed(address),
       blockchain,
     });
     if (existingToken) {

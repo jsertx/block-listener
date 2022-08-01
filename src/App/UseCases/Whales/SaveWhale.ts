@@ -11,8 +11,8 @@ import { WhaleDiscoveredPayload } from "../../PubSub/Messages/WhaleDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
 import { WhaleSaved } from "../../PubSub/Messages/WhaleSaved";
 import { IBlockchainService } from "../../Interfaces/IBlockchainService";
-import { add } from "winston";
 import { TxDiscovered } from "../../PubSub/Messages/TxDiscovered";
+import { checksumed } from "../../Utils/Address";
 
 @injectable()
 export class SaveWhale implements IStandaloneApps {
@@ -34,7 +34,7 @@ export class SaveWhale implements IStandaloneApps {
 
   async execute({ address, blockchain }: WhaleDiscoveredPayload) {
     const existingWhale = await this.walletRepository.findOne({
-      address,
+      address: checksumed(address),
       blockchain,
     });
     if (existingWhale) {
