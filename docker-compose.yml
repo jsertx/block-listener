@@ -1,33 +1,53 @@
-version: '3.7'
+version: "3.7"
 services:
-  # redis:
-  #   image: redis
-  #   ports:
-  #     - '6379:6379'
-
-  mongodb:
-    image: mongo:5.0
-    restart: always
-    ports:
-      - 27017:27017
-    volumes:
-      - ./mongodb-data:/data/db
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=blocklistener
-      - MONGO_INITDB_ROOT_PASSWORD=S3cret
-  
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: 'rabbitmq'
-    ports:
-      - 5672:5672
-      - 15672:15672
-    volumes:
-      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
-      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
-    networks:
-      - rabbitmq_net
+    # redis:
+    #   image: redis
+    #   ports:
+    #     - '6379:6379'
+    # block-listener:
+    #     depends_on:
+    #         - rabbitmq
+    #         - mongodb
+    #     container_name: block-listener
+    #     volumes:
+    #         - ./src/:/app/src
+    #     ports:
+    #         - 3001:3000
+    #         - 9229:9229
+    #     links:
+    #         - rabbitmq
+    #         - mongodb
+    #     env_file:
+    #         - ./.env
+    #     build:
+    #         context: .
+    #         dockerfile: ./Dockerfile
+    #     networks:
+    #         - main
+    mongodb:
+        image: mongo:5.0
+        restart: always
+        ports:
+            - 27017:27017
+        volumes:
+            - ./mongodb-data:/data/db
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=blocklistener
+            - MONGO_INITDB_ROOT_PASSWORD=S3cret
+        networks:
+            - main
+    rabbitmq:
+        image: rabbitmq:3-management-alpine
+        container_name: "rabbitmq"
+        ports:
+            - 5672:5672
+            - 15672:15672
+        volumes:
+            - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+            - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+        networks:
+            - main
 
 networks:
-  rabbitmq_net:
-    driver: bridge
+    main:
+        driver: bridge
