@@ -1,22 +1,18 @@
 import { inject, injectable } from "inversify";
+import { ethers } from "ethers";
+import BigNumber from "bignumber.js";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IConfig } from "../../Interfaces/IConfig";
-import { createAddrMap, isSameAddress } from "../Utils/Address";
+import { isSameAddress } from "../Utils/Address";
 import { isNativeTokenTx } from "../Utils/Tx";
-import { ContractMap } from "../Types/Mappings";
 import { IocKey } from "../../Ioc/IocKey";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { toPrecision } from "../Utils/Amount";
-
-import { RawBlock } from "../Types/RawBlock";
 import { IContractRepository } from "../Repository/IContractRepository";
 import { IAppBroker } from "../Interfaces/IAppBroker";
-
 import { TxDiscovered } from "../PubSub/Messages/TxDiscovered";
 import { BlockReceivedPayload } from "../PubSub/Messages/BlockReceived";
-import { ethers } from "ethers";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
-import BigNumber from "bignumber.js";
 import { IWalletRepository } from "../Repository/IWalletRepository";
 import { Wallet } from "../Entities/Wallet";
 import { Contract } from "../Entities/Contract";
