@@ -10,14 +10,29 @@ import { isSameAddress } from "../../../Utils/Address";
 import { TransactionLog } from "../../../Types/TransactionLog";
 import { IPriceService } from "../../../Interfaces/IPriceService";
 import { HexAddressStr } from "../../../Values/Address";
+import { ILogger } from "../../../../Interfaces/ILogger";
+import {
+	IProviderFactory,
+	multicallResultHelper
+} from "../../../Interfaces/IProviderFactory";
+import { Blockchain } from "../../../Values/Blockchain";
+import { ERC20 } from "../../SmartContract/ABI/ERC20";
+import { toFormatted } from "../../../Utils/Amount";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
 
+interface TokenData {
+	symbol: string;
+	decimals: number;
+}
 @injectable()
 export class DexSwapProcessor implements ITxProcessStrategy {
 	constructor(
+		@inject(IocKey.Logger) private logger: ILogger,
 		@inject(IocKey.PriceService) private priceService: IPriceService,
+		@inject(IocKey.ProviderFactory)
+		private providerFactory: IProviderFactory,
 		@inject(IocKey.ContractRepository)
 		private contractRepository: IContractRepository
 	) {}
@@ -44,6 +59,14 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		);
 		if (!router) {
 			// maybe just set dex to unknown
+			this.logger.error({
+				type: "dex-swap-processor.router-not-found",
+				message: "Router not found",
+				context: {
+					blockchain: tx.blockchain.id,
+					hash: tx.hash
+				}
+			});
 			throw new Error("Contract not found for this swap tx");
 		}
 
@@ -102,25 +125,76 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		}
 
 		if (!inputAmount || !outAmount || !nativeValue) {
-			throw new Error("Could not get swapdetails");
+			throw new Error("Could not get swap details");
 		}
 
-		const usdValue =
-			await this.priceService.getBlockchainNativeTokenUsdValue(
-				tx.blockchain,
-				weth.toFormatted(nativeValue)
-			);
+		const [usdValue, [inputTokenData, outputTokenData]] = await Promise.all(
+			[
+				this.priceService.getBlockchainNativeTokenUsdValue(
+					tx.blockchain,
+					weth.toFormatted(nativeValue)
+				),
+				this.getTokensData(tx.blockchain, inputToken, outToken)
+			]
+		);
 
 		const details: DexSwapData = {
 			nativeValue: weth.toFormatted(nativeValue),
 			usdValue: usdValue.toFixed(),
 			from,
 			to: outDest,
-			input: { amount: inputAmount, token: inputToken },
-			output: { amount: outAmount, token: outToken }
+			input: {
+				symbol: inputTokenData.symbol,
+				amount: toFormatted(inputAmount, inputTokenData.decimals),
+				token: inputToken
+			},
+			output: {
+				symbol: outputTokenData.symbol,
+				amount: toFormatted(outAmount, outputTokenData.decimals),
+				token: outToken
+			}
 		};
 
 		return details;
+	}
+
+	private async getTokensData(
+		blockchain: Blockchain,
+		inputToken: string,
+		outputToken: string
+	): Promise<[TokenData, TokenData]> {
+		const multicall = this.providerFactory.getMulticallProvider(blockchain);
+		const select = await multicall
+			.call(
+				[inputToken, outputToken].map((address) => ({
+					abi: ERC20,
+					reference: address,
+					contractAddress: address,
+					calls: [
+						{
+							methodName: "symbol",
+							reference: "symbol",
+							methodParameters: []
+						},
+						{
+							methodName: "decimals",
+							reference: "decimals",
+							methodParameters: []
+						}
+					]
+				}))
+			)
+			.then(multicallResultHelper);
+
+		const [symbolA, decimalsA] = select(inputToken, ["symbol", "decimals"]);
+		const [symbolB, decimalsB] = select(outputToken, [
+			"symbol",
+			"decimals"
+		]);
+		return [
+			{ symbol: symbolA, decimals: decimalsA },
+			{ symbol: symbolB, decimals: decimalsB }
+		];
 	}
 }
 

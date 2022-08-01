@@ -8,8 +8,7 @@ export interface LogEntry<Context = any> {
 
 	context?: Context;
 }
-export type ErrorLogEntry = LogEntryParams &
-	Required<Pick<LogEntryParams, "error">>;
+export type ErrorLogEntry = LogEntryParams; //& Required<Pick<LogEntryParams, "error">>;
 export type LogEntryParams = Omit<LogEntry, "level" | "time">;
 
 export interface ILogger {

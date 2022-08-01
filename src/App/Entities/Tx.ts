@@ -52,10 +52,12 @@ export interface DexSwapData {
 	to: string; //normally will be the same as "from"
 	input: {
 		token: HexAddressStr;
+		symbol: string;
 		amount: string;
 	};
 	output: {
 		token: HexAddressStr;
+		symbol: string;
 		amount: string;
 	};
 }
