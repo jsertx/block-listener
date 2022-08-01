@@ -52,7 +52,7 @@ export class WalletController implements interfaces.Controller {
 		};
 	}
 
-	@httpPost("/save/:blockchain/:address")
+	@httpPost("/async/:blockchain/:address")
 	async saveTx(
 		@requestParam("blockchain") blockchain: BlockchainId,
 		@requestParam("address") address: string,

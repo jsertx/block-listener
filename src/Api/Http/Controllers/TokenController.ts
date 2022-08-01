@@ -5,7 +5,9 @@ import {
 	httpGet,
 	queryParam,
 	requestBody,
-	httpPost
+	httpPost,
+	requestParam,
+	response
 } from "inversify-express-utils";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
@@ -14,12 +16,18 @@ import { ITokenRepository } from "../../../App/Repository/ITokenRepository";
 import { Token, TokenProps } from "../../../App/Entities/Token";
 import { CreateTokenDto, CreateTokenDtoSchema } from "../Dto/TokenDto";
 import { validateOrThrowError } from "../Utils/Validation";
+import { Response } from "express";
+import { BlockchainId } from "../../../Config/Blockchains";
+import { IBroker } from "../../../Interfaces/IBroker";
+import { TokenDiscovered } from "../../../App/PubSub/Messages/TokenDiscovered";
 
 @controller("/tokens")
 export class TokenController implements interfaces.Controller {
 	constructor(
 		@inject(IocKey.TokenRepository)
-		private tokenRepository: ITokenRepository
+		private tokenRepository: ITokenRepository,
+		@inject(IocKey.Broker)
+		private broker: IBroker
 	) {}
 
 	@httpPost("/")
@@ -50,5 +58,17 @@ export class TokenController implements interfaces.Controller {
 			pageSize,
 			data: data.map((token) => token.toRaw())
 		});
+	}
+
+	@httpPost("/async/:blockchain/:address")
+	async saveTx(
+		@requestParam("blockchain") blockchain: BlockchainId,
+		@requestParam("address") address: string,
+		@response() res: Response
+	) {
+		await this.broker.publish(
+			new TokenDiscovered(blockchain, { blockchain, address })
+		);
+		return res.sendStatus(202);
 	}
 }

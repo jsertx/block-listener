@@ -2,9 +2,11 @@ import { inject, injectable } from "inversify";
 import { ILogger } from "../../../Interfaces/ILogger";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IBroker } from "../../../Interfaces/IBroker";
-import { IProviderFactory } from "../../Interfaces/IProviderFactory";
+import {
+	IProviderFactory,
+	multicallResultHelper
+} from "../../Interfaces/IProviderFactory";
 import { IStandaloneApps } from "../../Interfaces/IStandaloneApps";
-import { ethers } from "ethers";
 import { ITxProcessor } from "../../Services/TxProcessor/ITxProcessor";
 import { ITokenRepository } from "../../Repository/ITokenRepository";
 import { Token } from "../../Entities/Token";
@@ -12,7 +14,6 @@ import { ERC20 } from "../../Services/SmartContract/ABI/ERC20";
 import { TokenDiscoveredPayload } from "../../PubSub/Messages/TokenDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
 import { checksumed } from "../../Utils/Address";
-
 @injectable()
 export class SaveToken implements IStandaloneApps {
 	constructor(
@@ -41,12 +42,38 @@ export class SaveToken implements IStandaloneApps {
 		if (existingToken) {
 			return;
 		}
-		const provider = this.providerFactory.getProvider(blockchain);
-		const contract = new ethers.Contract(address, ERC20, provider);
-		const [name, decimals, symbol] = await Promise.all([
-			contract.name(),
-			contract.decimals(),
-			contract.symbol()
+		const multicall = this.providerFactory.getMulticallProvider(blockchain);
+		const select = await multicall
+			.call([
+				{
+					abi: ERC20,
+					reference: address,
+					contractAddress: address,
+					calls: [
+						{
+							methodName: "name",
+							reference: "name",
+							methodParameters: []
+						},
+						{
+							methodName: "symbol",
+							reference: "symbol",
+							methodParameters: []
+						},
+						{
+							methodName: "decimals",
+							reference: "decimals",
+							methodParameters: []
+						}
+					]
+				}
+			])
+			.then(multicallResultHelper);
+
+		const [name, symbol, decimals] = select(address, [
+			"name",
+			"symbol",
+			"decimals"
 		]);
 		const token = Token.create({
 			address,
