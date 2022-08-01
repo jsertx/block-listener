@@ -1,5 +1,4 @@
 import { inject, injectable } from "inversify";
-import { ILogger } from "../../../../Interfaces/ILogger";
 import { IocKey } from "../../../../Ioc/IocKey";
 import { DexSwapData, Tx } from "../../../Entities/Tx";
 import { TxType } from "../../../Values/TxType";
@@ -10,15 +9,8 @@ import { UniswapV2RouterSwapMethods } from "../../../Types/UniswapV2RouterSwapMe
 import { isSameAddress } from "../../../Utils/Address";
 import { TransactionLog } from "../../../Types/TransactionLog";
 import { IPriceService } from "../../../Interfaces/IPriceService";
-import { BigNumber } from "bignumber.js";
-import { IConfig } from "../../../../Interfaces/IConfig";
-import { IBroker } from "../../../../Interfaces/IBroker";
 import { HexAddressStr } from "../../../Values/Address";
 import { checksumed } from "../../../Utils/Address";
-import { onlyUniqueFilter } from "../../../Utils/Array";
-import { WhaleDiscovered } from "../../../PubSub/Messages/WhaleDiscovered";
-import { TokenDiscovered } from "../../../PubSub/Messages/TokenDiscovered";
-import { IWalletRepository } from "../../../Repository/IWalletRepository";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -26,14 +18,9 @@ const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
 @injectable()
 export class DexSwapProcessor implements ITxProcessStrategy {
   constructor(
-    @inject(IocKey.Logger) private logger: ILogger,
-    @inject(IocKey.Broker) private broker: IBroker,
-    @inject(IocKey.Config) private config: IConfig,
     @inject(IocKey.PriceService) private priceService: IPriceService,
     @inject(IocKey.ContractRepository)
-    private contractRepository: IContractRepository,
-    @inject(IocKey.WalletRepository)
-    private walletRepository: IWalletRepository
+    private contractRepository: IContractRepository
   ) {}
 
   private shouldProcess(tx: Tx<any>): boolean {
@@ -60,40 +47,8 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     }
 
     const dexSwapData = await this.getDexSwapData(tx);
-    const existingWallet = await this.walletRepository.findWallet(
-      tx.from,
-      tx.blockchain.id
-    );
-    if (
-      existingWallet ||
-      new BigNumber(dexSwapData.usdValue).gte(
-        this.config.txRules.minDexSwapValueInUsd
-      )
-    ) {
-      tx.setTypeAndData(TxType.DexSwap, dexSwapData);
-      this.emitMessages(tx, dexSwapData);
-      return tx;
-    }
-  }
-  private emitMessages(tx: Tx<any>, dexSwapData: DexSwapData) {
-    [dexSwapData.input.token, dexSwapData.output.token].forEach((address) => {
-      this.broker.publish(
-        new TokenDiscovered(tx.blockchain.id, {
-          blockchain: tx.blockchain.id,
-          address,
-        })
-      );
-    });
-    [dexSwapData.from, dexSwapData.to]
-      .filter(onlyUniqueFilter)
-      .forEach((address) => {
-        this.broker.publish(
-          new WhaleDiscovered(tx.blockchain.id, {
-            blockchain: tx.blockchain.id,
-            address,
-          })
-        );
-      });
+    tx.setTypeAndData(TxType.DexSwap, dexSwapData);
+    return tx;
   }
 
   async getDexSwapData(tx: Tx<any>): Promise<DexSwapData> {
@@ -111,7 +66,6 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     switch (method) {
       case UniswapV2RouterSwapMethods.swapETHForExactTokens:
         inputAmount = tx.raw.value;
-
         outAmount =
           getOutputTokenTransferAmount(tx, outToken, outDest) || args.amountOut;
         break;
@@ -156,10 +110,10 @@ export class DexSwapProcessor implements ITxProcessStrategy {
     const details: DexSwapData = {
       nativeValue: weth.toFormatted(nativeValue),
       usdValue: usdValue.toFixed(),
-      from: checksumed(from),
-      to: checksumed(outDest),
-      input: { amount: inputAmount, token: checksumed(inputToken) },
-      output: { amount: outAmount, token: checksumed(outToken) },
+      from,
+      to: outDest,
+      input: { amount: inputAmount, token: inputToken },
+      output: { amount: outAmount, token: outToken },
     };
 
     return details;

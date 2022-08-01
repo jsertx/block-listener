@@ -94,7 +94,7 @@ const TxSchema = Joi.object({
   data: Joi.alternatives(DexSwapDataSchema, EthTransferSchema),
 });
 
-export class Tx<DataTypeRaw = any> extends Entity<TxProps<DataTypeRaw>> {
+export class Tx<DataTypeRaw = undefined> extends Entity<TxProps<DataTypeRaw>> {
   protected _blockchain: Blockchain;
   constructor(props: TxProps<DataTypeRaw>, _id?: string) {
     super(props, _id);
@@ -131,7 +131,7 @@ export class Tx<DataTypeRaw = any> extends Entity<TxProps<DataTypeRaw>> {
   get raw(): RawTx {
     return this.props.raw;
   }
-  get data(): DataTypeRaw | undefined {
+  get data(): DataTypeRaw {
     return this.props.data;
   }
   get original(): ethers.providers.TransactionResponse {
@@ -163,5 +163,5 @@ export class Tx<DataTypeRaw = any> extends Entity<TxProps<DataTypeRaw>> {
 export interface EthTransferTxRaw extends TxProps<EthTransferData> {}
 export class EthTransferTx extends Tx<EthTransferData> {}
 
-export interface DexSwapTransferTxRaw extends TxProps<DexSwapData> {}
-export class DexSwapTransferTx extends Tx<DexSwapData> {}
+export interface DexSwapTxRaw extends TxProps<DexSwapData> {}
+export class DexSwapTx extends Tx<DexSwapData> {}

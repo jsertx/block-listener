@@ -1,8 +1,7 @@
-import { inject, injectable, multiInject } from "inversify";
+import { injectable, multiInject } from "inversify";
 import { IocKey } from "../../../Ioc/IocKey";
 import { ITxProcessStrategy } from "./ITxProcessStrategy";
 import { Tx } from "../../Entities/Tx";
-import { ITxRepository } from "../../Repository/ITxRepository";
 import { ITxProcessor } from "./ITxProcessor";
 
 @injectable()
@@ -19,5 +18,6 @@ export class TxProcessor implements ITxProcessor {
         return processedTx;
       }
     }
+    return tx;
   }
 }

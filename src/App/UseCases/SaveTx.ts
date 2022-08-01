@@ -6,7 +6,13 @@ import { Publication } from "../../Infrastructure/Broker/Publication";
 import { IBroker } from "../../Interfaces/IBroker";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
-import { RawTx, Tx } from "../Entities/Tx";
+import {
+  DexSwapData,
+  DexSwapTx,
+  EthTransferTx,
+  RawTx,
+  Tx,
+} from "../Entities/Tx";
 import { TxType } from "../Values/TxType";
 import { isSmartContractCall } from "../Utils/Tx";
 
@@ -18,11 +24,21 @@ import { ITxProcessor } from "../Services/TxProcessor/ITxProcessor";
 import { TxDiscoveredPayload } from "../PubSub/Messages/TxDiscovered";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { WhaleDiscovered } from "../PubSub/Messages/WhaleDiscovered";
+import { onlyUniqueFilter } from "../Utils/Array";
+import { TokenDiscovered } from "../PubSub/Messages/TokenDiscovered";
+import { IWalletRepository } from "../Repository/IWalletRepository";
+import { checksumed } from "../Utils/Address";
+import { Wallet } from "../Entities/Wallet";
+import BigNumber from "bignumber.js";
+import { IConfig } from "../../Interfaces/IConfig";
 
 @injectable()
 export class SaveTx implements IStandaloneApps {
   constructor(
+    @inject(IocKey.Config) private config: IConfig,
     @inject(IocKey.TxRepository) private txRepository: ITxRepository,
+    @inject(IocKey.WalletRepository)
+    private walletRepository: IWalletRepository,
     @inject(IocKey.ProviderFactory) private providerFactory: IProviderFactory,
     @inject(IocKey.Broker) private broker: IBroker,
     @inject(IocKey.Logger) private logger: ILogger,
@@ -49,32 +65,107 @@ export class SaveTx implements IStandaloneApps {
     if (!successfullTx) {
       return;
     }
-    const unknownTx = Tx.create({
-      blockchain,
-      hash,
-      raw: successfullTx,
-      type: TxType.Unknown,
-    });
-    const tx = await this.txProcessor.process(unknownTx);
-    if (!tx) {
+
+    const tx = await this.txProcessor.process(
+      Tx.create({
+        blockchain,
+        hash,
+        raw: successfullTx,
+        type: TxType.Unknown,
+      })
+    );
+
+    const { saved } = await this.saveTxIfApplies(tx);
+    if (!saved) {
       this.logger.debug({
         type: "save-tx.skipped",
         context: { txHash: hash, blockchain },
       });
-      return;
+    } else {
+      this.logger.log({
+        type: "save-tx.saved",
+        context: { txHash: hash, blockchain },
+      });
     }
-    await this.txRepository.save(tx);
-    this.logger.log({
-      type: "save-tx.saved",
-      context: { txHash: hash, blockchain },
+  }
+
+  private async saveTxIfApplies(tx: Tx<any>): Promise<{ saved: boolean }> {
+    const walletOfTxInDb = await this.walletRepository.findOne({
+      blockchain: tx.blockchain.id,
+      address: tx.from,
     });
 
-    await this.broker.publish(
-      new WhaleDiscovered(tx.blockchain.id, {
-        blockchain: tx.blockchain.id,
-        address: tx.from,
-      })
-    );
+    let saved = false;
+
+    if (walletOfTxInDb) {
+      await this.txRepository.save(tx);
+      return { saved: true };
+    }
+
+    switch (tx.type) {
+      case TxType.DexSwap:
+        saved = await this.saveDexSwapTxHandler(tx);
+        break;
+      case TxType.EthTransfer:
+        saved = await this.saveEthTransferTxHandler(tx);
+        break;
+    }
+
+    return { saved };
+  }
+
+  async saveDexSwapTxHandler(tx: DexSwapTx): Promise<boolean> {
+    if (
+      new BigNumber(tx.data.usdValue).lt(
+        this.config.txRules.minDexSwapValueInUsd
+      )
+    ) {
+      return false;
+    }
+    await this.txRepository.save(tx);
+
+    [tx.data.input.token, tx.data.output.token].forEach((address) => {
+      this.broker.publish(
+        new TokenDiscovered(tx.blockchain.id, {
+          blockchain: tx.blockchain.id,
+          address,
+        })
+      );
+    });
+
+    [tx.from, tx.data.from, tx.data.to]
+      .filter(onlyUniqueFilter)
+      .forEach((address) => {
+        this.broker.publish(
+          new WhaleDiscovered(tx.blockchain.id, {
+            blockchain: tx.blockchain.id,
+            address,
+          })
+        );
+      });
+
+    return true;
+  }
+
+  async saveEthTransferTxHandler(tx: EthTransferTx): Promise<boolean> {
+    if (
+      new BigNumber(tx.data.value).lt(
+        this.config.txRules.minNativeTransferValue
+      )
+    ) {
+      return false;
+    }
+    await this.txRepository.save(tx);
+    [tx.data.from, tx.data.to].filter(onlyUniqueFilter).forEach((address) => {
+      this.broker.publish(
+        new WhaleDiscovered(tx.blockchain.id, {
+          blockchain: tx.blockchain.id,
+          address,
+        })
+      );
+    });
+
+    return true;
   }
 
   private async getRawTransaction({
@@ -109,8 +200,8 @@ export class SaveTx implements IStandaloneApps {
       blockHeight: receipt.blockNumber,
       timestamp: block.timestamp,
       data: res.data,
-      to: res.to || "WTF",
-      from: res.from,
+      to: checksumed(res.to!),
+      from: checksumed(res.from),
       value: res.value.toString(),
       smartContractCall,
       logs: logs,
