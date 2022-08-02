@@ -16,6 +16,7 @@ import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { IWalletRepository } from "../Repository/IWalletRepository";
 import { Wallet } from "../Entities/Wallet";
 import { Contract } from "../Entities/Contract";
+import { BlockchainId } from "../Values/Blockchain";
 
 @injectable()
 export class FindDirectTx implements IStandaloneApps {
@@ -49,7 +50,7 @@ export class FindDirectTx implements IStandaloneApps {
 
 		for (const tx of block.transactions) {
 			if (
-				this.isBigNativeTx(tx) ||
+				this.isBigNativeTx(blockchain, tx) ||
 				this.isAgainstContractOfInterest(tx, contracts.data) ||
 				this.isDoneByTrackedWallet(tx, wallets.data)
 			) {
@@ -64,11 +65,16 @@ export class FindDirectTx implements IStandaloneApps {
 		}
 	}
 
-	private isBigNativeTx(tx: ethers.providers.TransactionResponse): boolean {
+	private isBigNativeTx(
+		blockchain: BlockchainId,
+		tx: ethers.providers.TransactionResponse
+	): boolean {
 		return (
 			isNativeTokenTx(tx) &&
 			new BigNumber(tx.value._hex).isGreaterThanOrEqualTo(
-				toPrecision(this.config.txRules.minNativeTransferValue)
+				toPrecision(
+					this.config.txRules[blockchain].minNativeTransferValue
+				)
 			)
 		);
 	}

@@ -23,8 +23,14 @@ export const Config: IConfig = {
 		brokerUri: getEnv("BROKER_URI")
 	},
 	txRules: {
-		minNativeTransferValue: "10",
-		minDexSwapValueInUsd: `${10_000}`
+		[BlockchainId.Ethereum]: {
+			minNativeTransferValue: "10",
+			minDexSwapValueInUsd: `${10_000}`
+		},
+		[BlockchainId.Polygon]: {
+			minNativeTransferValue: `${20_000}`,
+			minDexSwapValueInUsd: `${10_000}`
+		}
 	},
 	covalent: {
 		apiKey: getEnv("COVALENT_API_KEY")

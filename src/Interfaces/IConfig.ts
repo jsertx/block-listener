@@ -3,6 +3,10 @@ import { BlockchainId } from "../Config/Blockchains";
 export interface IBlockchainProviderConfig {
 	url: string;
 }
+export interface ITxRuleConfig {
+	minNativeTransferValue: string;
+	minDexSwapValueInUsd: string;
+}
 export interface IConfig {
 	providers: Record<BlockchainId, IBlockchainProviderConfig[]>;
 	enabledBlockchains: BlockchainId[];
@@ -19,8 +23,5 @@ export interface IConfig {
 	broker: {
 		brokerUri: string;
 	};
-	txRules: {
-		minNativeTransferValue: string;
-		minDexSwapValueInUsd: string;
-	};
+	txRules: Record<BlockchainId, ITxRuleConfig>;
 }

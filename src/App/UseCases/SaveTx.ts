@@ -114,7 +114,7 @@ export class SaveTx implements IStandaloneApps {
 	async saveDexSwapTxHandler(tx: DexSwapTx): Promise<boolean> {
 		if (
 			new BigNumber(tx.data.usdValue).lt(
-				this.config.txRules.minDexSwapValueInUsd
+				this.config.txRules[tx.blockchain.id].minDexSwapValueInUsd
 			)
 		) {
 			return false;
@@ -147,7 +147,7 @@ export class SaveTx implements IStandaloneApps {
 	async saveEthTransferTxHandler(tx: EthTransferTx): Promise<boolean> {
 		if (
 			new BigNumber(tx.data.value).lt(
-				this.config.txRules.minNativeTransferValue
+				this.config.txRules[tx.blockchain.id].minNativeTransferValue
 			)
 		) {
 			return false;
