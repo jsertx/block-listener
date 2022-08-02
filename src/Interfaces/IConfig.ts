@@ -1,10 +1,10 @@
 import { BlockchainId } from "../Config/Blockchains";
 
+export interface IBlockchainProviderConfig {
+	url: string;
+}
 export interface IConfig {
-	providers: {
-		etherScanApiKey: string;
-		alchemyJsonRpcUrl?: string;
-	};
+	providers: Record<BlockchainId, IBlockchainProviderConfig[]>;
 	enabledBlockchains: BlockchainId[];
 	covalent: {
 		apiKey: string;

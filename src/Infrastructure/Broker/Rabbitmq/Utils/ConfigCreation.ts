@@ -118,6 +118,7 @@ function expandPublicationsByBlockchain(blockchains: string[]) {
 	): Pubs => {
 		const newPubs: Pubs = blockchains.reduce((pubs, blockchain) => {
 			return {
+				...pubs,
 				[publicationCreator(blockchain)]: {
 					exchange,
 					routingKey: routingKeyCreator(blockchain),

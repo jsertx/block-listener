@@ -2,7 +2,10 @@ import { Multicall } from "ethereum-multicall";
 import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
 import { Blockchain, BlockchainId } from "../../Values/Blockchain";
-import { IConfig } from "../../../Interfaces/IConfig";
+import {
+	IBlockchainProviderConfig,
+	IConfig
+} from "../../../Interfaces/IConfig";
 import { IProviderFactory } from "../../Interfaces/IProviderFactory";
 import { IocKey } from "../../../Ioc/IocKey";
 const defaultBlockchain = new Blockchain(BlockchainId.Ethereum);
@@ -21,16 +24,16 @@ export class ProviderFactory implements IProviderFactory {
 		if (!(blockchain instanceof Blockchain)) {
 			blockchain = new Blockchain(blockchain);
 		}
-		if (this.config.providers.alchemyJsonRpcUrl) {
-			return new ethers.providers.StaticJsonRpcProvider(
-				this.config.providers.alchemyJsonRpcUrl,
-				blockchain.chainId
-			);
-		}
-
-		return new ethers.providers.EtherscanProvider(
-			blockchain.chainId,
-			this.config.providers.etherScanApiKey
+		const { url } = randomItem<IBlockchainProviderConfig>(
+			this.config.providers[blockchain.id]
+		);
+		return new ethers.providers.StaticJsonRpcProvider(
+			url,
+			blockchain.chainId
 		);
 	}
+}
+
+function randomItem<T>(items: Array<T>) {
+	return items[Math.floor(Math.random() * items.length)];
 }

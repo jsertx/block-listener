@@ -5,44 +5,53 @@ import { ILogger } from "../../Interfaces/ILogger";
 
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IocKey } from "../../Ioc/IocKey";
-import { Blockchain, BlockchainId } from "../Values/Blockchain";
+import { BlockchainId } from "../Values/Blockchain";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { BlockReceived } from "../PubSub/Messages/BlockReceived";
 import { BlockWithTransactions } from "../Types/BlockWithTransactions";
+import { IConfig } from "../../Interfaces/IConfig";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
-	protected _blockchain: BlockchainId = BlockchainId.Ethereum;
-	protected get blockchain() {
-		return new Blockchain(this._blockchain);
-	}
 	constructor(
+		@inject(IocKey.Config)
+		private config: IConfig,
 		@inject(IocKey.ProviderFactory)
 		private providerFactory: IProviderFactory,
 		@inject(IocKey.Logger) private logger: ILogger,
 		@inject(IocKey.Broker) private broker: IBroker
 	) {}
-	get provider() {
-		return this.providerFactory.getProvider(this.blockchain);
+
+	private getProvider(blockchain: BlockchainId) {
+		return this.providerFactory.getProvider(blockchain);
 	}
 	async start() {
-		this.logger.log({
-			type: "block-listener.start"
-		});
+		this.config.enabledBlockchains.forEach((blockchain) => {
+			this.logger.log({
+				type: "block-listener.start",
+				context: {
+					blockchain
+				}
+			});
 
-		this.provider.on("block", this.onBlock.bind(this));
+			this.getProvider(blockchain).on("block", (blockNumber) => {
+				this.onBlock(blockchain, blockNumber);
+			});
+		});
 	}
-	private async onBlock(blockNumber: number) {
+	private async onBlock(blockchain: BlockchainId, blockNumber: number) {
 		let block: BlockWithTransactions | undefined = undefined;
 		while (!block) {
-			block = await this.provider.getBlockWithTransactions(blockNumber);
+			block = await this.getProvider(blockchain).getBlockWithTransactions(
+				blockNumber
+			);
 			if (!block) {
 				continue;
 			}
 
 			this.broker.publish(
-				new BlockReceived(this.blockchain.id, {
-					blockchain: this.blockchain.id,
+				new BlockReceived(blockchain, {
+					blockchain,
 					block
 				})
 			);

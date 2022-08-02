@@ -7,13 +7,13 @@ export const blockchainIdList = Object.values(BlockchainId);
 
 const blockchainToChainId: Record<BlockchainId, number> = {
 	[BlockchainId.Ethereum]: 1,
-	[BlockchainId.Binance]: 56,
+	//[BlockchainId.Binance]: 56,
 	[BlockchainId.Polygon]: 137
 };
 
 const blockchainToTokenSymbol: Record<BlockchainId, string> = {
 	[BlockchainId.Ethereum]: "ETH",
-	[BlockchainId.Binance]: "BNB",
+	//[BlockchainId.Binance]: "BNB",
 	[BlockchainId.Polygon]: "MATIC"
 };
 
@@ -26,14 +26,14 @@ const blockchainToWrappedToken: Record<BlockchainId, Token> = {
 		symbol: "WETH",
 		useAsBaseForPairDiscovery: false
 	}),
-	[BlockchainId.Binance]: Token.create({
-		address: "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
-		blockchain: BlockchainId.Binance,
-		decimals: 18,
-		name: "Wrapped BNB",
-		symbol: "WBNB",
-		useAsBaseForPairDiscovery: false
-	}),
+	// [BlockchainId.Binance]: Token.create({
+	// 	address: "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+	// 	blockchain: BlockchainId.Binance,
+	// 	decimals: 18,
+	// 	name: "Wrapped BNB",
+	// 	symbol: "WBNB",
+	// 	useAsBaseForPairDiscovery: false
+	// }),
 	[BlockchainId.Polygon]: Token.create({
 		address: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
 		blockchain: BlockchainId.Polygon,
