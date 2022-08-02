@@ -37,7 +37,7 @@ const bindingsSetup: BindingSetup[] = [
 	// Not needed yet [Exchange.Wallet, RoutingKey.WhaleSaved, Queue.FindWhaleTxs],
 ];
 
-export const createBrokerConnection = (config: IConfig) => {
+export const createBrokerConnection = async (config: IConfig) => {
 	const bindings = bindingsSetup.reduce(
 		expandBindingsByBlockchain(config.enabledBlockchains),
 		[]
@@ -74,11 +74,27 @@ export const createBrokerConnection = (config: IConfig) => {
 			}
 		}
 	};
-	return createBrokerAsPromised({
-		vhosts: {
-			"/": vhostConfig
+	const maxRetries = 120;
+	let retry = 1;
+	while (retry++) {
+		const client = await createBrokerAsPromised({
+			vhosts: {
+				"/": vhostConfig
+			}
+		}).catch((error) => {
+			return new Promise((resolve, reject) => {
+				if (retry >= maxRetries) {
+					reject(error);
+					return;
+				}
+				const nextRetry = 1000 + retry * 1000;
+				setTimeout(resolve, nextRetry);
+			});
+		});
+		if (client) {
+			return client;
 		}
-	});
+	}
 };
 
 function expandBindingsByBlockchain(blockchains: string[]) {

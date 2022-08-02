@@ -55,7 +55,7 @@ export const initializeContainer = async () => {
 		// Adapters
 		bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
 		// Brokers
-		bind(IocKey.BrokerClient).toConstantValue(
+		bind(IocKey.RabbitMQClient).toConstantValue(
 			await createBrokerConnection(Config)
 		);
 		bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();

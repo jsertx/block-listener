@@ -15,7 +15,7 @@ export const IocKey = {
 	TxProcessor: Symbol.for("TxProcessor"),
 	TxProcessorStrategy: Symbol.for("TxProcessorStrategy"),
 	// Broker
-	BrokerClient: Symbol.for("BrokerClient"),
+	RabbitMQClient: Symbol.for("RabbitMQClient"),
 	Broker: Symbol.for("Broker"),
 	// DB & Repositories
 	DbClient: Symbol.for("DbClient"),

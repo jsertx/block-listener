@@ -12,7 +12,7 @@ import { ILogger } from "../../Interfaces/ILogger";
 @injectable()
 export class RabbitMQ implements IBroker<any, any> {
 	constructor(
-		@inject(IocKey.BrokerClient) private client: BrokerAsPromised,
+		@inject(IocKey.RabbitMQClient) private client: BrokerAsPromised,
 		@inject(IocKey.Logger) private logger: ILogger
 	) {}
 
