@@ -1,6 +1,7 @@
 import { BlockchainId } from "../../Config/Blockchains";
 import { Token } from "../Entities/Token";
 import { NotEvmChainError } from "../Errors/NotEvmChainError";
+import { checksumed } from "../Utils/Address";
 
 export { BlockchainId } from "../../Config/Blockchains";
 export const blockchainIdList = Object.values(BlockchainId);
@@ -19,7 +20,7 @@ const blockchainToTokenSymbol: Record<BlockchainId, string> = {
 
 const blockchainToWrappedToken: Record<BlockchainId, Token> = {
 	[BlockchainId.Ethereum]: Token.create({
-		address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+		address: checksumed("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
 		blockchain: BlockchainId.Ethereum,
 		decimals: 18,
 		name: "Wrapped ETH",
@@ -35,7 +36,7 @@ const blockchainToWrappedToken: Record<BlockchainId, Token> = {
 	// 	useAsBaseForPairDiscovery: false
 	// }),
 	[BlockchainId.Polygon]: Token.create({
-		address: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+		address: checksumed("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"),
 		blockchain: BlockchainId.Polygon,
 		decimals: 18,
 		name: "Wrapped MATIC",
