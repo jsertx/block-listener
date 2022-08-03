@@ -39,5 +39,5 @@ dist/**/*
 
 build/**/*
 
-# Mongodb docker-compose data
-mongodb-data
+# docker-compose data
+.volumes

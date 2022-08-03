@@ -6,7 +6,6 @@ import {
 	IProviderFactory,
 	multicallResultHelper
 } from "../../Interfaces/IProviderFactory";
-import { IStandaloneApps } from "../../Interfaces/IStandaloneApps";
 import { ITxProcessor } from "../../Services/TxProcessor/ITxProcessor";
 import { ITokenRepository } from "../../Repository/ITokenRepository";
 import { Token } from "../../Entities/Token";
@@ -14,24 +13,19 @@ import { ERC20 } from "../../Services/SmartContract/ABI/ERC20";
 import { TokenDiscoveredPayload } from "../../PubSub/Messages/TokenDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
 import { checksumed } from "../../Utils/Address";
+import { Executor } from "../../../Infrastructure/Broker/Executor";
 @injectable()
-export class SaveToken implements IStandaloneApps {
+export class SaveToken extends Executor<TokenDiscoveredPayload> {
 	constructor(
 		@inject(IocKey.TokenRepository)
 		private tokenRepository: ITokenRepository,
 		@inject(IocKey.ProviderFactory)
 		private providerFactory: IProviderFactory,
-		@inject(IocKey.Broker) private broker: IBroker,
-		@inject(IocKey.Logger) private logger: ILogger,
+		@inject(IocKey.Broker) broker: IBroker,
+		@inject(IocKey.Logger) logger: ILogger,
 		@inject(IocKey.TxProcessor) private txProcessor: ITxProcessor
-	) {}
-
-	async start() {
-		this.logger.log({
-			type: "save-token.started",
-			message: "Save token listener has started"
-		});
-		this.broker.subscribe(Subscription.SaveToken, this.execute.bind(this));
+	) {
+		super(logger, broker, Subscription.SaveToken);
 	}
 
 	async execute({ address, blockchain }: TokenDiscoveredPayload) {

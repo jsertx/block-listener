@@ -30,7 +30,7 @@ services:
         ports:
             - 27017:27017
         volumes:
-            - ./mongodb-data:/data/db
+            - ./.volumes/mongodb-data:/data/db
         environment:
             - MONGO_INITDB_ROOT_USERNAME=blocklistener
             - MONGO_INITDB_ROOT_PASSWORD=S3cret
@@ -43,8 +43,8 @@ services:
             - 5672:5672
             - 15672:15672
         volumes:
-            - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
-            - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+            - ./.volumes/rabbitmq/data/:/var/lib/rabbitmq/
+            - ./.volumes/rabbitmq/log/:/var/log/rabbitmq
         networks:
             - main
 

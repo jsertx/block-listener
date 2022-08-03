@@ -2,8 +2,6 @@ import { inject, injectable } from "inversify";
 import { ILogger } from "../../../Interfaces/ILogger";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IBroker } from "../../../Interfaces/IBroker";
-import { IStandaloneApps } from "../../Interfaces/IStandaloneApps";
-
 import { Wallet } from "../../Entities/Wallet";
 import { WalletType } from "../../Values/WalletType";
 import { IWalletRepository } from "../../Repository/IWalletRepository";
@@ -13,24 +11,19 @@ import { WhaleSaved } from "../../PubSub/Messages/WhaleSaved";
 import { IBlockchainService } from "../../Interfaces/IBlockchainService";
 import { TxDiscovered } from "../../PubSub/Messages/TxDiscovered";
 import { checksumed } from "../../Utils/Address";
+import { Executor } from "../../../Infrastructure/Broker/Executor";
 
 @injectable()
-export class SaveWhale implements IStandaloneApps {
+export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 	constructor(
 		@inject(IocKey.TokenRepository)
 		private walletRepository: IWalletRepository,
 		@inject(IocKey.BlockchainService)
 		private blockchainService: IBlockchainService,
-		@inject(IocKey.Broker) private broker: IBroker,
-		@inject(IocKey.Logger) private logger: ILogger
-	) {}
-
-	async start() {
-		this.logger.log({
-			type: "save-whale.started",
-			message: "Save whale listener has started"
-		});
-		this.broker.subscribe(Subscription.SaveWhale, this.execute.bind(this));
+		@inject(IocKey.Broker) protected broker: IBroker,
+		@inject(IocKey.Logger) protected logger: ILogger
+	) {
+		super(logger, broker, Subscription.SaveWhale);
 	}
 
 	async execute({ address, blockchain }: WhaleDiscoveredPayload) {

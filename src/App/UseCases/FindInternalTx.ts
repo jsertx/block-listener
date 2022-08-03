@@ -5,7 +5,6 @@ import { IocKey } from "../../Ioc/IocKey";
 import PromiseThrottle from "promise-throttle";
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 
-import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { IContractRepository } from "../Repository/IContractRepository";
 import { Contract } from "../Entities/Contract";
 import { ethers } from "ethers";
@@ -15,6 +14,7 @@ import { BlockWithTransactions } from "../Types/BlockWithTransactions";
 import { TxDiscovered } from "../PubSub/Messages/TxDiscovered";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { BlockReceivedPayload } from "../PubSub/Messages/BlockReceived";
+import { Executor } from "../../Infrastructure/Broker/Executor";
 
 interface BlockFetchingConfig {
 	fromBlock: number;
@@ -24,24 +24,19 @@ interface BlockFetchingConfig {
 }
 
 @injectable()
-export class FindInternalTx implements IStandaloneApps {
+export class FindInternalTx extends Executor<BlockReceivedPayload> {
 	constructor(
-		@inject(IocKey.Broker) private broker: IAppBroker,
+		@inject(IocKey.Broker) broker: IAppBroker,
+		@inject(IocKey.Logger) logger: ILogger,
 		@inject(IocKey.ProviderFactory)
 		private providerFactory: IProviderFactory,
 		@inject(IocKey.ContractRepository)
-		private contractRepository: IContractRepository,
-		@inject(IocKey.Logger) private logger: ILogger
-	) {}
-
-	async start() {
-		this.broker.subscribe(
-			Subscription.FindInternalTx,
-			this.onBlock.bind(this)
-		);
+		private contractRepository: IContractRepository
+	) {
+		super(logger, broker, Subscription.FindInternalTx);
 	}
 
-	async onBlock({ block, blockchain }: BlockReceivedPayload) {
+	async execute({ block, blockchain }: BlockReceivedPayload) {
 		const { data: contracts } = await this.contractRepository.findAll();
 
 		const { fromBlock, toBlock, skip, requestsPerSecond } =

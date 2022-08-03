@@ -5,6 +5,7 @@ import { initializeContainer } from "./Ioc/container";
 import { IocKey } from "./Ioc/IocKey";
 import { IStandaloneApps } from "./App/Interfaces/IStandaloneApps";
 import { IAdapter } from "./Interfaces/IAdapter";
+import { IExecutor } from "./Interfaces/IExecutor";
 
 (async () => {
 	const container = await initializeContainer();
@@ -12,6 +13,11 @@ import { IAdapter } from "./Interfaces/IAdapter";
 	container
 		.getAll<IStandaloneApps>(IocKey.StandAloneApps)
 		.forEach((listener) => listener.start());
+
+	container.getAll<IExecutor>(IocKey.Executors).forEach((listener) => {
+		listener.start();
+		listener.startRetryManager();
+	});
 
 	container
 		.getAll<IAdapter>(IocKey.Adapters)

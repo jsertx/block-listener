@@ -15,9 +15,14 @@ export enum Queue {
 	SaveToken = "save_token"
 }
 
-export type RoutingKeyCreator = (blockchain: string) => string;
-const routingKeyCreatorFactory = (binding: string) => (blockchain: string) =>
-	`${blockchain}.${binding}`;
+export type RoutingKeyCreator = (blockchain: string, prefix?: string) => string;
+
+const routingKeyCreatorFactory =
+	(binding: string): RoutingKeyCreator =>
+	(blockchain: string, _prefix?: string) => {
+		const prefix = _prefix ? `${_prefix}.` : "";
+		return `${prefix}${blockchain}.${binding}`;
+	};
 
 export const RoutingKey = {
 	BlockReceived: routingKeyCreatorFactory("block.evt.received"),
