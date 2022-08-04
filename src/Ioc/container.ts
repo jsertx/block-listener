@@ -9,7 +9,6 @@ import { createConnection } from "../Infrastructure/Database/utils";
 import { WalletRepository } from "../Infrastructure/Repository/WalletRepository";
 import { ContractRepository } from "../Infrastructure/Repository/ContractRepository";
 import { FindDirectTx } from "../App/UseCases/FindDirectTx";
-import { FindInternalTx } from "../App/UseCases/FindInternalTx";
 import { BlockListener } from "../App/UseCases/BlockListener";
 
 import { HttpAdapter } from "../Api/Http/HttpAdapter";
@@ -44,9 +43,12 @@ export const initializeContainer = async () => {
 			bind(IocKey.StandAloneApps).to(app).inSingletonScope();
 		});
 		// Executors
-		[SaveTx, SaveToken, SaveWhale, FindInternalTx, FindDirectTx].forEach(
-			(app) => bind(IocKey.Executors).to(app).inSingletonScope()
-		);
+		[
+			SaveTx,
+			SaveToken,
+			SaveWhale,
+			/*FindInternalTx,*/ FindDirectTx
+		].forEach((app) => bind(IocKey.Executors).to(app).inSingletonScope());
 
 		// Adapters
 		bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();

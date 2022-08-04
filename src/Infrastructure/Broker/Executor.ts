@@ -13,6 +13,12 @@ interface IExecutorMsgPayload<T> {
 	error?: Error;
 }
 
+export class DirectToDead extends Error {
+	constructor(message: string, public readonly retriable: boolean = true) {
+		super(`[Executor] Direct to Dead. Reason: ${message}`);
+	}
+}
+
 export class ExecutorMessage<T = any> extends BaseMessage<
 	IExecutorMsgPayload<T>
 > {
@@ -119,7 +125,13 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		error: any
 	) {
 		const { retries } = message;
-
+		if (error instanceof DirectToDead) {
+			const deadMsg = new ExecutorMessage<PayloadType>(
+				this.deadChannel,
+				message.payload
+			);
+			return this.broker.publish(deadMsg);
+		}
 		const delay = this.options.backoffStrategy(retries, error);
 		const retryMsg = new ExecutorMessage<PayloadType>(
 			this.retryChannel,

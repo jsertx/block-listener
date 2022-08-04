@@ -71,11 +71,14 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		}
 
 		const dexSwapData = await this.getDexSwapData(tx);
+		if (!dexSwapData) {
+			return;
+		}
 		tx.setTypeAndData(TxType.DexSwap, dexSwapData);
 		return tx;
 	}
 
-	async getDexSwapData(tx: DexSwapTx): Promise<DexSwapData> {
+	async getDexSwapData(tx: DexSwapTx): Promise<DexSwapData | undefined> {
 		const { method, args } = tx.smartContractCall;
 		const path = args.path.split(",");
 		const outDest = args.to;
@@ -125,7 +128,12 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		}
 
 		if (!inputAmount || !outAmount || !nativeValue) {
-			throw new Error("Could not get swap details");
+			this.logger.warn({
+				type: "tx.dex-swap.process.cannot-get-value",
+				message:
+					"Swap Input/Output or native value could not be calculated"
+			});
+			return;
 		}
 
 		const [usdValue, [inputTokenData, outputTokenData]] = await Promise.all(
