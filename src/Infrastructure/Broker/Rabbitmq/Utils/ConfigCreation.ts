@@ -125,6 +125,9 @@ export const createBrokerConnection = async (config: IConfig) => {
 				"/": vhostConfig
 			}
 		}).catch((error) => {
+			if (!error || !error.code || error.code !== "ECONNREFUSED") {
+				throw error;
+			}
 			return new Promise((resolve, reject) => {
 				if (retry >= maxRetries) {
 					reject(error);
