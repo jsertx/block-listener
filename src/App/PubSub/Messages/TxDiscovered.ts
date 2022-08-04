@@ -1,7 +1,7 @@
 import { BlockchainId } from "../../Values/Blockchain";
 import { Publication } from "../../../Infrastructure/Broker/Publication";
-import { BaseMessage } from "../../../Infrastructure/Broker/BaseMessage";
 import { ethers } from "ethers";
+import { ExecutorMessage } from "../../../Infrastructure/Broker/Executor";
 
 export interface TxDiscoveredPayload {
 	blockchain: BlockchainId;
@@ -9,7 +9,7 @@ export interface TxDiscoveredPayload {
 	txRes?: ethers.providers.TransactionResponse;
 }
 
-export class TxDiscovered extends BaseMessage<TxDiscoveredPayload> {
+export class TxDiscovered extends ExecutorMessage<TxDiscoveredPayload> {
 	constructor(blockchain: BlockchainId, payload: TxDiscoveredPayload) {
 		super(Publication.TxDiscovered(blockchain), payload);
 	}

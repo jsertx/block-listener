@@ -6,7 +6,6 @@ import { IConfig } from "../../Interfaces/IConfig";
 import { isSameAddress } from "../Utils/Address";
 import { isNativeTokenTx } from "../Utils/Tx";
 import { IocKey } from "../../Ioc/IocKey";
-import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { toPrecision } from "../Utils/Amount";
 import { IContractRepository } from "../Repository/IContractRepository";
 import { IAppBroker } from "../Interfaces/IAppBroker";
@@ -17,30 +16,23 @@ import { IWalletRepository } from "../Repository/IWalletRepository";
 import { Wallet } from "../Entities/Wallet";
 import { Contract } from "../Entities/Contract";
 import { BlockchainId } from "../Values/Blockchain";
+import { Executor } from "../../Infrastructure/Broker/Executor";
 
 @injectable()
-export class FindDirectTx implements IStandaloneApps {
+export class FindDirectTx extends Executor<BlockReceivedPayload> {
 	constructor(
-		@inject(IocKey.Logger) private logger: ILogger,
+		@inject(IocKey.Logger) logger: ILogger,
 		@inject(IocKey.Config) private config: IConfig,
-		@inject(IocKey.Broker) private broker: IAppBroker,
+		@inject(IocKey.Broker) broker: IAppBroker,
 		@inject(IocKey.ContractRepository)
 		private contractRepository: IContractRepository,
 		@inject(IocKey.WalletRepository)
 		private walletRepository: IWalletRepository
-	) {}
-
-	async start() {
-		this.logger.log({
-			type: "find-direct-tx.start"
-		});
-		this.broker.subscribe(
-			Subscription.FindDirectTx,
-			this.onBlock.bind(this)
-		);
+	) {
+		super(logger, broker, Subscription.FindDirectTx, {});
 	}
 
-	async onBlock({ block, blockchain }: BlockReceivedPayload) {
+	async execute({ block, blockchain }: BlockReceivedPayload): Promise<void> {
 		const [contracts, wallets] = await Promise.all([
 			this.contractRepository.findAll({
 				where: { blockchain }

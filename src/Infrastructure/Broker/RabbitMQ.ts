@@ -55,16 +55,14 @@ export class RabbitMQ implements IBroker<any, any> {
 			.on("message", (message, content, ackOrNack) => {
 				const ack = () => ackOrNack();
 				const nack = (...args: any[]) => ackOrNack(...args);
-				callback(content, ack, nack)
-					.then(ack)
-					.catch((error) => {
-						this.logger.error({
-							type: "pubsub.subscription.error",
-							message: "Error consuming message",
-							error
-						});
-						nack(error);
+				callback(content, ack, nack).catch((error) => {
+					this.logger.error({
+						type: "pubsub.subscription.error",
+						message: "Error consuming message",
+						error
 					});
+					nack(error);
+				});
 			})
 			.on("error", (error) => {
 				this.logger.error({

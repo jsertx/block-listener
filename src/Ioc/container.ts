@@ -40,16 +40,12 @@ export const initializeContainer = async () => {
 			bind(IocKey.TxProcessorStrategy).to(processor).inSingletonScope()
 		);
 		// UseCases
-		[
-			SaveTx,
-			SaveToken,
-			SaveWhale,
-			FindDirectTx,
-			FindInternalTx,
-			BlockListener,
-			SelectivePairDiscoverer
-		].forEach((app) =>
-			bind(IocKey.StandAloneApps).to(app).inSingletonScope()
+		[BlockListener, SelectivePairDiscoverer].forEach((app) => {
+			bind(IocKey.StandAloneApps).to(app).inSingletonScope();
+		});
+		// Executors
+		[SaveTx, SaveToken, SaveWhale, FindInternalTx, FindDirectTx].forEach(
+			(app) => bind(IocKey.Executors).to(app).inSingletonScope()
 		);
 
 		// Adapters

@@ -1,4 +1,4 @@
-import { createBrokerAsPromised, VhostConfig, PublicationConfig } from "rascal";
+import { createBrokerAsPromised, VhostConfig } from "rascal";
 import { IConfig } from "../../../../Interfaces/IConfig";
 import { Publication } from "../../Publication";
 import { Subscription } from "../../Subscription";
@@ -42,37 +42,80 @@ export const createBrokerConnection = async (config: IConfig) => {
 		expandBindingsByBlockchain(config.enabledBlockchains),
 		[]
 	);
+	const queues = Object.values(Queue).reduce<string[]>(
+		(queues, name) => [
+			...queues,
+			name,
+			addRetryPrefix(name),
+			addDeadPrefix(name)
+		],
+		[]
+	);
+	let subscriptions: VhostConfig["subscriptions"] = {
+		[Subscription.FindDirectTx]: {
+			queue: Queue.FindDirectTx
+		},
+		[Subscription.FindInternalTx]: {
+			queue: Queue.FindInternalTx
+		},
+		[Subscription.SaveTx]: {
+			queue: Queue.SaveTx
+		},
+		[Subscription.SaveToken]: {
+			queue: Queue.SaveToken
+		},
+		[Subscription.SaveWhale]: {
+			queue: Queue.SaveWhale
+		},
+		[Subscription.SaveToken]: {
+			queue: Queue.SaveToken
+		}
+	};
+
 	const publications = publicationsSetup.reduce(
 		expandPublicationsByBlockchain(config.enabledBlockchains),
 		{}
 	);
+	// add retry/dead subs
+	subscriptions = Object.entries(subscriptions).reduce(
+		(_subs, [name, config]) => {
+			const subs = {
+				[name]: config,
+				..._subs
+			};
+
+			if (config.queue) {
+				return {
+					...subs,
+					[addRetryPrefix(name)]: {
+						queue: addRetryPrefix(config.queue)
+					},
+					[addDeadPrefix(name)]: {
+						queue: addDeadPrefix(config.queue)
+					}
+				};
+			}
+			return subs;
+		},
+		{}
+	);
+	// add retry/dead pubs
+	Object.entries(subscriptions).forEach(([sub, config]) => {
+		if (!config.queue) {
+			return;
+		}
+		publications[sub] = {
+			queue: config.queue
+		};
+	});
 
 	const vhostConfig: VhostConfig = {
 		connections: getConnections(config.broker.brokerUri),
 		exchanges: Object.values(Exchange),
-		queues: Object.values(Queue),
+		queues,
 		bindings,
 		publications,
-		subscriptions: {
-			[Subscription.FindDirectTx]: {
-				queue: Queue.FindDirectTx
-			},
-			[Subscription.FindInternalTx]: {
-				queue: Queue.FindInternalTx
-			},
-			[Subscription.SaveTx]: {
-				queue: Queue.SaveTx
-			},
-			[Subscription.SaveToken]: {
-				queue: Queue.SaveToken
-			},
-			[Subscription.SaveWhale]: {
-				queue: Queue.SaveWhale
-			},
-			[Subscription.SaveToken]: {
-				queue: Queue.SaveToken
-			}
-		}
+		subscriptions
 	};
 	const maxRetries = 120;
 	let retry = 1;
@@ -109,7 +152,7 @@ function expandBindingsByBlockchain(blockchains: string[]) {
 		return [...bindings, ...expandedBindings];
 	};
 }
-type Pubs = Record<string, PublicationConfig>;
+type Pubs = Required<VhostConfig>["publications"];
 
 function expandPublicationsByBlockchain(blockchains: string[]) {
 	return (
@@ -129,4 +172,11 @@ function expandPublicationsByBlockchain(blockchains: string[]) {
 
 		return { ...pubs, ...newPubs };
 	};
+}
+
+export function addRetryPrefix(name: string) {
+	return `retry_${name}`;
+}
+export function addDeadPrefix(name: string) {
+	return `dead_${name}`;
 }

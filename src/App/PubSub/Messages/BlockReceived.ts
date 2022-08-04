@@ -1,13 +1,13 @@
 import { BlockWithTransactions } from "../../Types/BlockWithTransactions";
 import { BlockchainId } from "../../Values/Blockchain";
 import { Publication } from "../../../Infrastructure/Broker/Publication";
-import { BaseMessage } from "../../../Infrastructure/Broker/BaseMessage";
+import { ExecutorMessage } from "../../../Infrastructure/Broker/Executor";
 
 export interface BlockReceivedPayload {
 	blockchain: BlockchainId;
 	block: BlockWithTransactions;
 }
-export class BlockReceived extends BaseMessage<BlockReceivedPayload> {
+export class BlockReceived extends ExecutorMessage<BlockReceivedPayload> {
 	constructor(blockchain: BlockchainId, payload: BlockReceivedPayload) {
 		super(Publication.BlockReceived(blockchain), payload);
 	}
