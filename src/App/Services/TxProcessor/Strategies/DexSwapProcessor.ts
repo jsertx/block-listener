@@ -59,7 +59,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		);
 		if (!router) {
 			// maybe just set dex to unknown
-			this.logger.error({
+			this.logger.warn({
 				type: "dex-swap-processor.router-not-found",
 				message: "Router not found",
 				context: {
@@ -67,7 +67,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 					hash: tx.hash
 				}
 			});
-			throw new Error("Contract not found for this swap tx");
+			return;
 		}
 
 		const dexSwapData = await this.getDexSwapData(tx);

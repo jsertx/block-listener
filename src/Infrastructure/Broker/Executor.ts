@@ -181,7 +181,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 
 	start() {
 		this.logger.log({
-			type: "executor.start",
+			type: `executor.start`,
 			message: `Subscribed to ${this.channel}`,
 			context: {
 				channel: this.channel,
