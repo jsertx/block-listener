@@ -87,9 +87,6 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		nack: (error: any, options?: any) => any
 	) {
 		try {
-			if (message.retries < 2) {
-				throw new Error("TEST");
-			}
 			await this.execute(message.payload, message);
 			ack();
 		} catch (error) {
