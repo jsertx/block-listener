@@ -3,6 +3,7 @@ import { IBroker } from "../../Interfaces/IBroker";
 import { IExecutor } from "../../Interfaces/IExecutor";
 import { ILogger } from "../../Interfaces/ILogger";
 import { BaseMessage } from "./BaseMessage";
+import { addRetryPrefix, addDeadPrefix } from "./Rabbitmq/Utils/ConfigCreation";
 
 interface IExecutorMsgPayload<T> {
 	retries: number;
@@ -68,11 +69,11 @@ export abstract class Executor<PayloadType> implements IExecutor {
 	}
 
 	get retryChannel() {
-		return this.channel;
+		return addRetryPrefix(this.channel);
 	}
 
 	get deadChannel() {
-		return this.channel;
+		return addDeadPrefix(this.channel);
 	}
 
 	abstract execute(
@@ -86,8 +87,8 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		nack: (error: any, options?: any) => any
 	) {
 		try {
-			if (message.retries < 3) {
-				throw new Error("");
+			if (message.retries < 2) {
+				throw new Error("TEST");
 			}
 			await this.execute(message.payload, message);
 			ack();
@@ -105,15 +106,15 @@ export abstract class Executor<PayloadType> implements IExecutor {
 			await this.retryHandler(message, error).then(ack).catch(nack);
 		}
 	}
-	private shouldWait(message: ExecutorMessage<PayloadType>) {
-		return message.payload.processAfter > Date.now();
+	private shouldWait(message: IExecutorMsgPayload<PayloadType>) {
+		return message.processAfter > Date.now();
 	}
 
-	protected messageCanBeRetried(message: ExecutorMessage, _error: any) {
-		return (
-			this.options.retriable &&
-			message.payload.retries <= message.payload.maxRetries
-		);
+	protected messageCanBeRetried(
+		message: IExecutorMsgPayload<any>,
+		_error: any
+	) {
+		return this.options.retriable && message.retries <= message.maxRetries;
 	}
 
 	private async retryHandler(
@@ -136,26 +137,32 @@ export abstract class Executor<PayloadType> implements IExecutor {
 	}
 
 	private async retryManager(
-		message: ExecutorMessage<PayloadType>,
+		message: IExecutorMsgPayload<PayloadType>,
 		ack: () => any,
 		nack: (error: any, options?: any) => any
 	) {
 		try {
-			const error = message.payload.error;
+			const error = message.error;
 			if (!this.messageCanBeRetried(message, error)) {
 				const deadMsg = new ExecutorMessage<PayloadType>(
 					this.deadChannel,
-					message.payload.payload
+					message.payload
 				);
 				return this.broker.publish(deadMsg).then(ack).catch(nack);
 			}
 
 			if (this.shouldWait(message)) {
-				return this.broker.publish(message).then(ack).catch(nack);
+				const waitMsg = new ExecutorMessage<PayloadType>(
+					this.channel,
+					message.payload,
+					message
+				);
+				return this.broker.publish(waitMsg).then(ack).catch(nack);
 			}
 			const processMsg = new ExecutorMessage<PayloadType>(
 				this.channel,
-				message.payload.payload
+				message.payload,
+				message
 			);
 			await this.broker.publish(processMsg).then(ack).catch(nack);
 		} catch (error) {
@@ -168,13 +175,19 @@ export abstract class Executor<PayloadType> implements IExecutor {
 					message
 				}
 			});
-			await this.retryHandler(message.payload, error)
-				.then(ack)
-				.catch(nack);
+			await this.retryHandler(message, error).then(ack).catch(nack);
 		}
 	}
 
 	start() {
+		this.logger.log({
+			type: "executor.start",
+			message: `Subscribed to ${this.channel}`,
+			context: {
+				channel: this.channel,
+				executorClass: this.constructor.name
+			}
+		});
 		this.broker.subscribe(this.channel, this.executionWrapper.bind(this));
 	}
 
