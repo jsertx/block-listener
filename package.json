@@ -16,7 +16,11 @@
 		"deploy:prod": "git push heroku main",
 		"format": "prettier --write 'src/**/*.{ts,js}'",
 		"lint": "eslint . --ext .ts",
-		"lint-and-fix": "eslint . --ext .ts --fix"
+		"lint-and-fix": "eslint . --ext .ts --fix",
+		"db:migration:create": "migrate-mongo create",
+		"db:migration:up": "migrate-mongo up",
+		"db:migration:down": "migrate-mongo down",
+		"db:migration:status": "migrate-mongo status"
 	},
 	"lint-staged": {
 		"*.{ts,js}": [
@@ -38,6 +42,7 @@
 		"inversify": "^6.0.1",
 		"inversify-express-utils": "^6.4.3",
 		"joi": "^17.6.0",
+		"migrate-mongo": "^9.0.0",
 		"mongodb": "^4.6.0",
 		"node-cron": "^3.0.1",
 		"promise-throttle": "^1.1.2",
