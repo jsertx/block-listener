@@ -9,6 +9,8 @@ export interface CreateTokenDto {
 	name: string;
 	decimals: number;
 	useAsBaseForPairDiscovery: boolean;
+	isStable: boolean;
+	isNativeWrapped: boolean;
 }
 
 export const CreateTokenDtoSchema = Joi.object({
@@ -17,5 +19,7 @@ export const CreateTokenDtoSchema = Joi.object({
 	symbol: Joi.string().required(),
 	name: Joi.string().required(),
 	decimals: Joi.number().greater(-1).required(),
-	useAsBaseForPairDiscovery: Joi.boolean().default(false)
+	useAsBaseForPairDiscovery: Joi.boolean().default(false),
+	isStable: Joi.boolean().default(false),
+	isWrappedNative: Joi.boolean().default(false)
 });

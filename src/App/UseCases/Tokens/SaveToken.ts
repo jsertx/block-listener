@@ -75,7 +75,9 @@ export class SaveToken extends Executor<TokenDiscoveredPayload> {
 			decimals,
 			name,
 			symbol,
-			useAsBaseForPairDiscovery: false
+			useAsBaseForPairDiscovery: false,
+			isNativeWrapped: false,
+			isStable: false
 		});
 		await this.tokenRepository.save(token);
 	}

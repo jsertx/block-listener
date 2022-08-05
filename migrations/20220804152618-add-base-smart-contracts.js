@@ -43,7 +43,9 @@ module.exports = {
 			symbol: "WETH",
 			name: "Wrapped Ether",
 			decimals: 18,
-			useAsBaseForPairDiscovery: true
+			useAsBaseForPairDiscovery: true,
+			isNativeWrapped: true,
+			isStable: false
 		};
 		const EthereumUsdc = {
 			address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -51,7 +53,9 @@ module.exports = {
 			symbol: "USDC",
 			name: "USD Coin",
 			decimals: 6,
-			useAsBaseForPairDiscovery: true
+			useAsBaseForPairDiscovery: true,
+			isNativeWrapped: false,
+			isStable: true
 		};
 		const EthereumUsdt = {
 			address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
@@ -59,7 +63,9 @@ module.exports = {
 			decimals: 6,
 			name: "Tether USD",
 			symbol: "USDT",
-			useAsBaseForPairDiscovery: true
+			useAsBaseForPairDiscovery: true,
+			isNativeWrapped: false,
+			isStable: true
 		};
 		const PolygonWmatic = {
 			address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
@@ -67,7 +73,9 @@ module.exports = {
 			symbol: "WMATIC",
 			name: "Wrapped Matic",
 			decimals: 18,
-			useAsBaseForPairDiscovery: true
+			useAsBaseForPairDiscovery: true,
+			isNativeWrapped: true,
+			isStable: false
 		};
 		const PolygonUsdc = {
 			address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
@@ -75,7 +83,9 @@ module.exports = {
 			symbol: "USDC",
 			name: "USD Coin",
 			decimals: 6,
-			useAsBaseForPairDiscovery: true
+			useAsBaseForPairDiscovery: true,
+			isNativeWrapped: false,
+			isStable: true
 		};
 		const PolygonUsdt = {
 			address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
@@ -83,7 +93,9 @@ module.exports = {
 			decimals: 6,
 			name: "Tether USD",
 			symbol: "USDT",
-			useAsBaseForPairDiscovery: true
+			useAsBaseForPairDiscovery: true,
+			isNativeWrapped: false,
+			isStable: true
 		};
 
 		await db

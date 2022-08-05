@@ -1,7 +1,5 @@
 import { BlockchainId } from "../../Config/Blockchains";
-import { Token } from "../Entities/Token";
 import { NotEvmChainError } from "../Errors/NotEvmChainError";
-import { checksumed } from "../Utils/Address";
 
 export { BlockchainId } from "../../Config/Blockchains";
 export const blockchainIdList = Object.values(BlockchainId);
@@ -18,33 +16,6 @@ const blockchainToTokenSymbol: Record<BlockchainId, string> = {
 	[BlockchainId.Polygon]: "MATIC"
 };
 
-const blockchainToWrappedToken: Record<BlockchainId, Token> = {
-	[BlockchainId.Ethereum]: Token.create({
-		address: checksumed("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
-		blockchain: BlockchainId.Ethereum,
-		decimals: 18,
-		name: "Wrapped ETH",
-		symbol: "WETH",
-		useAsBaseForPairDiscovery: false
-	}),
-	// [BlockchainId.Binance]: Token.create({
-	// 	address: "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
-	// 	blockchain: BlockchainId.Binance,
-	// 	decimals: 18,
-	// 	name: "Wrapped BNB",
-	// 	symbol: "WBNB",
-	// 	useAsBaseForPairDiscovery: false
-	// }),
-	[BlockchainId.Polygon]: Token.create({
-		address: checksumed("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"),
-		blockchain: BlockchainId.Polygon,
-		decimals: 18,
-		name: "Wrapped MATIC",
-		symbol: "WMATIC",
-		useAsBaseForPairDiscovery: false
-	})
-};
-
 export class Blockchain {
 	constructor(public id: BlockchainId) {
 		if (!Object.values(BlockchainId).find((bid) => bid === id)) {
@@ -57,9 +28,6 @@ export class Blockchain {
 	}
 	get nativeTokenSymbol(): string {
 		return blockchainToTokenSymbol[this.id];
-	}
-	get wrappedToken(): Token {
-		return blockchainToWrappedToken[this.id];
 	}
 
 	static toChainId(id: BlockchainId): number {

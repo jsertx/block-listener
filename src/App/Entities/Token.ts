@@ -15,6 +15,8 @@ export interface TokenProps extends TokenIdProps {
 	name: string;
 	decimals: number;
 	useAsBaseForPairDiscovery: boolean;
+	isStable: boolean;
+	isNativeWrapped: boolean;
 }
 
 const TokenSchema = Joi.object({
@@ -23,7 +25,9 @@ const TokenSchema = Joi.object({
 	symbol: Joi.string().required(),
 	name: Joi.string().required(),
 	decimals: Joi.number().greater(-1).required(),
-	useAsBaseForPairDiscovery: Joi.boolean().default(false)
+	useAsBaseForPairDiscovery: Joi.boolean().default(false),
+	isStable: Joi.boolean().default(false),
+	isNativeWrapped: Joi.boolean().default(false)
 })
 	.unknown()
 	.options({ stripUnknown: true });
@@ -31,6 +35,9 @@ const TokenSchema = Joi.object({
 export class Token extends Entity<TokenProps> {
 	get blockchain(): Blockchain {
 		return new Blockchain(this.props.blockchain);
+	}
+	get isStable(): boolean {
+		return this.props.isStable;
 	}
 	get useAsBaseForPairDiscovery(): boolean {
 		return this.props.useAsBaseForPairDiscovery;

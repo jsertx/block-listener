@@ -18,6 +18,7 @@ import {
 import { Blockchain } from "../../../Values/Blockchain";
 import { ERC20 } from "../../SmartContract/ABI/ERC20";
 import { toFormatted } from "../../../Utils/Amount";
+import { TokenService } from "../../TokenService";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -30,6 +31,7 @@ interface TokenData {
 export class DexSwapProcessor implements ITxProcessStrategy {
 	constructor(
 		@inject(IocKey.Logger) private logger: ILogger,
+		@inject(IocKey.TokenService) private tokenService: TokenService,
 		@inject(IocKey.PriceService) private priceService: IPriceService,
 		@inject(IocKey.ProviderFactory)
 		private providerFactory: IProviderFactory,
@@ -87,8 +89,12 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		const outToken: HexAddressStr = path[path.length - 1];
 		let outAmount: string | undefined;
 		let inputAmount: string | undefined;
-		const weth = tx.blockchain.wrappedToken;
-		const nativeValue = getNativeValueFromLogs(weth, tx.raw.logs);
+		const weth = await this.tokenService.getWrappedToken(tx.blockchain.id);
+		const stables = await this.tokenService.getStableCoins(
+			tx.blockchain.id
+		);
+		let nativeValue = getTokenValueFromLogs(weth, tx.raw.logs);
+		let usdValue = getStableUsdValueFromLogs(stables, tx.raw.logs);
 
 		switch (method) {
 			case UniswapV2RouterSwapMethods.swapETHForExactTokens:
@@ -127,7 +133,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 				break;
 		}
 
-		if (!inputAmount || !outAmount || !nativeValue) {
+		if (!inputAmount || !outAmount || !(nativeValue || usdValue)) {
 			this.logger.warn({
 				type: "tx.dex-swap.process.cannot-get-value",
 				message:
@@ -136,19 +142,33 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 			return;
 		}
 
-		const [usdValue, [inputTokenData, outputTokenData]] = await Promise.all(
-			[
-				this.priceService.getBlockchainNativeTokenUsdValue(
+		if (!usdValue && nativeValue) {
+			usdValue = await this.priceService
+				.getBlockchainNativeTokenUsdValue(
 					tx.blockchain,
 					weth.toFormatted(nativeValue)
-				),
-				this.getTokensData(tx.blockchain, inputToken, outToken)
-			]
+				)
+				.then((res) => res.toFixed());
+		} else if (!nativeValue && usdValue) {
+			const nativePrice =
+				await this.priceService.getBlockchainNativeTokenUsdPrice(
+					tx.blockchain
+				);
+			nativeValue = nativePrice.multipliedBy(usdValue).toFixed();
+		}
+
+		const [inputTokenData, outputTokenData] = await this.getTokensData(
+			tx.blockchain,
+			inputToken,
+			outToken
 		);
+		if (!nativeValue || !usdValue) {
+			return;
+		}
 
 		const details: DexSwapData = {
 			nativeValue: weth.toFormatted(nativeValue),
-			usdValue: usdValue.toFixed(),
+			usdValue,
 			from,
 			to: outDest,
 			input: {
@@ -206,8 +226,8 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 	}
 }
 
-function getNativeValueFromLogs(
-	wethToken: Token,
+function getTokenValueFromLogs(
+	token: Token,
 	logs: TransactionLog[]
 ): string | undefined {
 	// 1) Find Swap Logs
@@ -218,7 +238,7 @@ function getNativeValueFromLogs(
 		// 2) Find incoming or outgoing transfer of WETH to/from this pair address
 		for (const log of logs) {
 			if (
-				isSameAddress(log.address, wethToken.address) &&
+				isSameAddress(log.address, token.address) &&
 				log.signature === transferSignature &&
 				(isSameAddress(log.args.to, swapLog.address) ||
 					isSameAddress(log.args.from, swapLog.address))
@@ -262,4 +282,16 @@ function getInputTokenTransferAmount(
 		return;
 	}
 	return transferLog.args.value;
+}
+
+function getStableUsdValueFromLogs(stables: Token[], logs: TransactionLog[]) {
+	if (stables.length === 0) {
+		return undefined;
+	}
+	for (const stable of stables) {
+		const value = getTokenValueFromLogs(stable, logs);
+		if (value) {
+			return stable.toFormatted(value);
+		}
+	}
 }
