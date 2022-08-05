@@ -6,13 +6,13 @@ export const blockchainIdList = Object.values(BlockchainId);
 
 const blockchainToChainId: Record<BlockchainId, number> = {
 	[BlockchainId.Ethereum]: 1,
-	//[BlockchainId.Binance]: 56,
+	[BlockchainId.Binance]: 56,
 	[BlockchainId.Polygon]: 137
 };
 
 const blockchainToTokenSymbol: Record<BlockchainId, string> = {
 	[BlockchainId.Ethereum]: "ETH",
-	//[BlockchainId.Binance]: "BNB",
+	[BlockchainId.Binance]: "BNB",
 	[BlockchainId.Polygon]: "MATIC"
 };
 

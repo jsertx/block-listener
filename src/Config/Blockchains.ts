@@ -1,4 +1,5 @@
 export enum BlockchainId {
 	Ethereum = "ethereum",
-	Polygon = "polygon"
+	Polygon = "polygon",
+	Binance = "bsc"
 }

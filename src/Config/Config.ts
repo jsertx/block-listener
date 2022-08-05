@@ -5,13 +5,18 @@ import { BlockchainId } from "./Blockchains";
 export const Config: IConfig = {
 	providers: prepareNodeList({
 		[BlockchainId.Ethereum]: [{ url: "https://eth.public-rpc.com" }],
+		[BlockchainId.Binance]: [{ url: "https://bsc-dataseed.binance.org/" }],
 		[BlockchainId.Polygon]: [
 			{
 				url: "https://rpc.ankr.com/polygon"
 			}
 		]
 	}),
-	enabledBlockchains: [BlockchainId.Ethereum, BlockchainId.Polygon],
+	enabledBlockchains: [
+		BlockchainId.Ethereum,
+		BlockchainId.Polygon,
+		BlockchainId.Binance
+	],
 	database: {
 		database: getEnv("DATABASE_NAME", "blocklistener"),
 		connectionUri: getEnv("DATABASE_URI")
@@ -25,6 +30,10 @@ export const Config: IConfig = {
 	txRules: {
 		[BlockchainId.Ethereum]: {
 			minNativeTransferValue: "10",
+			minDexSwapValueInUsd: `${10_000}`
+		},
+		[BlockchainId.Binance]: {
+			minNativeTransferValue: `${10}`,
 			minDexSwapValueInUsd: `${10_000}`
 		},
 		[BlockchainId.Polygon]: {

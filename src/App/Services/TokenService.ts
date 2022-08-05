@@ -19,6 +19,7 @@ const createEmptyCache = (): ServiceCache => ({
 export class TokenService implements ITokenService {
 	private cache: Record<BlockchainId, ServiceCache> = {
 		[BlockchainId.Ethereum]: createEmptyCache(),
+		[BlockchainId.Binance]: createEmptyCache(),
 		[BlockchainId.Polygon]: createEmptyCache()
 	};
 
