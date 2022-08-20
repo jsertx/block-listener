@@ -69,6 +69,9 @@ export class SaveToken extends Executor<TokenDiscoveredPayload> {
 			"symbol",
 			"decimals"
 		]);
+		if (!name || !symbol || !decimals) {
+			throw new Error("Invalid token data received");
+		}
 		const token = Token.create({
 			address,
 			blockchain,
