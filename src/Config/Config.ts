@@ -13,9 +13,9 @@ export const Config: IConfig = {
 		]
 	}),
 	enabledBlockchains: [
-		BlockchainId.Ethereum,
-		BlockchainId.Polygon,
-		BlockchainId.Binance
+		BlockchainId.Ethereum
+		//BlockchainId.Polygon,
+		//BlockchainId.Binance
 	],
 	database: {
 		database: getEnv("DATABASE_NAME", "blocklistener"),

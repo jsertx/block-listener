@@ -30,7 +30,7 @@ const publicationsSetup: PublicationSetup[] = [
 
 const bindingsSetup: BindingSetup[] = [
 	[Exchange.Block, RoutingKey.BlockReceived, Queue.FindDirectTx],
-	[Exchange.Block, RoutingKey.BlockReceived, Queue.FindInternalTx],
+	// Not needed yet [Exchange.Block, RoutingKey.BlockReceived, Queue.FindInternalTx],
 	[Exchange.Tx, RoutingKey.TxDiscovered, Queue.SaveTx],
 	[Exchange.Token, RoutingKey.TokenDiscovered, Queue.SaveToken],
 	[Exchange.Wallet, RoutingKey.WhaleDiscovered, Queue.SaveWhale]

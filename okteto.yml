@@ -1,0 +1,21 @@
+name: block-listener
+
+# The build section defines how to build the images of your development environment
+# More info: https://www.okteto.com/docs/reference/manifest/#build
+build:
+    # You can use the following env vars to refer to this image in your deploy commands:
+    #  - OKTETO_BUILD_BLOCK_LISTENER_REGISTRY: image registry
+    #  - OKTETO_BUILD_BLOCK_LISTENER_REPOSITORY: image repo
+    #  - OKTETO_BUILD_BLOCK_LISTENER_IMAGE: image name
+    #  - OKTETO_BUILD_BLOCK_LISTENER_TAG: image tag
+    block-listener:
+        context: .
+        dockerfile: Dockerfile
+
+# The deploy section defines how to deploy your development environment
+# More info: https://www.okteto.com/docs/reference/manifest/#deploy
+deploy:
+    compose:
+        file: okteto-compose.yml
+
+dev:
