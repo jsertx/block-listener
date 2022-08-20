@@ -137,7 +137,11 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 			this.logger.warn({
 				type: "tx.dex-swap.process.cannot-get-value",
 				message:
-					"Swap Input/Output or native value could not be calculated"
+					"Swap Input/Output or native value could not be calculated",
+				context: {
+					blockchain: tx.blockchain.id,
+					hash: tx.hash
+				}
 			});
 			return;
 		}

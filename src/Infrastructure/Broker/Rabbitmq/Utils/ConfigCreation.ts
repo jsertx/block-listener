@@ -66,9 +66,6 @@ export const createBrokerConnection = async (config: IConfig) => {
 		},
 		[Subscription.SaveWhale]: {
 			queue: Queue.SaveWhale
-		},
-		[Subscription.SaveToken]: {
-			queue: Queue.SaveToken
 		}
 	};
 
