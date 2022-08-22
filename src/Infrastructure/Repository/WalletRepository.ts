@@ -18,7 +18,7 @@ export class WalletRepository
 		@inject(IocKey.DbClient) client: MongoClient,
 		@inject(IocKey.Config) config: IConfig
 	) {
-		super("wallet", client, config);
+		super("wallets", client, config);
 	}
 
 	protected getMatchCriteriaFromEntity(
