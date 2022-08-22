@@ -16,7 +16,7 @@ import { Executor } from "../../../Infrastructure/Broker/Executor";
 @injectable()
 export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 	constructor(
-		@inject(IocKey.TokenRepository)
+		@inject(IocKey.WalletRepository)
 		private walletRepository: IWalletRepository,
 		@inject(IocKey.BlockchainService)
 		private blockchainService: IBlockchainService,
