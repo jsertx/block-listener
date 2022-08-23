@@ -12,6 +12,7 @@ import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { Contract, FactoryData, PairData } from "../Entities/Contract";
 import { toHex } from "../Utils/Numbers";
 import { Dex } from "../Values/Dex";
+import { ILogger } from "../../Interfaces/ILogger";
 
 type FactoryByChainMap = Partial<Record<BlockchainId, Contract[]>>;
 type PairByChainAndFactoryMap = Partial<
@@ -24,11 +25,25 @@ export class FullPairDiscoverer implements IStandaloneApps {
 		@inject(IocKey.ContractRepository)
 		private contractRepository: IContractRepository,
 		@inject(IocKey.ProviderFactory)
-		private providerFactory: IProviderFactory
+		private providerFactory: IProviderFactory,
+		@inject(IocKey.Logger)
+		private logger: ILogger
 	) {}
 
 	async start() {
-		cron.schedule(CronSchedule.EveryHour, this.execute.bind(this));
+		cron.schedule(CronSchedule.EveryHour, async () => {
+			try {
+				await this.execute();
+				this.logger.log({
+					type: "full-pair-discoverer.execute"
+				});
+			} catch (error) {
+				this.logger.error({
+					type: "full-pair-discoverer.execute",
+					error
+				});
+			}
+		});
 	}
 
 	async execute() {

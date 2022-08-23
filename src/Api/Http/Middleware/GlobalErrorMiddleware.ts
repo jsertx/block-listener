@@ -22,8 +22,9 @@ export const GlobalErrorMiddleware =
 			type: "api-request.error",
 			context: {
 				request: {
+					method: req.method,
 					endpoint: req.path,
-					payload: req.body
+					payload: JSON.stringify(req.body)
 				}
 			}
 		});

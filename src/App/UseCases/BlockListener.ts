@@ -34,8 +34,19 @@ export class BlockListener implements IStandaloneApps {
 				}
 			});
 
-			this.getProvider(blockchain).on("block", (blockNumber) => {
-				this.onBlock(blockchain, blockNumber);
+			this.getProvider(blockchain).on("block", async (blockNumber) => {
+				try {
+					await this.onBlock(blockchain, blockNumber);
+				} catch (error) {
+					this.logger.error({
+						type: "block-listener.on-block",
+						error,
+						context: {
+							blockchain,
+							blockNumber
+						}
+					});
+				}
 			});
 		});
 	}
@@ -58,7 +69,7 @@ export class BlockListener implements IStandaloneApps {
 			this.logger.debug({
 				type: "block-listener.new-block",
 				context: {
-					block: block.number
+					blockNumber: block.number
 				}
 			});
 		}

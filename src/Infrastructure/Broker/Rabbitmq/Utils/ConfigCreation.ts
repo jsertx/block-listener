@@ -59,16 +59,13 @@ export const createBrokerConnection = async (config: IConfig) => {
 			queue: Queue.FindInternalTx
 		},
 		[Subscription.SaveTx]: {
-			queue: Queue.SaveTx,
-			prefetch: 30
+			queue: Queue.SaveTx
 		},
 		[Subscription.SaveToken]: {
-			queue: Queue.SaveToken,
-			prefetch: 5
+			queue: Queue.SaveToken
 		},
 		[Subscription.SaveWhale]: {
-			queue: Queue.SaveWhale,
-			prefetch: 5
+			queue: Queue.SaveWhale
 		}
 	};
 

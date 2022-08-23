@@ -66,7 +66,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 				message: "Router not found",
 				context: {
 					blockchain: tx.blockchain.id,
-					hash: tx.hash
+					txHash: tx.hash
 				}
 			});
 			return;
@@ -140,7 +140,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 					"Swap Input/Output or native value could not be calculated",
 				context: {
 					blockchain: tx.blockchain.id,
-					hash: tx.hash
+					txHash: tx.hash
 				}
 			});
 			return;

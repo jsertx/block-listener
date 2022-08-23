@@ -1,4 +1,17 @@
-export interface LogEntry<Context = any> {
+interface DefaultContext {
+	blockchain?: string;
+	blockNumber?: string | number;
+	channel?: string;
+	txHash?: string;
+	message?: any;
+	executorClass?: string;
+	request?: {
+		method: string;
+		endpoint: string;
+		payload?: string;
+	};
+}
+export interface LogEntry<Context = DefaultContext> {
 	message?: string;
 	level: "info" | "debug" | "warn" | "error";
 	type: string;

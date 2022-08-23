@@ -13,6 +13,7 @@ import { Dex } from "../Values/Dex";
 import { ITokenRepository } from "../Repository/ITokenRepository";
 import { Token } from "../Entities/Token";
 import { ZERO_ADDRESS } from "../Utils/Address";
+import { ILogger } from "../../Interfaces/ILogger";
 
 type PairAndTokens = {
 	address: string;
@@ -32,11 +33,25 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
 		@inject(IocKey.TokenRepository)
 		private tokenRepository: ITokenRepository,
 		@inject(IocKey.ProviderFactory)
-		private providerFactory: IProviderFactory
+		private providerFactory: IProviderFactory,
+		@inject(IocKey.Logger)
+		private logger: ILogger
 	) {}
 
 	async start() {
-		cron.schedule(CronSchedule.EveryHour, this.execute.bind(this));
+		cron.schedule(CronSchedule.EveryHour, async () => {
+			try {
+				await this.execute();
+				this.logger.log({
+					type: "selective-pair-discoverer.execute"
+				});
+			} catch (error) {
+				this.logger.error({
+					type: "selective-pair-discoverer.execute",
+					error
+				});
+			}
+		});
 	}
 
 	async execute() {
