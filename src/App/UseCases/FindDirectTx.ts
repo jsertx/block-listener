@@ -13,7 +13,6 @@ import { TxDiscovered } from "../PubSub/Messages/TxDiscovered";
 import { BlockReceivedPayload } from "../PubSub/Messages/BlockReceived";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { IWalletRepository } from "../Repository/IWalletRepository";
-import { Wallet } from "../Entities/Wallet";
 import { Contract } from "../Entities/Contract";
 import { BlockchainId } from "../Values/Blockchain";
 import { Executor } from "../../Infrastructure/Broker/Executor";
@@ -21,8 +20,6 @@ import { ICache } from "../Interfaces/ICache";
 
 const contractCacheKey = (blockchain: string) =>
 	`find_direct_tx_contracts_${blockchain}`;
-const walletCacheKey = (blockchain: string) =>
-	`find_direct_tx_wallets_${blockchain}`;
 
 @injectable()
 export class FindDirectTx extends Executor<BlockReceivedPayload> {
