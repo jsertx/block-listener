@@ -40,7 +40,9 @@ export class BlockListener implements IStandaloneApps {
 				.then((res) => res.number);
 
 			for (;;) {
-				const newBlock = await provider.getBlock(latestBlock);
+				const newBlock = await provider
+					.getBlock(latestBlock)
+					.catch((error) => undefined);
 
 				if (newBlock) {
 					try {
