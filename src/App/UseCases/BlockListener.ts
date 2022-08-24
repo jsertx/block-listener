@@ -10,6 +10,7 @@ import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { BlockReceived } from "../PubSub/Messages/BlockReceived";
 import { BlockWithTransactions } from "../Types/BlockWithTransactions";
 import { IConfig } from "../../Interfaces/IConfig";
+import { sleep } from "../Utils/Misc";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
@@ -26,28 +27,38 @@ export class BlockListener implements IStandaloneApps {
 		return this.providerFactory.getProvider(blockchain);
 	}
 	async start() {
-		this.config.enabledBlockchains.forEach((blockchain) => {
+		this.config.enabledBlockchains.forEach(async (blockchain) => {
 			this.logger.log({
 				type: "block-listener.start",
 				context: {
 					blockchain
 				}
 			});
+			const provider = this.getProvider(blockchain);
+			let latestBlock = await provider
+				.getBlock("latest")
+				.then((res) => res.number);
 
-			this.getProvider(blockchain).on("block", async (blockNumber) => {
-				try {
-					await this.onBlock(blockchain, blockNumber);
-				} catch (error) {
-					this.logger.error({
-						type: "block-listener.on-block",
-						error,
-						context: {
-							blockchain,
-							blockNumber
-						}
-					});
+			for (;;) {
+				const newBlock = await provider.getBlock(latestBlock);
+
+				if (newBlock) {
+					try {
+						await this.onBlock(blockchain, newBlock.number);
+						latestBlock += 1;
+					} catch (error) {
+						this.logger.error({
+							type: "block-listener.on-block",
+							error,
+							context: {
+								blockchain,
+								blockNumber: newBlock.number
+							}
+						});
+					}
 				}
-			});
+				await sleep(5_000);
+			}
 		});
 	}
 	private async onBlock(blockchain: BlockchainId, blockNumber: number) {
