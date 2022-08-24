@@ -58,7 +58,11 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 		);
 		txs.forEach((hash) => {
 			this.broker.publish(
-				new TxDiscovered(blockchain, { blockchain, hash })
+				new TxDiscovered(blockchain, {
+					blockchain,
+					hash,
+					saveUnknown: true
+				})
 			);
 		});
 	}

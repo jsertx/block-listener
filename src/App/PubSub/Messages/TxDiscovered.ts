@@ -6,6 +6,7 @@ import { ExecutorMessage } from "../../../Infrastructure/Broker/Executor";
 export interface TxDiscoveredPayload {
 	blockchain: BlockchainId;
 	hash: string;
+	saveUnknown?: boolean;
 	txRes?: ethers.providers.TransactionResponse;
 }
 

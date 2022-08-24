@@ -40,7 +40,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		super(logger, broker, Subscription.SaveTx);
 	}
 
-	async execute({ blockchain, hash }: TxDiscoveredPayload) {
+	async execute({ blockchain, hash, saveUnknown }: TxDiscoveredPayload) {
 		const existingTx = await this.txRepository.findOne({
 			blockchain,
 			hash
@@ -56,15 +56,22 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			return;
 		}
 
-		const tx = await this.txProcessor.process(
-			Tx.create({
-				blockchain,
-				hash,
-				data: undefined,
-				raw: successfullTx,
-				type: TxType.Unknown
-			})
-		);
+		let tx = Tx.create({
+			blockchain,
+			hash,
+			data: undefined,
+			raw: successfullTx,
+			type: TxType.Unknown
+		});
+		const processedTx = await this.txProcessor.process(tx);
+
+		if (processedTx) {
+			tx = processedTx;
+		}
+
+		if (!processedTx && !saveUnknown) {
+			return;
+		}
 
 		const { saved } = await this.saveTxIfApplies(tx);
 		if (!saved) {
