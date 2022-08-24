@@ -27,6 +27,12 @@ export class ProviderFactory implements IProviderFactory {
 		const { url } = randomItem<IBlockchainProviderConfig>(
 			this.config.providers[blockchain.id]
 		);
+		if (url.startsWith("ws")) {
+			return new ethers.providers.WebSocketProvider(
+				url,
+				blockchain.chainId
+			);
+		}
 		return new ethers.providers.StaticJsonRpcProvider(
 			url,
 			blockchain.chainId

@@ -17,6 +17,12 @@ import { Wallet } from "../Entities/Wallet";
 import { Contract } from "../Entities/Contract";
 import { BlockchainId } from "../Values/Blockchain";
 import { Executor } from "../../Infrastructure/Broker/Executor";
+import { ICache } from "../Interfaces/ICache";
+
+const contractCacheKey = (blockchain: string) =>
+	`find_direct_tx_contracts_${blockchain}`;
+const walletCacheKey = (blockchain: string) =>
+	`find_direct_tx_wallets_${blockchain}`;
 
 @injectable()
 export class FindDirectTx extends Executor<BlockReceivedPayload> {
@@ -27,24 +33,24 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 		@inject(IocKey.ContractRepository)
 		private contractRepository: IContractRepository,
 		@inject(IocKey.WalletRepository)
-		private walletRepository: IWalletRepository
+		private walletRepository: IWalletRepository,
+		@inject(IocKey.Cache)
+		private cache: ICache
 	) {
 		super(logger, broker, Subscription.FindDirectTx, {});
 	}
 
 	async execute({ block, blockchain }: BlockReceivedPayload): Promise<void> {
 		const [contracts, wallets] = await Promise.all([
-			this.contractRepository.findAll({
-				where: { blockchain }
-			}),
-			this.walletRepository.findAll({ where: { blockchain } })
+			this.getContracts(blockchain),
+			this.getWallets(blockchain)
 		]);
 
 		for (const tx of block.transactions) {
 			if (
 				this.isBigNativeTx(blockchain, tx) ||
-				this.isAgainstContractOfInterest(tx, contracts.data) ||
-				this.isDoneByTrackedWallet(tx, wallets.data)
+				this.isAgainstContractOfInterest(tx, contracts) ||
+				this.isDoneByTrackedWallet(tx, wallets)
 			) {
 				this.broker.publish(
 					new TxDiscovered(blockchain, {
@@ -87,5 +93,34 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 		return addressesOfInterest.some((contract) =>
 			isSameAddress(contract.address, txRes.to)
 		);
+	}
+
+	async getContracts(blockchain: BlockchainId): Promise<Contract[]> {
+		const cacheKey = contractCacheKey(blockchain);
+		const fromCache = await this.cache.get<Contract[]>(cacheKey);
+		if (fromCache) {
+			return fromCache;
+		}
+
+		const fromDb = await this.contractRepository.findAll({
+			where: { blockchain }
+		});
+
+		await this.cache.set(cacheKey, fromDb.data);
+		return fromDb.data;
+	}
+
+	async getWallets(blockchain: BlockchainId): Promise<Wallet[]> {
+		const cacheKey = walletCacheKey(blockchain);
+		const fromCache = await this.cache.get<Wallet[]>(cacheKey);
+		if (fromCache) {
+			return fromCache;
+		}
+
+		const fromDb = await this.walletRepository.findAll({
+			where: { blockchain }
+		});
+		this.cache.set(cacheKey, fromDb.data);
+		return fromDb.data;
 	}
 }

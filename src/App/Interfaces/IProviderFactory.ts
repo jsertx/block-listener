@@ -6,7 +6,7 @@ export interface IProviderFactory {
 	getMulticallProvider(blockchain?: Blockchain | BlockchainId): Multicall;
 	getProvider(
 		blockchain?: Blockchain | BlockchainId
-	): ethers.providers.BaseProvider;
+	): ethers.providers.JsonRpcProvider;
 }
 
 export const multicallResultHelper = ({ results }: ContractCallResults) => {

@@ -25,12 +25,14 @@ import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
 import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/ConfigCreation";
 import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
 import { TokenService } from "../App/Services/TokenService";
+import { MemoryCache } from "../App/Services/MemoryCache";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
 		// Services
 		bind(IocKey.Config).toConstantValue(Config);
 		bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
+		bind(IocKey.Cache).to(MemoryCache).inSingletonScope();
 		bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
 		bind(IocKey.PriceService).to(PriceService).inSingletonScope();
 		bind(IocKey.BlockchainService).to(CovalentApi).inSingletonScope();

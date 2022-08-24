@@ -44,6 +44,7 @@
 		"joi": "^17.6.0",
 		"migrate-mongo": "^9.0.0",
 		"mongodb": "^4.6.0",
+		"node-cache": "^5.1.2",
 		"node-cron": "^3.0.1",
 		"promise-throttle": "^1.1.2",
 		"rascal": "^13.1.3",
