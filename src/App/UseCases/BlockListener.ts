@@ -8,7 +8,6 @@ import { IocKey } from "../../Ioc/IocKey";
 import { BlockchainId } from "../Values/Blockchain";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { BlockReceived } from "../PubSub/Messages/BlockReceived";
-import { BlockWithTransactions } from "../Types/BlockWithTransactions";
 import { IConfig } from "../../Interfaces/IConfig";
 import { sleep } from "../Utils/Misc";
 
@@ -40,21 +39,33 @@ export class BlockListener implements IStandaloneApps {
 				.then((res) => res.number);
 
 			for (;;) {
-				const newBlock = await provider
-					.getBlock(latestBlock)
+				const block = await provider
+					.getBlockWithTransactions(latestBlock)
 					.catch((error) => undefined);
 
-				if (newBlock) {
+				if (block) {
 					try {
-						await this.onBlock(blockchain, newBlock.number);
-						latestBlock += 1;
+						await this.broker.publish(
+							new BlockReceived(blockchain, {
+								blockchain,
+								block
+							})
+						);
+						latestBlock = block.number + 1;
+						this.logger.log({
+							type: "block-listener.new-block",
+							context: {
+								blockchain,
+								blockNumber: block.number
+							}
+						});
 					} catch (error) {
 						this.logger.error({
 							type: "block-listener.on-block",
 							error,
 							context: {
 								blockchain,
-								blockNumber: newBlock.number
+								blockNumber: block.number
 							}
 						});
 					}
@@ -62,29 +73,5 @@ export class BlockListener implements IStandaloneApps {
 				await sleep(5_000);
 			}
 		});
-	}
-	private async onBlock(blockchain: BlockchainId, blockNumber: number) {
-		let block: BlockWithTransactions | undefined = undefined;
-		while (!block) {
-			block = await this.getProvider(blockchain).getBlockWithTransactions(
-				blockNumber
-			);
-			if (!block) {
-				continue;
-			}
-
-			this.broker.publish(
-				new BlockReceived(blockchain, {
-					blockchain,
-					block
-				})
-			);
-			this.logger.log({
-				type: "block-listener.new-block",
-				context: {
-					blockNumber: block.number
-				}
-			});
-		}
 	}
 }
