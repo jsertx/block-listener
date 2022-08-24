@@ -12,7 +12,7 @@ export interface IBrokerSubscription {
 	off: () => void;
 }
 
-export abstract class BaseMessage<Publication, Payload> {
+export class BaseMessage<Publication, Payload> {
 	constructor(
 		public readonly channel: Publication,
 		public readonly payload: Payload
