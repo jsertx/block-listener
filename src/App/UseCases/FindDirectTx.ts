@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import BigNumber from "bignumber.js";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IConfig } from "../../Interfaces/IConfig";
-import { isSameAddress } from "../Utils/Address";
+import { checksumed, isSameAddress } from "../Utils/Address";
 import { isNativeTokenTx } from "../Utils/Tx";
 import { IocKey } from "../../Ioc/IocKey";
 import { toPrecision } from "../Utils/Amount";
@@ -41,17 +41,18 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 	}
 
 	async execute({ block, blockchain }: BlockReceivedPayload): Promise<void> {
-		const [contracts, wallets] = await Promise.all([
-			this.getContracts(blockchain),
-			this.getWallets(blockchain)
-		]);
-
 		for (const tx of block.transactions) {
-			if (
-				this.isBigNativeTx(blockchain, tx) ||
-				this.isAgainstContractOfInterest(tx, contracts) ||
-				this.isDoneByTrackedWallet(tx, wallets)
-			) {
+			const conditions = Promise.all([
+				this.isBigNativeTx(blockchain, tx),
+				this.isAgainstContractOfInterest(blockchain, tx),
+				this.isDoneByTrackedWallet(blockchain, tx)
+			]);
+
+			const shouldPublish = await conditions.then((res) =>
+				res.some((truthy) => truthy)
+			);
+
+			if (shouldPublish) {
 				this.broker.publish(
 					new TxDiscovered(blockchain, {
 						blockchain,
@@ -77,19 +78,22 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 		);
 	}
 
-	private isDoneByTrackedWallet(
-		txRes: ethers.providers.TransactionResponse,
-		wallets: Wallet[]
-	): boolean {
-		return wallets.some((wallet) =>
-			isSameAddress(wallet.address, txRes.from)
-		);
+	private async isDoneByTrackedWallet(
+		blockchain: BlockchainId,
+		txRes: ethers.providers.TransactionResponse
+	): Promise<boolean> {
+		const wallet = await this.walletRepository.findOne({
+			address: checksumed(txRes.from),
+			blockchain
+		});
+		return !!wallet;
 	}
 
-	private isAgainstContractOfInterest(
-		txRes: ethers.providers.TransactionResponse,
-		addressesOfInterest: Contract[]
-	): boolean {
+	private async isAgainstContractOfInterest(
+		blockchain: BlockchainId,
+		txRes: ethers.providers.TransactionResponse
+	): Promise<boolean> {
+		const addressesOfInterest = await this.getContracts(blockchain);
 		return addressesOfInterest.some((contract) =>
 			isSameAddress(contract.address, txRes.to)
 		);
@@ -107,20 +111,6 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 		});
 
 		await this.cache.set(cacheKey, fromDb.data);
-		return fromDb.data;
-	}
-
-	async getWallets(blockchain: BlockchainId): Promise<Wallet[]> {
-		const cacheKey = walletCacheKey(blockchain);
-		const fromCache = await this.cache.get<Wallet[]>(cacheKey);
-		if (fromCache) {
-			return fromCache;
-		}
-
-		const fromDb = await this.walletRepository.findAll({
-			where: { blockchain }
-		});
-		this.cache.set(cacheKey, fromDb.data);
 		return fromDb.data;
 	}
 }
