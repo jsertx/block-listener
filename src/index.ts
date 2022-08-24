@@ -12,7 +12,7 @@ import { IExecutor } from "./Interfaces/IExecutor";
 
 	container.getAll<IExecutor>(IocKey.Executors).forEach((listener) => {
 		listener.start();
-		//listener.startRetryManager();
+		listener.startRetryManager();
 	});
 
 	container
