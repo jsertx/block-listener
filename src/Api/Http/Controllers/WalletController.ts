@@ -6,7 +6,8 @@ import {
 	httpPost,
 	requestBody,
 	requestParam,
-	response
+	response,
+	queryParam
 } from "inversify-express-utils";
 
 import { IocKey } from "../../../Ioc/IocKey";
@@ -31,9 +32,20 @@ export class WalletController implements interfaces.Controller {
 	) {}
 
 	@httpGet("/")
-	async index(): Promise<IApiPaginatedResponse<WalletRaw>> {
-		const { data } = await this.walletRepository.findAll();
+	async index(
+		@queryParam("page") _page: string,
+		@queryParam("pageSize") _pageSize: string
+	): Promise<IApiPaginatedResponse<WalletRaw>> {
+		const { data, page, pageSize, total } =
+			await this.walletRepository.findAll({
+				page: _page ? Number(_page) : 1,
+				pageSize: _pageSize ? Number(_pageSize) : 500
+			});
+
 		return buildPaginatedResponse({
+			total,
+			page,
+			pageSize,
 			data: data.map((data) => data.toRaw())
 		});
 	}

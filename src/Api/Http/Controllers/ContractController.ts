@@ -4,7 +4,8 @@ import {
 	controller,
 	httpGet,
 	httpPost,
-	requestBody
+	requestBody,
+	queryParam
 } from "inversify-express-utils";
 
 import { IocKey } from "../../../Ioc/IocKey";
@@ -23,9 +24,20 @@ export class ContractController implements interfaces.Controller {
 	) {}
 
 	@httpGet("/")
-	async index(): Promise<IApiPaginatedResponse<ContractRaw>> {
-		const { data } = await this.contractRepository.findAll();
+	async index(
+		@queryParam("page") _page: string,
+		@queryParam("pageSize") _pageSize: string
+	): Promise<IApiPaginatedResponse<ContractRaw>> {
+		const { data, page, pageSize, total } =
+			await this.contractRepository.findAll({
+				page: _page ? Number(_page) : 1,
+				pageSize: _pageSize ? Number(_pageSize) : 500
+			});
+
 		return buildPaginatedResponse({
+			total,
+			page,
+			pageSize,
 			data: data.map((data) => data.toRaw())
 		});
 	}
