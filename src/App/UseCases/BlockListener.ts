@@ -33,13 +33,13 @@ export class BlockListener implements IStandaloneApps {
 					blockchain
 				}
 			});
-			const provider = this.getProvider(blockchain);
-			let latestBlock = await provider
+
+			let latestBlock = await this.getProvider(blockchain)
 				.getBlock("latest")
 				.then((res) => res.number);
 
 			for (;;) {
-				const block = await provider
+				const block = await this.getProvider(blockchain)
 					.getBlockWithTransactions(latestBlock)
 					.catch((error) => undefined);
 
