@@ -77,7 +77,7 @@ export class BlockListener implements IStandaloneApps {
 					block
 				})
 			);
-			this.logger.debug({
+			this.logger.log({
 				type: "block-listener.new-block",
 				context: {
 					blockNumber: block.number
