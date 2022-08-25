@@ -70,7 +70,7 @@ export class BlockListener implements IStandaloneApps {
 						});
 					}
 				}
-				await sleep(5_000);
+				await sleep(10_000);
 			}
 		});
 	}
