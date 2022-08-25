@@ -50,11 +50,16 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 			);
 
 			if (shouldPublish) {
+				const blockWithoutTxsData = {
+					...block,
+					transactions: block.transactions.map((t) => t.hash)
+				};
 				this.broker.publish(
 					new TxDiscovered(blockchain, {
 						blockchain,
 						hash: tx.hash,
-						txRes: tx
+						txRes: tx,
+						block: blockWithoutTxsData
 					})
 				);
 			}

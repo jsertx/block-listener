@@ -40,7 +40,12 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		super(logger, broker, Subscription.SaveTx);
 	}
 
-	async execute({ blockchain, hash, saveUnknown }: TxDiscoveredPayload) {
+	async execute({
+		blockchain,
+		hash,
+		saveUnknown,
+		block
+	}: TxDiscoveredPayload) {
 		const existingTx = await this.txRepository.findOne({
 			blockchain,
 			hash
@@ -50,7 +55,8 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		}
 		const successfullTx = await this.getRawTransaction({
 			blockchain,
-			hash
+			hash,
+			block
 		});
 		if (!successfullTx) {
 			return;
@@ -171,7 +177,8 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 	private async getRawTransaction({
 		blockchain,
 		hash,
-		txRes
+		txRes,
+		block
 	}: TxDiscoveredPayload): Promise<RawTx | undefined> {
 		const provider = this.providerFactory.getProvider(blockchain);
 		const [res, receipt] = await Promise.all([
@@ -185,7 +192,9 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		if (!res.blockNumber) {
 			throw new Error("Missing block number");
 		}
-		const block = await provider.getBlock(res.blockNumber);
+		if (!block) {
+			block = await provider.getBlock(res.blockNumber);
+		}
 
 		const logsDecoder = new LogDecoder(allAbiList);
 		const logs: TransactionLog[] = this.decodeTxLogs(receipt, logsDecoder);

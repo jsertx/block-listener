@@ -8,6 +8,7 @@ export interface TxDiscoveredPayload {
 	hash: string;
 	saveUnknown?: boolean;
 	txRes?: ethers.providers.TransactionResponse;
+	block?: ethers.providers.Block;
 }
 
 export class TxDiscovered extends ExecutorMessage<TxDiscoveredPayload> {
