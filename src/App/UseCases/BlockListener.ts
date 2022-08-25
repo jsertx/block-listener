@@ -41,7 +41,7 @@ export class BlockListener implements IStandaloneApps {
 			for (;;) {
 				const block = await this.getProvider(blockchain)
 					.getBlockWithTransactions(latestBlock)
-					.catch((error) => undefined);
+					.catch(() => undefined);
 
 				if (block) {
 					try {
