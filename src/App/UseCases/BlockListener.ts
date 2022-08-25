@@ -10,6 +10,7 @@ import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { BlockReceived } from "../PubSub/Messages/BlockReceived";
 import { IConfig } from "../../Interfaces/IConfig";
 import { sleep } from "../Utils/Misc";
+import { ICache } from "../Interfaces/ICache";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
@@ -19,7 +20,8 @@ export class BlockListener implements IStandaloneApps {
 		@inject(IocKey.ProviderFactory)
 		private providerFactory: IProviderFactory,
 		@inject(IocKey.Logger) private logger: ILogger,
-		@inject(IocKey.Broker) private broker: IBroker
+		@inject(IocKey.Broker) private broker: IBroker,
+		@inject(IocKey.Cache) private cache: ICache
 	) {}
 
 	private getProvider(blockchain: BlockchainId) {
@@ -52,6 +54,11 @@ export class BlockListener implements IStandaloneApps {
 							})
 						);
 						latestBlock = block.number + 1;
+						// TODO: Make it more elegant
+						this.cache.set(
+							`latest_block_${blockchain}`,
+							block.number
+						);
 						this.logger.log({
 							type: "block-listener.new-block",
 							context: {
