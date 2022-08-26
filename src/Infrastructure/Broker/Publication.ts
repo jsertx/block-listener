@@ -13,10 +13,19 @@ const publicationCreatorFactory =
 		}.${publication}`;
 	};
 
+export enum PublicationTypes {
+	BlockReceived = "block_received",
+	TxDiscovered = "tx_dicovered",
+	WhaleDiscovered = "whale_discovered",
+	WhaleSaved = "whale_saved",
+	TokenDiscovered = "token_discovered"
+}
 export const Publication = {
-	BlockReceived: publicationCreatorFactory("block_received"),
-	TxDiscovered: publicationCreatorFactory("tx_dicovered"),
-	WhaleDiscovered: publicationCreatorFactory("whale_discovered"),
-	WhaleSaved: publicationCreatorFactory("whale_saved"),
-	TokenDiscovered: publicationCreatorFactory("token_discovered")
+	BlockReceived: publicationCreatorFactory(PublicationTypes.BlockReceived),
+	TxDiscovered: publicationCreatorFactory(PublicationTypes.TxDiscovered),
+	WhaleDiscovered: publicationCreatorFactory(
+		PublicationTypes.WhaleDiscovered
+	),
+	WhaleSaved: publicationCreatorFactory(PublicationTypes.WhaleSaved),
+	TokenDiscovered: publicationCreatorFactory(PublicationTypes.TokenDiscovered)
 };

@@ -21,11 +21,10 @@ import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwap
 import { PriceService } from "../App/Services/PriceService";
 import { SaveToken } from "../App/UseCases/Tokens/SaveToken";
 import { SaveWhale } from "../App/UseCases/Whales/SaveWhale";
-import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
-import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/ConfigCreation";
 import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
 import { TokenService } from "../App/Services/TokenService";
 import { MemoryCache } from "../App/Services/MemoryCache";
+import { EventBusBroker } from "../Infrastructure/Broker/EventBusBroker";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -57,10 +56,11 @@ export const initializeContainer = async () => {
 		// Adapters
 		bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
 		// Brokers
-		bind(IocKey.RabbitMQClient).toConstantValue(
-			await createBrokerConnection(Config)
-		);
-		bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
+		// bind(IocKey.RabbitMQClient).toConstantValue(
+		// 	await createBrokerConnection(Config)
+		// );
+		//bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
+		bind(IocKey.Broker).to(EventBusBroker).inSingletonScope();
 		// DB & Repos
 		bind(IocKey.DbClient).toConstantValue(
 			await createConnection(Config.database.connectionUri)
