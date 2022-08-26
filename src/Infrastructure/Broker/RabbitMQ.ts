@@ -85,7 +85,7 @@ export class RabbitMQ implements IBroker<any, any> {
 					}
 				});
 
-				subscription.cancel();
+				return subscription.cancel();
 			}
 		};
 	}

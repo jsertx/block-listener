@@ -55,7 +55,7 @@ export class BlockListener implements IStandaloneApps {
 						);
 						latestBlock = block.number + 1;
 						// TODO: Make it more elegant
-						this.cache.set(
+						await this.cache.set(
 							`latest_block_${blockchain}`,
 							block.number
 						);

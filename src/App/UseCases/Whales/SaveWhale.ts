@@ -57,15 +57,15 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 			address
 		);
 		await Promise.all(
-			txs.map((hash) => {
+			txs.map((hash) =>
 				this.broker.publish(
 					new TxDiscovered(blockchain, {
 						blockchain,
 						hash,
 						saveUnknown: true
 					})
-				);
-			})
+				)
+			)
 		);
 	}
 }

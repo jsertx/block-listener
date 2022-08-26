@@ -9,7 +9,7 @@ export interface IBrokerPublicationReceipt {
 }
 
 export interface IBrokerSubscription {
-	off: () => void;
+	off: () => Promise<void>;
 }
 
 export class BaseMessage<Publication, Payload> {

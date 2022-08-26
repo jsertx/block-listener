@@ -7,7 +7,7 @@ import { IStandaloneApps } from "./App/Interfaces/IStandaloneApps";
 import { IAdapter } from "./Interfaces/IAdapter";
 import { IExecutor } from "./Interfaces/IExecutor";
 
-(async () => {
+async function main() {
 	const container = await initializeContainer();
 
 	container.getAll<IExecutor>(IocKey.Executors).forEach((listener) => {
@@ -22,4 +22,7 @@ import { IExecutor } from "./Interfaces/IExecutor";
 	container.getAll<IStandaloneApps>(IocKey.StandAloneApps).forEach((app) => {
 		app.start();
 	});
-})();
+}
+
+// eslint-disable-next-line no-console
+main().then(console.log).catch(console.error);

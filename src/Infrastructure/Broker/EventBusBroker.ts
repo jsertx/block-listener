@@ -28,6 +28,12 @@ function resolvePublicationToQueue(publication: string): string | undefined {
 	if (publication.includes(PublicationTypes.WhaleSaved)) {
 		return undefined;
 	}
+	if (publication.includes("retry")) {
+		return publication;
+	}
+	if (publication.includes("dead")) {
+		return publication;
+	}
 	throw new Error("Unknown publication:" + publication);
 }
 
@@ -79,7 +85,7 @@ export class EventBusBroker implements IBroker<any, any> {
 			this.bus.on(channel, (content) => {
 				// eslint-disable-next-line @typescript-eslint/no-empty-function
 				const ack = () => {};
-				const nack = (...args: any[]) => {
+				const nack = (..._args: any[]) => {
 					this.bus.emit(channel, content);
 				};
 				callback(content, ack, nack).catch((error) => {
@@ -102,7 +108,7 @@ export class EventBusBroker implements IBroker<any, any> {
 			});
 		}
 		return {
-			off: () => {
+			off: async () => {
 				this.logger.log({
 					message: `Unsubscribed from ${channel}`,
 					type: "pubsub.unsubscribe",
@@ -112,7 +118,7 @@ export class EventBusBroker implements IBroker<any, any> {
 					}
 				});
 
-				this.bus.removeListener(channel, callback);
+				this.bus.off(channel, callback);
 			}
 		};
 	}

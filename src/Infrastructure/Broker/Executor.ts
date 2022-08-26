@@ -188,7 +188,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		}
 	}
 
-	start() {
+	async start() {
 		this.logger.log({
 			type: `executor.start`,
 			message: `Subscribed to ${this.channel}`,
@@ -197,20 +197,29 @@ export abstract class Executor<PayloadType> implements IExecutor {
 				executorClass: this.constructor.name
 			}
 		});
-		this.broker.subscribe(this.channel, this.executionWrapper.bind(this));
+		await this.broker.subscribe(
+			this.channel,
+			this.executionWrapper.bind(this)
+		);
 	}
 
-	startDeadRecovery() {
-		this.broker.subscribe(this.deadChannel, async (message, ack, nack) => {
-			const processMsg = new ExecutorMessage<PayloadType>(
-				this.channel,
-				message.payload
-			);
-			this.broker.publish(processMsg).then(ack).catch(nack);
-		});
+	async startDeadRecovery() {
+		await this.broker.subscribe(
+			this.deadChannel,
+			async (message, ack, nack) => {
+				const processMsg = new ExecutorMessage<PayloadType>(
+					this.channel,
+					message.payload
+				);
+				this.broker.publish(processMsg).then(ack).catch(nack);
+			}
+		);
 	}
 
-	startRetryManager() {
-		this.broker.subscribe(this.retryChannel, this.retryManager.bind(this));
+	async startRetryManager() {
+		await this.broker.subscribe(
+			this.retryChannel,
+			this.retryManager.bind(this)
+		);
 	}
 }
