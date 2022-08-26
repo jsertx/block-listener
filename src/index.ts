@@ -9,7 +9,7 @@ import { IExecutor } from "./Interfaces/IExecutor";
 
 async function main() {
 	const container = await initializeContainer();
-	if (process.env.HALT) {
+	if (!process.env.HALT) {
 		container.getAll<IExecutor>(IocKey.Executors).forEach((listener) => {
 			listener.start();
 			listener.startRetryManager();
