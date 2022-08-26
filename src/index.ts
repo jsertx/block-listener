@@ -8,8 +8,10 @@ import { IAdapter } from "./Interfaces/IAdapter";
 import { IExecutor } from "./Interfaces/IExecutor";
 
 async function main() {
+	if (process.env.HALT) {
+		return;
+	}
 	const container = await initializeContainer();
-
 	container.getAll<IExecutor>(IocKey.Executors).forEach((listener) => {
 		listener.start();
 		listener.startRetryManager();
