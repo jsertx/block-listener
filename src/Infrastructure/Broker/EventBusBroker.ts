@@ -13,6 +13,10 @@ import { PublicationTypes } from "./Publication";
 import { Subscription } from "./Subscription";
 
 function resolvePublicationToQueue(publication: string): string | undefined {
+	const auto = Object.values(Subscription).find((v) => v === publication);
+	if (auto) {
+		return auto;
+	}
 	if (publication.includes(PublicationTypes.BlockReceived)) {
 		return Subscription.FindDirectTx;
 	}
