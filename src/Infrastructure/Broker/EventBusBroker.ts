@@ -12,7 +12,7 @@ import EventEmitter from "eventemitter3";
 import { PublicationTypes } from "./Publication";
 import { Subscription } from "./Subscription";
 
-function resolvePublicationToQueue(publication: string) {
+function resolvePublicationToQueue(publication: string): string | undefined {
 	if (publication.includes(PublicationTypes.BlockReceived)) {
 		return Subscription.FindDirectTx;
 	}
@@ -24,6 +24,9 @@ function resolvePublicationToQueue(publication: string) {
 	}
 	if (publication.includes(PublicationTypes.TxDiscovered)) {
 		return Subscription.SaveTx;
+	}
+	if (publication.includes(PublicationTypes.WhaleSaved)) {
+		return undefined;
 	}
 	throw new Error("Unknown publication:" + publication);
 }
@@ -38,7 +41,10 @@ export class EventBusBroker implements IBroker<any, any> {
 		payload
 	}: BaseMessage<any, any>): Promise<IBrokerPublicationReceipt> {
 		try {
-			this.bus.emit(resolvePublicationToQueue(channel), payload);
+			const queue = resolvePublicationToQueue(channel);
+			if (queue) {
+				this.bus.emit(queue, payload);
+			}
 		} catch (error) {
 			this.logger.error({
 				message: "Failed message",
