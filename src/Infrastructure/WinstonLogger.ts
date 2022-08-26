@@ -8,18 +8,23 @@ import {
 } from "../Interfaces/ILogger";
 import { injectable } from "inversify";
 
+const stackErrorMaxLevels = 4;
 const normalizeEntryError = (error: any) => {
 	if (error instanceof Error) {
+		const stack = [];
+		const lines = error.stack?.split("\n") || [];
+		while (stack.length < stackErrorMaxLevels && lines.length > 0) {
+			stack.push(lines.pop());
+		}
 		return {
 			name: error.name,
 			message: error.message,
-			stack: error.stack
+			stack
 		};
 	}
 
 	return error;
 };
-
 const prepareEntry = (
 	entryParams: LogEntryParams,
 	{ level }: Pick<LogEntry, "level">
