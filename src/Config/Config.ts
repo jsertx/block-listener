@@ -50,12 +50,17 @@ function prepareNodeList(
 	providers: IConfig["providers"]
 ): IConfig["providers"] {
 	Object.entries(providers).forEach(([blockchain, providers]) => {
-		const alchemyJsonRpcUrl = getEnv(
-			`${blockchain.toUpperCase()}_ALCHEMY_JSON_RPC_URL`,
+		const jsonRpcUrls = getEnv(
+			`${blockchain.toUpperCase()}_JSON_RPC_URLS`,
 			""
 		);
-		if (alchemyJsonRpcUrl) {
-			providers.push({ url: alchemyJsonRpcUrl });
+
+		if (jsonRpcUrls) {
+			jsonRpcUrls
+				.split(",")
+				.forEach((jsonRpcUrl) =>
+					providers.push({ url: jsonRpcUrl.trim() })
+				);
 		}
 	});
 	return providers;
