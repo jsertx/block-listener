@@ -61,11 +61,13 @@ export class FindInternalTx extends Executor<BlockReceivedPayload> {
 			.reduce<string[]>(flattenReducer, [])
 			.filter(onlyUniqueFilter);
 
-		txHashes.forEach((hash) => {
-			this.broker.publish(
-				new TxDiscovered(blockchain, { blockchain, hash })
-			);
-		});
+		await Promise.all(
+			txHashes.map((hash) => {
+				this.broker.publish(
+					new TxDiscovered(blockchain, { blockchain, hash })
+				);
+			})
+		);
 	}
 
 	private async getContractEvents(

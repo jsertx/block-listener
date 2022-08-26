@@ -54,7 +54,7 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 					...block,
 					transactions: block.transactions.map((t) => t.hash)
 				};
-				this.broker.publish(
+				await this.broker.publish(
 					new TxDiscovered(blockchain, {
 						blockchain,
 						hash: tx.hash,

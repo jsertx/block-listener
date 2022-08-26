@@ -42,9 +42,9 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 			relations: [],
 			tags: []
 		});
-		this.findWhaleTxsAndPublish({ address, blockchain });
+		await this.findWhaleTxsAndPublish({ address, blockchain });
 		await this.walletRepository.save(whale);
-		this.broker.publish(
+		await this.broker.publish(
 			new WhaleSaved(blockchain, { blockchain, address })
 		);
 	}
@@ -56,14 +56,16 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 			blockchain,
 			address
 		);
-		txs.forEach((hash) => {
-			this.broker.publish(
-				new TxDiscovered(blockchain, {
-					blockchain,
-					hash,
-					saveUnknown: true
-				})
-			);
-		});
+		await Promise.all(
+			txs.map((hash) => {
+				this.broker.publish(
+					new TxDiscovered(blockchain, {
+						blockchain,
+						hash,
+						saveUnknown: true
+					})
+				);
+			})
+		);
 	}
 }

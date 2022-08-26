@@ -128,25 +128,29 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		}
 		await this.txRepository.save(tx);
 
-		[tx.data.input.token, tx.data.output.token].forEach((address) => {
-			this.broker.publish(
-				new TokenDiscovered(tx.blockchain.id, {
-					blockchain: tx.blockchain.id,
-					address
-				})
-			);
-		});
-
-		[tx.from, tx.data.from, tx.data.to]
-			.filter(onlyUniqueFilter)
-			.forEach((address) => {
+		await Promise.all(
+			[tx.data.input.token, tx.data.output.token].map((address) => {
 				this.broker.publish(
-					new WhaleDiscovered(tx.blockchain.id, {
+					new TokenDiscovered(tx.blockchain.id, {
 						blockchain: tx.blockchain.id,
 						address
 					})
 				);
-			});
+			})
+		);
+
+		await Promise.all(
+			[tx.from, tx.data.from, tx.data.to]
+				.filter(onlyUniqueFilter)
+				.map((address) => {
+					this.broker.publish(
+						new WhaleDiscovered(tx.blockchain.id, {
+							blockchain: tx.blockchain.id,
+							address
+						})
+					);
+				})
+		);
 
 		return true;
 	}
@@ -160,16 +164,18 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			return false;
 		}
 		await this.txRepository.save(tx);
-		[tx.data.from, tx.data.to]
-			.filter(onlyUniqueFilter)
-			.forEach((address) => {
-				this.broker.publish(
-					new WhaleDiscovered(tx.blockchain.id, {
-						blockchain: tx.blockchain.id,
-						address
-					})
-				);
-			});
+		await Promise.all(
+			[tx.data.from, tx.data.to]
+				.filter(onlyUniqueFilter)
+				.map((address) => {
+					this.broker.publish(
+						new WhaleDiscovered(tx.blockchain.id, {
+							blockchain: tx.blockchain.id,
+							address
+						})
+					);
+				})
+		);
 
 		return true;
 	}
