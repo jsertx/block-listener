@@ -27,7 +27,6 @@ export class CovalentApi implements IBlockchainService {
 		address: string
 	): Promise<string[]> {
 		const chainId = new Blockchain(blockchain).chainId;
-		throw new Error("intended");
 		return this.client
 			.get(`/${chainId}/address/${address}/transactions_v2`)
 			.then((res) => res.data.items.map((tx: any) => tx.tx_hash));
