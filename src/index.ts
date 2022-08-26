@@ -8,22 +8,22 @@ import { IAdapter } from "./Interfaces/IAdapter";
 import { IExecutor } from "./Interfaces/IExecutor";
 
 async function main() {
+	const container = await initializeContainer();
 	if (process.env.HALT) {
+		container.getAll<IExecutor>(IocKey.Executors).forEach((listener) => {
+			listener.start();
+			listener.startRetryManager();
+		});
+		container
+			.getAll<IStandaloneApps>(IocKey.StandAloneApps)
+			.forEach((app) => {
+				app.start();
+			});
 		return;
 	}
-	const container = await initializeContainer();
-	container.getAll<IExecutor>(IocKey.Executors).forEach((listener) => {
-		listener.start();
-		listener.startRetryManager();
-	});
-
 	container
 		.getAll<IAdapter>(IocKey.Adapters)
 		.forEach((adapter) => adapter.start());
-
-	container.getAll<IStandaloneApps>(IocKey.StandAloneApps).forEach((app) => {
-		app.start();
-	});
 }
 
 // eslint-disable-next-line no-console
