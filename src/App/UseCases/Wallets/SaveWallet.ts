@@ -60,10 +60,11 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		relations = []
 	}: Required<WalletDiscoveredPayload>) {
 		// SaveWhale should be SaveWallet as its gonna save different wallet types
-		let type = WalletType.Whale;
-		if (tags.find((tag) => tag !== WalletTagName.FoundIteratingBlocks)) {
-			type = WalletType.UnknownWallet;
-		}
+
+		const type = this.hasBeenFoundIteratingBlocks(tags)
+			? WalletType.Whale
+			: WalletType.UnknownWallet;
+
 		const wallet = Wallet.create({
 			address,
 			blockchain,
@@ -93,6 +94,10 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 			wallet.addTag(t)
 		);
 
+		if (this.hasBeenFoundIteratingBlocks(tags)) {
+			wallet.setType(WalletType.Whale);
+		}
+
 		await this.walletRepository.save(wallet);
 	}
 
@@ -115,6 +120,10 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 				)
 			)
 		);
+	}
+
+	private hasBeenFoundIteratingBlocks(tags: WalletTagName[]) {
+		return tags.find((tag) => tag === WalletTagName.FoundIteratingBlocks);
 	}
 }
 // TODO: consider moving both functions below to inside entities and allow addRelation/addTag to filter inside existing values

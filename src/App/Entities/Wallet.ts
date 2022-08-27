@@ -83,11 +83,16 @@ export class Wallet extends Entity<WalletProps> {
 	constructor(props: WalletPropsConstructor, _id?: string) {
 		super({ relations: [], tags: [], ...props }, _id);
 	}
+
 	addRelation(rel: SetOptional<AddressRelation, "createdAt">) {
 		this.props.relations.push({
 			...rel,
 			createdAt: rel.createdAt || new Date()
 		});
+	}
+
+	setType(type: WalletType) {
+		this.props.type = type;
 	}
 
 	addTag(tag: SetOptional<WalletTag, "createdAt"> | WalletTagName) {
