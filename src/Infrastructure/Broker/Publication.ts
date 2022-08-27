@@ -16,16 +16,16 @@ const publicationCreatorFactory =
 export enum PublicationTypes {
 	BlockReceived = "block_received",
 	TxDiscovered = "tx_dicovered",
-	WhaleDiscovered = "whale_discovered",
-	WhaleSaved = "whale_saved",
+	WalletDiscovered = "wallet_discovered",
+	WalletSaved = "wallet_saved",
 	TokenDiscovered = "token_discovered"
 }
 export const Publication = {
 	BlockReceived: publicationCreatorFactory(PublicationTypes.BlockReceived),
 	TxDiscovered: publicationCreatorFactory(PublicationTypes.TxDiscovered),
-	WhaleDiscovered: publicationCreatorFactory(
-		PublicationTypes.WhaleDiscovered
+	WalletDiscovered: publicationCreatorFactory(
+		PublicationTypes.WalletDiscovered
 	),
-	WhaleSaved: publicationCreatorFactory(PublicationTypes.WhaleSaved),
+	WalletSaved: publicationCreatorFactory(PublicationTypes.WalletSaved),
 	TokenDiscovered: publicationCreatorFactory(PublicationTypes.TokenDiscovered)
 };

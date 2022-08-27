@@ -15,14 +15,15 @@ import { allAbiList } from "../Services/SmartContract/ABI";
 import { ITxProcessor } from "../Services/TxProcessor/ITxProcessor";
 import { TxDiscoveredPayload } from "../PubSub/Messages/TxDiscovered";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
-import { WhaleDiscovered } from "../PubSub/Messages/WhaleDiscovered";
-import { onlyUniqueFilter } from "../Utils/Array";
+import { WalletDiscovered } from "../PubSub/Messages/WalletDiscovered";
 import { TokenDiscovered } from "../PubSub/Messages/TokenDiscovered";
 import { IWalletRepository } from "../Repository/IWalletRepository";
 import { checksumed } from "../Utils/Address";
 import BigNumber from "bignumber.js";
 import { IConfig } from "../../Interfaces/IConfig";
 import { Executor } from "../../Infrastructure/Broker/Executor";
+import { WalletTagName } from "../Values/WalletTag";
+import { AddressRelationType } from "../Entities/Wallet";
 
 @injectable()
 export class SaveTx extends Executor<TxDiscoveredPayload> {
@@ -138,19 +139,44 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				)
 			)
 		);
+		const senderIsNotTarget = tx.from !== tx.data.to;
 
-		await Promise.all(
-			[tx.from, tx.data.from, tx.data.to]
-				.filter(onlyUniqueFilter)
-				.map((address) =>
-					this.broker.publish(
-						new WhaleDiscovered(tx.blockchain.id, {
-							blockchain: tx.blockchain.id,
-							address
-						})
-					)
-				)
+		await this.broker.publish(
+			new WalletDiscovered(tx.blockchain.id, {
+				blockchain: tx.blockchain.id,
+				address: tx.from,
+				tags: [WalletTagName.FoundIteratingBlocks],
+				relations: senderIsNotTarget
+					? [
+							{
+								address: tx.data.to,
+								type: AddressRelationType.TransferSent,
+								metadata: {
+									txHash: tx.hash
+								}
+							}
+					  ]
+					: []
+			})
 		);
+		if (senderIsNotTarget) {
+			await this.broker.publish(
+				new WalletDiscovered(tx.blockchain.id, {
+					blockchain: tx.blockchain.id,
+					address: tx.data.to,
+					tags: [WalletTagName.FoundByIncomingTransfer],
+					relations: [
+						{
+							address: tx.data.from,
+							type: AddressRelationType.TransferReceived,
+							metadata: {
+								txHash: tx.hash
+							}
+						}
+					]
+				})
+			);
+		}
 
 		return true;
 	}
@@ -164,16 +190,40 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			return false;
 		}
 		await this.txRepository.save(tx);
-		await Promise.all(
-			[tx.data.from, tx.data.to].filter(onlyUniqueFilter).map((address) =>
-				this.broker.publish(
-					new WhaleDiscovered(tx.blockchain.id, {
-						blockchain: tx.blockchain.id,
-						address
-					})
-				)
+		await Promise.all([
+			this.broker.publish(
+				new WalletDiscovered(tx.blockchain.id, {
+					blockchain: tx.blockchain.id,
+					address: tx.data.from,
+					tags: [WalletTagName.FoundIteratingBlocks],
+					relations: [
+						{
+							address: tx.data.to,
+							type: AddressRelationType.TransferSent,
+							metadata: {
+								txHash: tx.hash
+							}
+						}
+					]
+				})
+			),
+			this.broker.publish(
+				new WalletDiscovered(tx.blockchain.id, {
+					blockchain: tx.blockchain.id,
+					address: tx.data.to,
+					tags: [WalletTagName.FoundByIncomingTransfer],
+					relations: [
+						{
+							address: tx.data.from,
+							type: AddressRelationType.TransferReceived,
+							metadata: {
+								txHash: tx.hash
+							}
+						}
+					]
+				})
 			)
-		);
+		]);
 
 		return true;
 	}

@@ -1,6 +1,7 @@
 export enum WalletTagName {
-	ListingInsider = "listing.insider",
-	TopMarketCapTrader = "top.insider"
+	FoundIteratingBlocks = "found-iterating-blocks",
+	FoundByIncomingTransfer = "found-by-incoming-transfer",
+	AddedManually = "added-manually"
 }
 export const walletTagNameList = Object.values(WalletTagName);
 

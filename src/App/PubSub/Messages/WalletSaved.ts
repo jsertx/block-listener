@@ -2,13 +2,13 @@ import { BlockchainId } from "../../Values/Blockchain";
 import { Publication } from "../../../Infrastructure/Broker/Publication";
 import { BaseMessage } from "../../../Infrastructure/Broker/BaseMessage";
 
-export interface WhaleSavedPayload {
+export interface WalletSavedPayload {
 	blockchain: BlockchainId;
 	address: string;
 }
 
-export class WhaleSaved extends BaseMessage<WhaleSavedPayload> {
-	constructor(blockchain: BlockchainId, payload: WhaleSavedPayload) {
-		super(Publication.WhaleSaved(blockchain), payload);
+export class WalletSaved extends BaseMessage<WalletSavedPayload> {
+	constructor(blockchain: BlockchainId, payload: WalletSavedPayload) {
+		super(Publication.WalletSaved(blockchain), payload);
 	}
 }

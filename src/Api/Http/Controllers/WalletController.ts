@@ -19,8 +19,9 @@ import { CreateWalletDto, CreateWalletDtoSchema } from "../Dto/WalletDto";
 import { IWalletRepository } from "../../../App/Repository/IWalletRepository";
 import { IBroker } from "../../../Interfaces/IBroker";
 import { BlockchainId } from "../../../Config/Blockchains";
-import { WhaleDiscovered } from "../../../App/PubSub/Messages/WhaleDiscovered";
+import { WalletDiscovered } from "../../../App/PubSub/Messages/WalletDiscovered";
 import { Response } from "express";
+import { WalletTagName } from "../../../App/Values/WalletTag";
 
 @controller("/wallets")
 export class WalletController implements interfaces.Controller {
@@ -71,7 +72,11 @@ export class WalletController implements interfaces.Controller {
 		@response() res: Response
 	) {
 		await this.broker.publish(
-			new WhaleDiscovered(blockchain, { blockchain, address })
+			new WalletDiscovered(blockchain, {
+				blockchain,
+				address,
+				tags: [WalletTagName.AddedManually]
+			})
 		);
 		return res.sendStatus(202);
 	}
