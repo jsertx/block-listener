@@ -29,7 +29,7 @@ type WalletPropsConstructor = SetOptional<WalletProps, "relations" | "tags">;
 
 export type WalletRaw = WalletProps;
 
-enum AddressRelationType {
+export enum AddressRelationType {
 	TransferedAsset = "transfer.sent",
 	ReceivedAsset = "transfer.received"
 }
@@ -40,7 +40,7 @@ export interface AddressRelation {
 	address: string;
 	type: AddressRelationType;
 	createdAt: Date;
-	metadata: {
+	metadata?: {
 		txHash?: string;
 	};
 }

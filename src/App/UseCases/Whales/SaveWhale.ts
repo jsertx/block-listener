@@ -12,6 +12,7 @@ import { IBlockchainService } from "../../Interfaces/IBlockchainService";
 import { TxDiscovered } from "../../PubSub/Messages/TxDiscovered";
 import { checksumed } from "../../Utils/Address";
 import { Executor } from "../../../Infrastructure/Broker/Executor";
+import { WalletTagName } from "../../Values/WalletTag";
 
 @injectable()
 export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
@@ -26,7 +27,12 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 		super(logger, broker, Subscription.SaveWhale);
 	}
 
-	async execute({ address, blockchain }: WhaleDiscoveredPayload) {
+	async execute({
+		address,
+		blockchain,
+		tags = [],
+		relations = []
+	}: WhaleDiscoveredPayload) {
 		const existingWhale = await this.walletRepository.findOne({
 			address: checksumed(address),
 			blockchain
@@ -34,14 +40,25 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 		if (existingWhale) {
 			return;
 		}
+		let type = WalletType.Whale;
+		if (tags.find((tag) => tag !== WalletTagName.FoundDoingTx)) {
+			type = WalletType.UnknownWallet;
+		}
 		const whale = Wallet.create({
 			address,
 			blockchain,
-			type: WalletType.Whale,
+			// SaveWhale should be SaveWallet as its gonna save different wallet types
+			type,
 			createdAt: new Date(),
-			relations: [],
-			tags: []
+			tags: tags.map((tag) => ({ tag, createdAt: new Date() })),
+			relations: relations.map((rel) => ({
+				type: rel.type,
+				metadata: rel.metadata,
+				address: rel.address,
+				createdAt: new Date()
+			}))
 		});
+
 		await this.findWhaleTxsAndPublish({ address, blockchain });
 		await this.walletRepository.save(whale);
 		await this.broker.publish(

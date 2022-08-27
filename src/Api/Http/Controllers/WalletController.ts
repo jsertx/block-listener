@@ -21,6 +21,7 @@ import { IBroker } from "../../../Interfaces/IBroker";
 import { BlockchainId } from "../../../Config/Blockchains";
 import { WhaleDiscovered } from "../../../App/PubSub/Messages/WhaleDiscovered";
 import { Response } from "express";
+import { WalletTagName } from "../../../App/Values/WalletTag";
 
 @controller("/wallets")
 export class WalletController implements interfaces.Controller {
@@ -71,7 +72,11 @@ export class WalletController implements interfaces.Controller {
 		@response() res: Response
 	) {
 		await this.broker.publish(
-			new WhaleDiscovered(blockchain, { blockchain, address })
+			new WhaleDiscovered(blockchain, {
+				blockchain,
+				address,
+				tags: [WalletTagName.AddedManually]
+			})
 		);
 		return res.sendStatus(202);
 	}

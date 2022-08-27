@@ -14,7 +14,7 @@
   ],
   "parserOptions": {
     "project": [
-      "./tsconfig.json"
+      "./tsconfig.playground.json"
     ]
   },
   "rules": {
