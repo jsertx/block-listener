@@ -9,7 +9,11 @@ import {
 	BlockchainId,
 	blockchainIdList
 } from "../Values/Blockchain";
-import { WalletTag, walletTagNameList } from "../Values/WalletTag";
+import {
+	WalletTag,
+	WalletTagName,
+	walletTagNameList
+} from "../Values/WalletTag";
 import { WalletType, walletTypeList } from "../Values/WalletType";
 import { Entity } from "./Base/Entity";
 
@@ -79,8 +83,30 @@ export class Wallet extends Entity<WalletProps> {
 	constructor(props: WalletPropsConstructor, _id?: string) {
 		super({ relations: [], tags: [], ...props }, _id);
 	}
-	addRelation(addressRelation: AddressRelation) {
-		this.props.relations.push(addressRelation);
+	addRelation(rel: SetOptional<AddressRelation, "createdAt">) {
+		this.props.relations.push({
+			...rel,
+			createdAt: rel.createdAt || new Date()
+		});
+	}
+
+	addTag(tag: SetOptional<WalletTag, "createdAt"> | WalletTagName) {
+		if (typeof tag === "string") {
+			this.props.tags.push({ tag, createdAt: new Date() });
+			return;
+		}
+		this.props.tags.push({
+			...tag,
+			createdAt: tag.createdAt || new Date()
+		});
+	}
+
+	get relations(): AddressRelation[] {
+		return this.props.relations;
+	}
+
+	get tags(): WalletTag[] {
+		return this.props.tags;
 	}
 
 	get type(): WalletType {
@@ -95,7 +121,16 @@ export class Wallet extends Entity<WalletProps> {
 		return new Blockchain(this.props.blockchain);
 	}
 
-	static create(props: WalletRaw, _id?: string): Wallet {
-		return new Wallet(validateOrThrowError(props, WalletSchema), _id);
+	static create(
+		props: SetOptional<WalletRaw, "tags" | "relations">,
+		_id?: string
+	): Wallet {
+		return new Wallet(
+			validateOrThrowError(
+				{ relations: [], tags: [], ...props },
+				WalletSchema
+			),
+			_id
+		);
 	}
 }
