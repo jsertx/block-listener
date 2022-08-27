@@ -24,8 +24,12 @@ const publicationsSetup: PublicationSetup[] = [
 	[Publication.BlockReceived, Exchange.Block, RoutingKey.BlockReceived],
 	[Publication.TxDiscovered, Exchange.Tx, RoutingKey.TxDiscovered],
 	[Publication.TokenDiscovered, Exchange.Token, RoutingKey.TokenDiscovered],
-	[Publication.WhaleDiscovered, Exchange.Wallet, RoutingKey.WhaleDiscovered],
-	[Publication.WhaleSaved, Exchange.Wallet, RoutingKey.WhaleSaved]
+	[
+		Publication.WalletDiscovered,
+		Exchange.Wallet,
+		RoutingKey.WalletDiscovered
+	],
+	[Publication.WalletSaved, Exchange.Wallet, RoutingKey.WalletSaved]
 ];
 
 const bindingsSetup: BindingSetup[] = [
@@ -33,8 +37,7 @@ const bindingsSetup: BindingSetup[] = [
 	// Not needed yet [Exchange.Block, RoutingKey.BlockReceived, Queue.FindInternalTx],
 	[Exchange.Tx, RoutingKey.TxDiscovered, Queue.SaveTx],
 	[Exchange.Token, RoutingKey.TokenDiscovered, Queue.SaveToken],
-	[Exchange.Wallet, RoutingKey.WhaleDiscovered, Queue.SaveWhale]
-	// Not needed yet [Exchange.Wallet, RoutingKey.WhaleSaved, Queue.FindWhaleTxs],
+	[Exchange.Wallet, RoutingKey.WalletDiscovered, Queue.SaveWallet]
 ];
 
 export const createBrokerConnection = async (config: IConfig) => {
@@ -64,8 +67,8 @@ export const createBrokerConnection = async (config: IConfig) => {
 		[Subscription.SaveToken]: {
 			queue: Queue.SaveToken
 		},
-		[Subscription.SaveWhale]: {
-			queue: Queue.SaveWhale
+		[Subscription.SaveWallet]: {
+			queue: Queue.SaveWallet
 		}
 	};
 

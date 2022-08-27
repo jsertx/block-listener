@@ -5,9 +5,9 @@ import { IBroker } from "../../../Interfaces/IBroker";
 import { AddressRelation, Wallet } from "../../Entities/Wallet";
 import { WalletType } from "../../Values/WalletType";
 import { IWalletRepository } from "../../Repository/IWalletRepository";
-import { WhaleDiscoveredPayload } from "../../PubSub/Messages/WhaleDiscovered";
+import { WalletDiscoveredPayload } from "../../PubSub/Messages/WalletDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
-import { WhaleSaved } from "../../PubSub/Messages/WhaleSaved";
+import { WalletSaved } from "../../PubSub/Messages/WalletSaved";
 import { IBlockchainService } from "../../Interfaces/IBlockchainService";
 import { TxDiscovered } from "../../PubSub/Messages/TxDiscovered";
 import { checksumed } from "../../Utils/Address";
@@ -15,7 +15,7 @@ import { Executor } from "../../../Infrastructure/Broker/Executor";
 import { WalletTag, WalletTagName } from "../../Values/WalletTag";
 
 @injectable()
-export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
+export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 	constructor(
 		@inject(IocKey.WalletRepository)
 		private walletRepository: IWalletRepository,
@@ -24,7 +24,7 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 		@inject(IocKey.Broker) protected broker: IBroker,
 		@inject(IocKey.Logger) protected logger: ILogger
 	) {
-		super(logger, broker, Subscription.SaveWhale);
+		super(logger, broker, Subscription.SaveWallet);
 	}
 
 	async execute({
@@ -32,20 +32,20 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 		blockchain,
 		tags = [],
 		relations = []
-	}: WhaleDiscoveredPayload) {
+	}: WalletDiscoveredPayload) {
 		const existingWhale = await this.walletRepository.findOne({
 			address: checksumed(address),
 			blockchain
 		});
 		if (existingWhale) {
-			return this.updateWhale(existingWhale, {
+			return this.updateWallet(existingWhale, {
 				address,
 				blockchain,
 				tags,
 				relations
 			});
 		}
-		return this.createWhale({
+		return this.createWallet({
 			address,
 			blockchain,
 			tags,
@@ -53,37 +53,37 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 		});
 	}
 
-	private async createWhale({
+	private async createWallet({
 		address,
 		blockchain,
 		tags = [],
 		relations = []
-	}: Required<WhaleDiscoveredPayload>) {
+	}: Required<WalletDiscoveredPayload>) {
 		// SaveWhale should be SaveWallet as its gonna save different wallet types
 		let type = WalletType.Whale;
 		if (tags.find((tag) => tag !== WalletTagName.FoundIteratingBlocks)) {
 			type = WalletType.UnknownWallet;
 		}
-		const whale = Wallet.create({
+		const wallet = Wallet.create({
 			address,
 			blockchain,
 			type,
 			createdAt: new Date()
 		});
 
-		tags.forEach((t) => whale.addTag(t));
-		relations.forEach((r) => whale.addRelation(r));
+		tags.forEach((t) => wallet.addTag(t));
+		relations.forEach((r) => wallet.addRelation(r));
 
 		await this.findWhaleTxsAndPublish({ address, blockchain });
-		await this.walletRepository.save(whale);
+		await this.walletRepository.save(wallet);
 		await this.broker.publish(
-			new WhaleSaved(blockchain, { blockchain, address })
+			new WalletSaved(blockchain, { blockchain, address })
 		);
 	}
 
-	async updateWhale(
+	async updateWallet(
 		wallet: Wallet,
-		{ tags, relations }: Required<WhaleDiscoveredPayload>
+		{ tags, relations }: Required<WalletDiscoveredPayload>
 	) {
 		relations
 			.filter(notExistingRelations(wallet.relations))
@@ -99,7 +99,7 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 	private async findWhaleTxsAndPublish({
 		address,
 		blockchain
-	}: WhaleDiscoveredPayload) {
+	}: WalletDiscoveredPayload) {
 		const txs = await this.blockchainService.getTransactionsForAddress(
 			blockchain,
 			address

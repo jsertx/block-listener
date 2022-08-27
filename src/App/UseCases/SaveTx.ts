@@ -15,7 +15,7 @@ import { allAbiList } from "../Services/SmartContract/ABI";
 import { ITxProcessor } from "../Services/TxProcessor/ITxProcessor";
 import { TxDiscoveredPayload } from "../PubSub/Messages/TxDiscovered";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
-import { WhaleDiscovered } from "../PubSub/Messages/WhaleDiscovered";
+import { WalletDiscovered } from "../PubSub/Messages/WalletDiscovered";
 import { TokenDiscovered } from "../PubSub/Messages/TokenDiscovered";
 import { IWalletRepository } from "../Repository/IWalletRepository";
 import { checksumed } from "../Utils/Address";
@@ -142,7 +142,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		const senderIsNotTarget = tx.from !== tx.data.to;
 
 		await this.broker.publish(
-			new WhaleDiscovered(tx.blockchain.id, {
+			new WalletDiscovered(tx.blockchain.id, {
 				blockchain: tx.blockchain.id,
 				address: tx.from,
 				tags: [WalletTagName.FoundIteratingBlocks],
@@ -161,7 +161,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		);
 		if (senderIsNotTarget) {
 			await this.broker.publish(
-				new WhaleDiscovered(tx.blockchain.id, {
+				new WalletDiscovered(tx.blockchain.id, {
 					blockchain: tx.blockchain.id,
 					address: tx.data.to,
 					tags: [WalletTagName.FoundByIncomingTransfer],
@@ -192,7 +192,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		await this.txRepository.save(tx);
 		await Promise.all([
 			this.broker.publish(
-				new WhaleDiscovered(tx.blockchain.id, {
+				new WalletDiscovered(tx.blockchain.id, {
 					blockchain: tx.blockchain.id,
 					address: tx.data.from,
 					tags: [WalletTagName.FoundIteratingBlocks],
@@ -208,7 +208,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				})
 			),
 			this.broker.publish(
-				new WhaleDiscovered(tx.blockchain.id, {
+				new WalletDiscovered(tx.blockchain.id, {
 					blockchain: tx.blockchain.id,
 					address: tx.data.to,
 					tags: [WalletTagName.FoundByIncomingTransfer],

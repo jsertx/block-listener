@@ -20,7 +20,7 @@ import { NativeTransferProcessor } from "../App/Services/TxProcessor/Strategies/
 import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwapProcessor";
 import { PriceService } from "../App/Services/PriceService";
 import { SaveToken } from "../App/UseCases/Tokens/SaveToken";
-import { SaveWhale } from "../App/UseCases/Whales/SaveWhale";
+import { SaveWallet } from "../App/UseCases/Wallets/SaveWallet";
 import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
 import { TokenService } from "../App/Services/TokenService";
 import { MemoryCache } from "../App/Services/MemoryCache";
@@ -49,8 +49,9 @@ export const initializeContainer = async () => {
 		[
 			SaveTx,
 			SaveToken,
-			SaveWhale,
-			/*FindInternalTx,*/ FindDirectTx
+			SaveWallet,
+			FindDirectTx
+			/*FindInternalTx,*/
 		].forEach((app) => bind(IocKey.Executors).to(app).inSingletonScope());
 
 		// Adapters

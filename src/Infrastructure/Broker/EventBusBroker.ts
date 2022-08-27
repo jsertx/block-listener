@@ -20,8 +20,8 @@ function resolvePublicationToQueue(publication: string): string | undefined {
 	if (publication.includes(PublicationTypes.BlockReceived)) {
 		return Subscription.FindDirectTx;
 	}
-	if (publication.includes(PublicationTypes.WhaleDiscovered)) {
-		return Subscription.SaveWhale;
+	if (publication.includes(PublicationTypes.WalletDiscovered)) {
+		return Subscription.SaveWallet;
 	}
 	if (publication.includes(PublicationTypes.TokenDiscovered)) {
 		return Subscription.SaveToken;
@@ -29,7 +29,7 @@ function resolvePublicationToQueue(publication: string): string | undefined {
 	if (publication.includes(PublicationTypes.TxDiscovered)) {
 		return Subscription.SaveTx;
 	}
-	if (publication.includes(PublicationTypes.WhaleSaved)) {
+	if (publication.includes(PublicationTypes.WalletSaved)) {
 		return undefined;
 	}
 	if (publication.includes("retry")) {

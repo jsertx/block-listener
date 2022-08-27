@@ -9,8 +9,7 @@ export enum Exchange {
 export enum Queue {
 	FindDirectTx = "find_direct_tx",
 	FindInternalTx = "find_internal_tx",
-	FindWhaleTxs = "find_whale_tx",
-	SaveWhale = "save_whale",
+	SaveWallet = "save_wallet",
 	SaveTx = "save_tx",
 	SaveToken = "save_token"
 }
@@ -26,8 +25,8 @@ const routingKeyCreatorFactory =
 
 export const RoutingKey = {
 	BlockReceived: routingKeyCreatorFactory("block.evt.received"),
-	WhaleDiscovered: routingKeyCreatorFactory("wallet.evt.whale_discovered"),
+	WalletDiscovered: routingKeyCreatorFactory("wallet.evt.wallet_discovered"),
 	TokenDiscovered: routingKeyCreatorFactory("token.evt.discovered"),
 	TxDiscovered: routingKeyCreatorFactory("tx.evt.discovered"),
-	WhaleSaved: routingKeyCreatorFactory("wallet.evt.whale_saved")
+	WalletSaved: routingKeyCreatorFactory("wallet.evt.wallet_saved")
 };
