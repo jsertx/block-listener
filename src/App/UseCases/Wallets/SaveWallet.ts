@@ -13,6 +13,7 @@ import { TxDiscovered } from "../../PubSub/Messages/TxDiscovered";
 import { checksumed } from "../../Utils/Address";
 import { Executor } from "../../../Infrastructure/Broker/Executor";
 import { WalletTag, WalletTagName } from "../../Values/WalletTag";
+import { WalletUpdated } from "../../PubSub/Messages/WalletUpdated";
 
 @injectable()
 export class SaveWallet extends Executor<WalletDiscoveredPayload> {
@@ -99,6 +100,12 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		}
 
 		await this.walletRepository.save(wallet);
+		await this.broker.publish(
+			new WalletUpdated(wallet.blockchain.id, {
+				blockchain: wallet.blockchain.id,
+				address: wallet.address
+			})
+		);
 	}
 
 	private async findWhaleTxsAndPublish({

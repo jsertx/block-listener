@@ -18,6 +18,7 @@ export enum PublicationTypes {
 	TxDiscovered = "tx_dicovered",
 	WalletDiscovered = "wallet_discovered",
 	WalletSaved = "wallet_saved",
+	WalletUpdated = "wallet_updated",
 	TokenDiscovered = "token_discovered"
 }
 export const Publication = {
@@ -27,5 +28,6 @@ export const Publication = {
 		PublicationTypes.WalletDiscovered
 	),
 	WalletSaved: publicationCreatorFactory(PublicationTypes.WalletSaved),
+	WalletUpdated: publicationCreatorFactory(PublicationTypes.WalletUpdated),
 	TokenDiscovered: publicationCreatorFactory(PublicationTypes.TokenDiscovered)
 };
