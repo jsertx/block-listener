@@ -1,5 +1,5 @@
 export enum WalletTagName {
-	FoundDoingTx = "found-doing-tx",
+	FoundIteratingBlocks = "found-iterating-blocks",
 	FoundByIncomingTransfer = "found-by-incoming-transfer",
 	AddedManually = "added-manually"
 }

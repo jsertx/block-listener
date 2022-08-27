@@ -61,7 +61,7 @@ export class SaveWhale extends Executor<WhaleDiscoveredPayload> {
 	}: Required<WhaleDiscoveredPayload>) {
 		// SaveWhale should be SaveWallet as its gonna save different wallet types
 		let type = WalletType.Whale;
-		if (tags.find((tag) => tag !== WalletTagName.FoundDoingTx)) {
+		if (tags.find((tag) => tag !== WalletTagName.FoundIteratingBlocks)) {
 			type = WalletType.UnknownWallet;
 		}
 		const whale = Wallet.create({

@@ -145,12 +145,12 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			new WhaleDiscovered(tx.blockchain.id, {
 				blockchain: tx.blockchain.id,
 				address: tx.from,
-				tags: [WalletTagName.FoundDoingTx],
+				tags: [WalletTagName.FoundIteratingBlocks],
 				relations: senderIsNotTarget
 					? [
 							{
 								address: tx.data.to,
-								type: AddressRelationType.TransferedAsset,
+								type: AddressRelationType.TransferSent,
 								metadata: {
 									txHash: tx.hash
 								}
@@ -168,7 +168,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 					relations: [
 						{
 							address: tx.data.from,
-							type: AddressRelationType.ReceivedAsset,
+							type: AddressRelationType.TransferReceived,
 							metadata: {
 								txHash: tx.hash
 							}
@@ -195,11 +195,11 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				new WhaleDiscovered(tx.blockchain.id, {
 					blockchain: tx.blockchain.id,
 					address: tx.data.from,
-					tags: [WalletTagName.FoundDoingTx],
+					tags: [WalletTagName.FoundIteratingBlocks],
 					relations: [
 						{
 							address: tx.data.to,
-							type: AddressRelationType.TransferedAsset,
+							type: AddressRelationType.TransferSent,
 							metadata: {
 								txHash: tx.hash
 							}
@@ -215,7 +215,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 					relations: [
 						{
 							address: tx.data.from,
-							type: AddressRelationType.ReceivedAsset,
+							type: AddressRelationType.TransferReceived,
 							metadata: {
 								txHash: tx.hash
 							}

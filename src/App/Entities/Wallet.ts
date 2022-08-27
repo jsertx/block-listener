@@ -34,8 +34,8 @@ type WalletPropsConstructor = SetOptional<WalletProps, "relations" | "tags">;
 export type WalletRaw = WalletProps;
 
 export enum AddressRelationType {
-	TransferedAsset = "transfer.sent",
-	ReceivedAsset = "transfer.received"
+	TransferSent = "transfer.sent",
+	TransferReceived = "transfer.received"
 }
 
 export const addressRelationTypeList = Object.values(AddressRelationType);
