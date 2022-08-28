@@ -74,19 +74,12 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 
 		if (processedTx) {
 			tx = processedTx;
-		}
-
-		if (!processedTx && !saveUnknown) {
+		} else if (!saveUnknown) {
 			return;
 		}
 
 		const { saved } = await this.saveTxIfApplies(tx);
-		if (!saved) {
-			this.logger.debug({
-				type: "save-tx.skipped",
-				context: { txHash: hash, blockchain }
-			});
-		} else {
+		if (saved) {
 			this.logger.log({
 				type: "save-tx.saved",
 				context: { txHash: hash, blockchain }
@@ -139,27 +132,26 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				)
 			)
 		);
-		const senderIsNotTarget = tx.from !== tx.data.to;
+		const swapOutAddressIsNotSender = tx.from !== tx.data.to;
+		const transferSentRelation = {
+			address: tx.data.to,
+			type: AddressRelationType.TransferSent,
+			metadata: {
+				txHash: tx.hash
+			}
+		};
 
 		await this.broker.publish(
 			new WalletDiscovered({
 				blockchain: tx.blockchain.id,
 				address: tx.from,
 				tags: [WalletTagName.FoundIteratingBlocks],
-				relations: senderIsNotTarget
-					? [
-							{
-								address: tx.data.to,
-								type: AddressRelationType.TransferSent,
-								metadata: {
-									txHash: tx.hash
-								}
-							}
-					  ]
+				relations: swapOutAddressIsNotSender
+					? [transferSentRelation]
 					: []
 			})
 		);
-		if (senderIsNotTarget) {
+		if (swapOutAddressIsNotSender) {
 			await this.broker.publish(
 				new WalletDiscovered({
 					blockchain: tx.blockchain.id,

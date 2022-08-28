@@ -17,6 +17,7 @@ import { Contract } from "../Entities/Contract";
 import { BlockchainId } from "../Values/Blockchain";
 import { Executor } from "../../Infrastructure/Broker/Executor";
 import { ICache } from "../Interfaces/ICache";
+import { WalletType } from "../Values/WalletType";
 
 const contractCacheKey = (blockchain: string) =>
 	`find_direct_tx_contracts_${blockchain}`;
@@ -86,7 +87,8 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 	): Promise<boolean> {
 		const wallet = await this.walletRepository.findOne({
 			address: checksumed(txRes.from),
-			blockchain
+			blockchain,
+			type: WalletType.Whale
 		});
 		return !!wallet;
 	}

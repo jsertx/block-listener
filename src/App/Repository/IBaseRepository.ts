@@ -1,10 +1,12 @@
+import { PartialDeep } from "type-fest";
 import { Entity } from "../Entities/Base/Entity";
 
 export interface findAllOptions<T = any> {
-	where?: Partial<T>;
+	where?: PartialDeep<T>;
 	page?: number;
 	pageSize?: number;
 }
+
 export interface FindAllResponse<TEntity> {
 	page: number;
 	pageSize: number;
@@ -15,7 +17,9 @@ export interface IBaseRepository<
 	TEntity extends Entity<any>,
 	TId extends Record<string, any>
 > {
-	findOne(id: TId): Promise<TEntity | undefined>;
+	findOne(
+		id: TId & PartialDeep<TEntity["props"]>
+	): Promise<TEntity | undefined>;
 	findAll(
 		options?: findAllOptions<TEntity["props"]>
 	): Promise<FindAllResponse<TEntity>>;
