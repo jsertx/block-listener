@@ -77,7 +77,7 @@ export class StatusController implements interfaces.Controller {
 		);
 		return latestBlocksByChain
 			.filter(notUndefined)
-			.reduce<StatusResponseDto["latestBlocks"]>((map, block, i) => {
+			.reduce<StatusResponseDto["latestBlocks"]>((map, block) => {
 				return { ...map, [block.blockchain.id]: block.height };
 			}, {});
 	}
