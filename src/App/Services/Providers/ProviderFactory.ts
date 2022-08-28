@@ -8,34 +8,26 @@ import {
 } from "../../../Interfaces/IConfig";
 import { IProviderFactory } from "../../Interfaces/IProviderFactory";
 import { IocKey } from "../../../Ioc/IocKey";
-const defaultBlockchain = new Blockchain(BlockchainId.Ethereum);
+import { createWrappedProvider } from "./Utils";
 
 @injectable()
 export class ProviderFactory implements IProviderFactory {
 	constructor(@inject(IocKey.Config) private config: IConfig) {}
 
-	getMulticallProvider(
-		blockchain: Blockchain | BlockchainId = defaultBlockchain
-	): Multicall {
+	getMulticallProvider(blockchain: Blockchain | BlockchainId): Multicall {
 		return new Multicall({ ethersProvider: this.getProvider(blockchain) });
 	}
 
-	getProvider(blockchain: Blockchain | BlockchainId = defaultBlockchain) {
+	getProvider(blockchain: Blockchain | BlockchainId) {
 		if (!(blockchain instanceof Blockchain)) {
 			blockchain = new Blockchain(blockchain);
 		}
 		const { url } = randomItem<IBlockchainProviderConfig>(
 			this.config.providers[blockchain.id]
 		);
-		if (url.startsWith("ws")) {
-			return new ethers.providers.WebSocketProvider(
-				url,
-				blockchain.chainId
-			);
-		}
-		return new ethers.providers.StaticJsonRpcProvider(
-			url,
-			blockchain.chainId
+
+		return createWrappedProvider(
+			new ethers.providers.StaticJsonRpcProvider(url, blockchain.chainId)
 		);
 	}
 }

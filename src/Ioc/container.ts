@@ -24,8 +24,10 @@ import { SaveWallet } from "../App/UseCases/Wallets/SaveWallet";
 import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
 import { TokenService } from "../App/Services/TokenService";
 import { MemoryCache } from "../App/Services/MemoryCache";
-import { EventBusBroker } from "../Infrastructure/Broker/EventBusBroker";
+
 import { BlockRepository } from "../Infrastructure/Repository/BlockRepository";
+import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/ConfigCreation";
+import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -58,11 +60,11 @@ export const initializeContainer = async () => {
 		// Adapters
 		bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
 		// Brokers
-		// bind(IocKey.RabbitMQClient).toConstantValue(
-		// 	await createBrokerConnection(Config)
-		// );
-		//bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
-		bind(IocKey.Broker).to(EventBusBroker).inSingletonScope();
+		bind(IocKey.RabbitMQClient).toConstantValue(
+			await createBrokerConnection(Config)
+		);
+		bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
+
 		// DB & Repos
 		bind(IocKey.DbClient).toConstantValue(
 			await createConnection(Config.database.connectionUri)

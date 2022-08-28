@@ -4,13 +4,9 @@ import { BlockchainId } from "./Blockchains";
 
 export const Config: IConfig = {
 	providers: prepareNodeList({
-		[BlockchainId.Ethereum]: [{ url: "https://eth.public-rpc.com" }],
-		[BlockchainId.Binance]: [{ url: "https://bsc-dataseed.binance.org/" }],
-		[BlockchainId.Polygon]: [
-			{
-				url: "https://rpc.ankr.com/polygon"
-			}
-		]
+		[BlockchainId.Ethereum]: [],
+		[BlockchainId.Binance]: [],
+		[BlockchainId.Polygon]: []
 	}),
 	enabledBlockchains: [
 		BlockchainId.Ethereum

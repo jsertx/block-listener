@@ -29,6 +29,9 @@ function resolvePublicationToQueue(publication: string): string | undefined {
 	if (publication.includes(PublicationTypes.TxDiscovered)) {
 		return Subscription.SaveTx;
 	}
+	if (publication.includes(PublicationTypes.WalletUpdated)) {
+		return undefined;
+	}
 	if (publication.includes(PublicationTypes.WalletSaved)) {
 		return undefined;
 	}

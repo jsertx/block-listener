@@ -29,7 +29,8 @@ const publicationsSetup: PublicationSetup[] = [
 		Exchange.Wallet,
 		RoutingKey.WalletDiscovered
 	],
-	[Publication.WalletSaved, Exchange.Wallet, RoutingKey.WalletSaved]
+	[Publication.WalletSaved, Exchange.Wallet, RoutingKey.WalletSaved],
+	[Publication.WalletUpdated, Exchange.Wallet, RoutingKey.WalletUpdated]
 ];
 
 const bindingsSetup: BindingSetup[] = [
