@@ -11,6 +11,9 @@ import { BlockReceived } from "../PubSub/Messages/BlockReceived";
 import { IConfig } from "../../Interfaces/IConfig";
 import { sleep } from "../Utils/Misc";
 import { ICache } from "../Interfaces/ICache";
+import { IBlockRepository } from "../Repository/IBlockRepository";
+import { Block } from "../Entities/Block";
+import BigNumber from "bignumber.js";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
@@ -21,7 +24,9 @@ export class BlockListener implements IStandaloneApps {
 		private providerFactory: IProviderFactory,
 		@inject(IocKey.Logger) private logger: ILogger,
 		@inject(IocKey.Broker) private broker: IBroker,
-		@inject(IocKey.Cache) private cache: ICache
+		@inject(IocKey.Cache) private cache: ICache,
+		@inject(IocKey.BlockRepository)
+		private blockRepository: IBlockRepository
 	) {}
 
 	private getProvider(blockchain: BlockchainId) {
@@ -36,29 +41,32 @@ export class BlockListener implements IStandaloneApps {
 				}
 			});
 
-			let latestBlock = await this.getProvider(blockchain)
-				.getBlock("latest")
-				.then((res) => res.number);
-
+			let latestBlock = await this.getStartBlock(blockchain);
 			for (;;) {
 				const block = await this.getProvider(blockchain)
-					.getBlockWithTransactions(latestBlock)
+					.getBlockWithTransactions(
+						new BigNumber(latestBlock).toNumber()
+					)
 					.catch(() => undefined);
 
 				if (block) {
 					try {
+						await this.blockRepository.save(
+							Block.create({
+								blockchain,
+								height: `${block.number}`,
+								timestamp: new Date(block.timestamp * 1000)
+							})
+						);
 						await this.broker.publish(
 							new BlockReceived({
 								blockchain,
 								block
 							})
 						);
+
 						latestBlock = block.number + 1;
-						// TODO: Make it more elegant
-						await this.cache.set(
-							`latest_block_${blockchain}`,
-							block.number
-						);
+
 						this.logger.log({
 							type: "block-listener.new-block",
 							context: {
@@ -80,5 +88,17 @@ export class BlockListener implements IStandaloneApps {
 				await sleep(10_000);
 			}
 		});
+	}
+	private async getStartBlock(blockchain: BlockchainId): Promise<number> {
+		const latestBlockFromDb = await this.blockRepository
+			.findLatestBlock(blockchain)
+			.then((res) => res?.height);
+		if (latestBlockFromDb) {
+			return parseInt(latestBlockFromDb);
+		}
+
+		return await this.getProvider(blockchain)
+			.getBlock("latest")
+			.then((res) => res.number);
 	}
 }

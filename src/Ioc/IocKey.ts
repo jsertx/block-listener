@@ -25,5 +25,6 @@ export const IocKey = {
 	TxRepository: Symbol.for("TxRepository"),
 	ContractRepository: Symbol.for("ContractRepository"),
 	WalletRepository: Symbol.for("WalletRepository"),
-	TokenRepository: Symbol.for("TokenRepository")
+	TokenRepository: Symbol.for("TokenRepository"),
+	BlockRepository: Symbol.for("BlockRepository")
 };

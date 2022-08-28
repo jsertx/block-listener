@@ -1,9 +1,10 @@
 import { inject } from "inversify";
 import { interfaces, controller, httpGet } from "inversify-express-utils";
-import { ICache } from "../../../App/Interfaces/ICache";
+import { IBlockRepository } from "../../../App/Repository/IBlockRepository";
 import { ITokenRepository } from "../../../App/Repository/ITokenRepository";
 import { ITxRepository } from "../../../App/Repository/ITxRepository";
 import { IWalletRepository } from "../../../App/Repository/IWalletRepository";
+import { notUndefined } from "../../../App/Utils/Array";
 import { TxType } from "../../../App/Values/TxType";
 import { IConfig } from "../../../Interfaces/IConfig";
 import { IocKey } from "../../../Ioc/IocKey";
@@ -14,12 +15,12 @@ import { IApiResponse } from "../Types/Response";
 export class StatusController implements interfaces.Controller {
 	constructor(
 		@inject(IocKey.Config) private config: IConfig,
-		@inject(IocKey.Cache) private cache: ICache,
 		@inject(IocKey.TokenRepository)
 		private tokenRepository: ITokenRepository,
 		@inject(IocKey.WalletRepository)
 		private walletRepository: IWalletRepository,
-		@inject(IocKey.TxRepository) private txRepository: ITxRepository
+		@inject(IocKey.TxRepository) private txRepository: ITxRepository,
+		@inject(IocKey.BlockRepository) private block: IBlockRepository
 	) {}
 	@httpGet("/")
 	async index(): Promise<IApiResponse<StatusResponseDto>> {
@@ -71,13 +72,13 @@ export class StatusController implements interfaces.Controller {
 	> {
 		const latestBlocksByChain = await Promise.all(
 			this.config.enabledBlockchains.map((blockchain) =>
-				this.cache.get(`latest_block_${blockchain}`)
+				this.block.findLatestBlock(blockchain)
 			)
 		);
-		return this.config.enabledBlockchains.reduce<
-			StatusResponseDto["latestBlocks"]
-		>((map, blockchain, i) => {
-			return { ...map, [blockchain]: latestBlocksByChain[i] };
-		}, {});
+		return latestBlocksByChain
+			.filter(notUndefined)
+			.reduce<StatusResponseDto["latestBlocks"]>((map, block, i) => {
+				return { ...map, [block.blockchain.id]: block.height };
+			}, {});
 	}
 }

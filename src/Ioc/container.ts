@@ -25,6 +25,7 @@ import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
 import { TokenService } from "../App/Services/TokenService";
 import { MemoryCache } from "../App/Services/MemoryCache";
 import { EventBusBroker } from "../Infrastructure/Broker/EventBusBroker";
+import { BlockRepository } from "../Infrastructure/Repository/BlockRepository";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -72,6 +73,7 @@ export const initializeContainer = async () => {
 			.inSingletonScope();
 		bind(IocKey.TokenRepository).to(TokenRepository).inSingletonScope();
 		bind(IocKey.WalletRepository).to(WalletRepository).inSingletonScope();
+		bind(IocKey.BlockRepository).to(BlockRepository).inSingletonScope();
 	});
 
 	const container = new Container();
