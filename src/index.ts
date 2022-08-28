@@ -19,7 +19,6 @@ async function main() {
 			.forEach((app) => {
 				app.start();
 			});
-		return;
 	}
 	container
 		.getAll<IAdapter>(IocKey.Adapters)
