@@ -132,7 +132,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		await Promise.all(
 			[tx.data.input.token, tx.data.output.token].map((address) =>
 				this.broker.publish(
-					new TokenDiscovered(tx.blockchain.id, {
+					new TokenDiscovered({
 						blockchain: tx.blockchain.id,
 						address
 					})
@@ -142,7 +142,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		const senderIsNotTarget = tx.from !== tx.data.to;
 
 		await this.broker.publish(
-			new WalletDiscovered(tx.blockchain.id, {
+			new WalletDiscovered({
 				blockchain: tx.blockchain.id,
 				address: tx.from,
 				tags: [WalletTagName.FoundIteratingBlocks],
@@ -161,7 +161,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		);
 		if (senderIsNotTarget) {
 			await this.broker.publish(
-				new WalletDiscovered(tx.blockchain.id, {
+				new WalletDiscovered({
 					blockchain: tx.blockchain.id,
 					address: tx.data.to,
 					tags: [WalletTagName.FoundByIncomingTransfer],
@@ -192,7 +192,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		await this.txRepository.save(tx);
 		await Promise.all([
 			this.broker.publish(
-				new WalletDiscovered(tx.blockchain.id, {
+				new WalletDiscovered({
 					blockchain: tx.blockchain.id,
 					address: tx.data.from,
 					tags: [WalletTagName.FoundIteratingBlocks],
@@ -208,7 +208,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				})
 			),
 			this.broker.publish(
-				new WalletDiscovered(tx.blockchain.id, {
+				new WalletDiscovered({
 					blockchain: tx.blockchain.id,
 					address: tx.data.to,
 					tags: [WalletTagName.FoundByIncomingTransfer],
