@@ -12,7 +12,7 @@ export interface TxDiscoveredPayload {
 }
 
 export class TxDiscovered extends ExecutorMessage<TxDiscoveredPayload> {
-	constructor(blockchain: BlockchainId, payload: TxDiscoveredPayload) {
-		super(Publication.TxDiscovered(blockchain), payload);
+	constructor(payload: TxDiscoveredPayload) {
+		super(Publication.TxDiscovered(payload.blockchain), payload);
 	}
 }

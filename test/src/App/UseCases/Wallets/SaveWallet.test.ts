@@ -15,8 +15,6 @@ import { createBrokerMock } from "../../../../mocks/Broker.mock";
 import { createLoggerMock } from "../../../../mocks/Logger.mock";
 import { createWalletRepositoryMock } from "../../../../mocks/WalletRepository.mock";
 
-jest.useFakeTimers().setSystemTime(new Date("2022-09-03"));
-
 describe("UseCase > SaveWallet", () => {
 	let useCase: SaveWallet;
 	const address = "0xb6bb85755521b7ee295c48250cc73bff94fac4f6";
@@ -69,7 +67,7 @@ describe("UseCase > SaveWallet", () => {
 					txs.forEach((hash, callNumber) => {
 						expect(brokerMock.publish).toHaveBeenNthCalledWith(
 							callNumber + 1,
-							new TxDiscovered(blockchain, {
+							new TxDiscovered({
 								hash,
 								blockchain,
 								saveUnknown: true
@@ -81,7 +79,7 @@ describe("UseCase > SaveWallet", () => {
 				it("should publish wallet_saved event", () => {
 					expect(brokerMock.publish).toHaveBeenNthCalledWith(
 						3,
-						new WalletSaved(blockchain, {
+						new WalletSaved({
 							address,
 							blockchain
 						})
@@ -153,7 +151,7 @@ describe("UseCase > SaveWallet", () => {
 
 		it("should publish wallet_updated event", () => {
 			expect(brokerMock.publish).toHaveBeenCalledWith(
-				new WalletUpdated(blockchain, {
+				new WalletUpdated({
 					address,
 					blockchain
 				})

@@ -8,7 +8,7 @@ export interface WalletUpdatedPayload {
 }
 
 export class WalletUpdated extends BaseMessage<WalletUpdatedPayload> {
-	constructor(blockchain: BlockchainId, payload: WalletUpdatedPayload) {
-		super(Publication.WalletUpdated(blockchain), payload);
+	constructor(payload: WalletUpdatedPayload) {
+		super(Publication.WalletUpdated(payload.blockchain), payload);
 	}
 }

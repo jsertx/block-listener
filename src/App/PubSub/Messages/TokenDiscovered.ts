@@ -8,7 +8,7 @@ export interface TokenDiscoveredPayload {
 }
 
 export class TokenDiscovered extends ExecutorMessage<TokenDiscoveredPayload> {
-	constructor(blockchain: BlockchainId, payload: TokenDiscoveredPayload) {
-		super(Publication.TokenDiscovered(blockchain), payload);
+	constructor(payload: TokenDiscoveredPayload) {
+		super(Publication.TokenDiscovered(payload.blockchain), payload);
 	}
 }

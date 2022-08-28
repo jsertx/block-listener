@@ -66,9 +66,7 @@ export class TokenController implements interfaces.Controller {
 		@requestParam("address") address: string,
 		@response() res: Response
 	) {
-		await this.broker.publish(
-			new TokenDiscovered(blockchain, { blockchain, address })
-		);
+		await this.broker.publish(new TokenDiscovered({ blockchain, address }));
 		return res.sendStatus(202);
 	}
 }

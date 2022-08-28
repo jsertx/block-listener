@@ -8,7 +8,7 @@ export interface BlockReceivedPayload {
 	block: BlockWithTransactions;
 }
 export class BlockReceived extends ExecutorMessage<BlockReceivedPayload> {
-	constructor(blockchain: BlockchainId, payload: BlockReceivedPayload) {
-		super(Publication.BlockReceived(blockchain), payload);
+	constructor(payload: BlockReceivedPayload) {
+		super(Publication.BlockReceived(payload.blockchain), payload);
 	}
 }

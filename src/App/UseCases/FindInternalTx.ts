@@ -63,9 +63,7 @@ export class FindInternalTx extends Executor<BlockReceivedPayload> {
 
 		await Promise.all(
 			txHashes.map((hash) =>
-				this.broker.publish(
-					new TxDiscovered(blockchain, { blockchain, hash })
-				)
+				this.broker.publish(new TxDiscovered({ blockchain, hash }))
 			)
 		);
 	}

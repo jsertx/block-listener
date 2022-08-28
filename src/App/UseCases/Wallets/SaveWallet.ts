@@ -78,9 +78,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 
 		await this.findWhaleTxsAndPublish({ address, blockchain });
 		await this.walletRepository.save(wallet);
-		await this.broker.publish(
-			new WalletSaved(blockchain, { blockchain, address })
-		);
+		await this.broker.publish(new WalletSaved({ blockchain, address }));
 	}
 
 	async updateWallet(
@@ -101,7 +99,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(
-			new WalletUpdated(wallet.blockchain.id, {
+			new WalletUpdated({
 				blockchain: wallet.blockchain.id,
 				address: wallet.address
 			})
@@ -119,7 +117,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		await Promise.all(
 			txs.map((hash) =>
 				this.broker.publish(
-					new TxDiscovered(blockchain, {
+					new TxDiscovered({
 						blockchain,
 						hash,
 						saveUnknown: true

@@ -48,7 +48,7 @@ export class BlockListener implements IStandaloneApps {
 				if (block) {
 					try {
 						await this.broker.publish(
-							new BlockReceived(blockchain, {
+							new BlockReceived({
 								blockchain,
 								block
 							})

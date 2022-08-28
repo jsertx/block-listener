@@ -1,0 +1,88 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PubSub > Messages BlockReceived should build the correct payload 1`] = `
+Object {
+  "maxRetries": 10,
+  "payload": Object {
+    "block": Object {
+      "block": 1,
+    },
+    "blockchain": "ethereum",
+  },
+  "processAfter": 1662163200000,
+  "retries": 0,
+}
+`;
+
+exports[`PubSub > Messages BlockReceived should get the channel with the blockchain prefix 1`] = `"ethereum.block_received"`;
+
+exports[`PubSub > Messages TokenDiscovered should build the correct payload 1`] = `
+Object {
+  "maxRetries": 10,
+  "payload": Object {
+    "address": "0xA",
+    "blockchain": "ethereum",
+  },
+  "processAfter": 1662163200000,
+  "retries": 0,
+}
+`;
+
+exports[`PubSub > Messages TokenDiscovered should get the channel with the blockchain prefix 1`] = `"ethereum.token_discovered"`;
+
+exports[`PubSub > Messages TxDiscovered should build the correct payload 1`] = `
+Object {
+  "maxRetries": 10,
+  "payload": Object {
+    "block": Object {
+      "blockData": "mock",
+    },
+    "blockchain": "ethereum",
+    "hash": "0xHASH",
+    "saveUnknown": true,
+    "txRes": Object {
+      "txData": "mock",
+    },
+  },
+  "processAfter": 1662163200000,
+  "retries": 0,
+}
+`;
+
+exports[`PubSub > Messages TxDiscovered should get the channel with the blockchain prefix 1`] = `"ethereum.tx_dicovered"`;
+
+exports[`PubSub > Messages WalletDiscovered should build the correct payload 1`] = `
+Object {
+  "maxRetries": 10,
+  "payload": Object {
+    "address": "0xAddress",
+    "blockchain": "ethereum",
+    "relations": Array [],
+    "tags": Array [
+      "added-manually",
+    ],
+  },
+  "processAfter": 1662163200000,
+  "retries": 0,
+}
+`;
+
+exports[`PubSub > Messages WalletDiscovered should get the channel with the blockchain prefix 1`] = `"ethereum.wallet_discovered"`;
+
+exports[`PubSub > Messages WalletSaved should build the correct payload 1`] = `
+Object {
+  "address": "0xA",
+  "blockchain": "ethereum",
+}
+`;
+
+exports[`PubSub > Messages WalletSaved should get the channel with the blockchain prefix 1`] = `"ethereum.wallet_saved"`;
+
+exports[`PubSub > Messages WalletUpdated should build the correct payload 1`] = `
+Object {
+  "address": "0xA",
+  "blockchain": "ethereum",
+}
+`;
+
+exports[`PubSub > Messages WalletUpdated should get the channel with the blockchain prefix 1`] = `"ethereum.wallet_updated"`;

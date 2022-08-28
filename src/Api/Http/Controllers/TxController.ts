@@ -83,9 +83,7 @@ export class TxController implements interfaces.Controller {
 		@requestParam("hash") hash: string,
 		@response() res: Response
 	) {
-		await this.broker.publish(
-			new TxDiscovered(blockchain, { blockchain, hash })
-		);
+		await this.broker.publish(new TxDiscovered({ blockchain, hash }));
 		return res.sendStatus(202);
 	}
 }

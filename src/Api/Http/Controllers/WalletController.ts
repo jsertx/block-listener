@@ -72,7 +72,7 @@ export class WalletController implements interfaces.Controller {
 		@response() res: Response
 	) {
 		await this.broker.publish(
-			new WalletDiscovered(blockchain, {
+			new WalletDiscovered({
 				blockchain,
 				address,
 				tags: [WalletTagName.AddedManually]

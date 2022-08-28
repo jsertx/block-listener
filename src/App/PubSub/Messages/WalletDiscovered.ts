@@ -12,7 +12,7 @@ export interface WalletDiscoveredPayload {
 }
 
 export class WalletDiscovered extends ExecutorMessage<WalletDiscoveredPayload> {
-	constructor(blockchain: BlockchainId, payload: WalletDiscoveredPayload) {
-		super(Publication.WalletDiscovered(blockchain), payload);
+	constructor(payload: WalletDiscoveredPayload) {
+		super(Publication.WalletDiscovered(payload.blockchain), payload);
 	}
 }

@@ -3,5 +3,7 @@
 export default {
 	preset: "ts-jest",
 	testEnvironment: "node",
-	setupFiles: ["./test/jest.setup.ts"]
+	setupFiles: ["./test/jest.setup.ts"],
+	verbose: true,
+	testMatch: ["**/*.test.ts"]
 };
