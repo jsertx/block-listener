@@ -39,6 +39,9 @@ export const Config: IConfig = {
 	},
 	covalent: {
 		apiKey: getEnv("COVALENT_API_KEY")
+	},
+	finnhub: {
+		apiKey: getEnv("FINNHUB_API_KEY")
 	}
 };
 

@@ -13,6 +13,9 @@ export interface IConfig {
 	covalent: {
 		apiKey: string;
 	};
+	finnhub: {
+		apiKey: string;
+	};
 	database: {
 		database?: string;
 		connectionUri: string;

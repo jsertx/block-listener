@@ -255,7 +255,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			original: res,
 			hash,
 			blockHeight: receipt.blockNumber,
-			timestamp: block.timestamp,
+			timestamp: block.timestamp * 1000,
 			data: res.data,
 			to: checksumed(res.to),
 			from: checksumed(res.from),

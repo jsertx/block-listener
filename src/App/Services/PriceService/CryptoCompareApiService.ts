@@ -2,13 +2,17 @@ import axios from "axios";
 import BigNumber from "bignumber.js";
 import { injectable } from "inversify";
 
-import { IPriceService } from "../Interfaces/IPriceService";
-import { Blockchain } from "../Values/Blockchain";
+import {
+	IPriceService,
+	PriceServiceTimeParam
+} from "../../Interfaces/IPriceService";
+import { Blockchain } from "../../Values/Blockchain";
 
 @injectable()
-export class PriceService implements IPriceService {
+export class CryptoCompareApiService implements IPriceService {
 	async getBlockchainNativeTokenUsdPrice(
-		blockchain: Blockchain
+		blockchain: Blockchain,
+		_time: PriceServiceTimeParam = Date.now()
 	): Promise<BigNumber> {
 		const res: any = await axios
 			.get(
@@ -21,9 +25,13 @@ export class PriceService implements IPriceService {
 
 	async getBlockchainNativeTokenUsdValue(
 		blockchain: Blockchain,
-		amount: BigNumber | string
+		amount: BigNumber | string,
+		time: PriceServiceTimeParam = Date.now()
 	): Promise<BigNumber> {
-		const price = await this.getBlockchainNativeTokenUsdPrice(blockchain);
+		const price = await this.getBlockchainNativeTokenUsdPrice(
+			blockchain,
+			time
+		);
 		return price.multipliedBy(amount);
 	}
 }

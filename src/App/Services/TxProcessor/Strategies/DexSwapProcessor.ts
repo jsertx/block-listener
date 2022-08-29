@@ -150,13 +150,15 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 			usdValue = await this.priceService
 				.getBlockchainNativeTokenUsdValue(
 					tx.blockchain,
-					weth.toFormatted(nativeValue)
+					weth.toFormatted(nativeValue),
+					tx.raw.timestamp
 				)
 				.then((res) => res.toFixed());
 		} else if (!nativeValue && usdValue) {
 			const nativePrice =
 				await this.priceService.getBlockchainNativeTokenUsdPrice(
-					tx.blockchain
+					tx.blockchain,
+					tx.raw.timestamp
 				);
 			nativeValue = nativePrice.multipliedBy(usdValue).toFixed();
 		}

@@ -18,7 +18,6 @@ import { SelectivePairDiscoverer } from "../App/UseCases/SelectivePairDiscoverer
 import { TokenRepository } from "../Infrastructure/Repository/TokenRepository";
 import { NativeTransferProcessor } from "../App/Services/TxProcessor/Strategies/NativeTransferProcessor";
 import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwapProcessor";
-import { PriceService } from "../App/Services/PriceService";
 import { SaveToken } from "../App/UseCases/Tokens/SaveToken";
 import { SaveWallet } from "../App/UseCases/Wallets/SaveWallet";
 import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
@@ -28,6 +27,7 @@ import { MemoryCache } from "../App/Services/MemoryCache";
 import { BlockRepository } from "../Infrastructure/Repository/BlockRepository";
 import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/ConfigCreation";
 import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
+import { FinnhubApiService } from "../App/Services/PriceService/FinnhubApiService";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -36,7 +36,7 @@ export const initializeContainer = async () => {
 		bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
 		bind(IocKey.Cache).to(MemoryCache).inSingletonScope();
 		bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
-		bind(IocKey.PriceService).to(PriceService).inSingletonScope();
+		bind(IocKey.PriceService).to(FinnhubApiService).inSingletonScope();
 		bind(IocKey.BlockchainService).to(CovalentApi).inSingletonScope();
 		bind(IocKey.TokenService).to(TokenService).inSingletonScope();
 		// TxProcessor
