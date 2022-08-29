@@ -43,6 +43,7 @@ export interface EthTransferData {
 	from: HexAddressStr;
 	to: HexAddressStr;
 	value: FormattedAmount;
+	usdValue: FormattedAmount;
 }
 
 export interface DexSwapData {
@@ -64,6 +65,7 @@ export interface DexSwapData {
 
 const EthTransferSchema = Joi.object({
 	value: Joi.string().required(),
+	usdValue: Joi.string().required(),
 	from: Joi.string().custom(checksumed).required(),
 	to: Joi.string().custom(checksumed).required()
 })
