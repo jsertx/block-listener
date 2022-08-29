@@ -17,7 +17,7 @@ const buildCacheKey = (time: number) => `finnhub_price_at_${time}`;
 export class FinnhubApiService implements IPriceService {
 	private baseUrl = "https://finnhub.io/api";
 	private client: Axios;
-	private resolution = 30;
+	private resolution = 1;
 	constructor(
 		@inject(IocKey.Config)
 		private config: IConfig,
@@ -71,8 +71,7 @@ export class FinnhubApiService implements IPriceService {
 function getTimeRangeForSingleRange(timestamp: Date | number) {
 	timestamp = ensureDate(timestamp);
 	timestamp.setSeconds(0);
-	// set minutes to o'clock or 30'
-	timestamp.setMinutes(timestamp.getMinutes() > 30 ? 0 : 30);
+	timestamp.setMilliseconds(0);
 	const from = Math.floor(timestamp.getTime() / 1000);
 	const to = from + 1;
 	return [from, to];
