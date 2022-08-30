@@ -21,7 +21,6 @@ import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwap
 import { SaveToken } from "../App/UseCases/Tokens/SaveToken";
 import { SaveWallet } from "../App/UseCases/Wallets/SaveWallet";
 import { CovalentApi } from "../App/Services/BlockchainService/CovalentApi";
-import { TokenService } from "../App/Services/TokenService";
 import { MemoryCache } from "../App/Services/MemoryCache";
 
 import { BlockRepository } from "../Infrastructure/Repository/BlockRepository";
@@ -38,7 +37,6 @@ export const initializeContainer = async () => {
 		bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
 		bind(IocKey.PriceService).to(FinnhubApiService).inSingletonScope();
 		bind(IocKey.BlockchainService).to(CovalentApi).inSingletonScope();
-		bind(IocKey.TokenService).to(TokenService).inSingletonScope();
 		// TxProcessor
 		bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();
 		[NativeTransferProcessor, DexSwapProcessor].forEach((processor) =>
