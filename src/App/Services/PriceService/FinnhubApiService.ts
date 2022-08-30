@@ -9,7 +9,10 @@ import {
 	PriceServiceTimeParam
 } from "../../Interfaces/IPriceService";
 import { ensureDate } from "../../Utils/Date";
+import { noop } from "../../Utils/Misc";
+import { truncateNumberBy } from "../../Utils/Numbers";
 import { Blockchain } from "../../Values/Blockchain";
+import { GetPriceError } from "./Errors";
 
 const buildCacheKey = (time: number) => `finnhub_price_at_${time}`;
 
@@ -17,7 +20,7 @@ const buildCacheKey = (time: number) => `finnhub_price_at_${time}`;
 export class FinnhubApiService implements IPriceService {
 	private baseUrl = "https://finnhub.io/api";
 	private client: Axios;
-	private resolution = 1;
+	private resolution = 5;
 	constructor(
 		@inject(IocKey.Config)
 		private config: IConfig,
@@ -42,7 +45,7 @@ export class FinnhubApiService implements IPriceService {
 		blockchain: Blockchain,
 		time: PriceServiceTimeParam = Date.now()
 	): Promise<BigNumber> {
-		const [from, to] = getTimeRangeForSingleRange(time);
+		const [from, to] = this.getTimeRangeForSingleRange(time);
 		const cachedValue = await this.cache.get<number>(buildCacheKey(from));
 		if (cachedValue) {
 			return new BigNumber(cachedValue);
@@ -50,8 +53,12 @@ export class FinnhubApiService implements IPriceService {
 		const res = await this.client.get<{ c: number[] }>(
 			`/v1/crypto/candle?symbol=BINANCE:${blockchain.nativeTokenSymbol}USDT&resolution=${this.resolution}&from=${from}&to=${to}`
 		);
-		const price = res.data.c[0];
-		await this.cache.set(buildCacheKey(from), price);
+
+		const price = res?.data?.c?.[0];
+		if (!price) {
+			throw new GetPriceError(blockchain.nativeTokenSymbol, from * 1000);
+		}
+		this.cache.set(buildCacheKey(from), price).then(noop).catch(noop);
 		return new BigNumber(price);
 	}
 
@@ -66,13 +73,16 @@ export class FinnhubApiService implements IPriceService {
 		);
 		return price.multipliedBy(amount);
 	}
-}
 
-function getTimeRangeForSingleRange(timestamp: Date | number) {
-	timestamp = ensureDate(timestamp);
-	timestamp.setSeconds(0);
-	timestamp.setMilliseconds(0);
-	const from = Math.floor(timestamp.getTime() / 1000);
-	const to = from + 1;
-	return [from, to];
+	getTimeRangeForSingleRange(timestamp: Date | number) {
+		timestamp = ensureDate(timestamp);
+		timestamp.setSeconds(0);
+		timestamp.setMilliseconds(0);
+		timestamp.setMinutes(
+			truncateNumberBy(timestamp.getMinutes(), this.resolution)
+		);
+		const from = Math.floor(timestamp.getTime() / 1000);
+		const to = from + 1;
+		return [from, to];
+	}
 }

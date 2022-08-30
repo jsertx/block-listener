@@ -4,6 +4,6 @@ export interface TxSimplifiedDto {
 	hash: string;
 	blockchain: BlockchainId;
 	block: number;
-	timestamp: number;
+	timestamp: Date;
 	data: any;
 }

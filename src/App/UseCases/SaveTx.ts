@@ -19,12 +19,12 @@ import { WalletDiscovered } from "../PubSub/Messages/WalletDiscovered";
 import { TokenDiscovered } from "../PubSub/Messages/TokenDiscovered";
 import { IWalletRepository } from "../Repository/IWalletRepository";
 import { checksumed } from "../Utils/Address";
-import BigNumber from "bignumber.js";
 import { IConfig } from "../../Interfaces/IConfig";
 import { Executor } from "../../Infrastructure/Broker/Executor";
 import { WalletTagName } from "../Values/WalletTag";
 import { AddressRelationType } from "../Entities/Wallet";
 import { isUndefined } from "../Utils/Misc";
+import { BN } from "../Utils/Numbers";
 
 @injectable()
 export class SaveTx extends Executor<TxDiscoveredPayload> {
@@ -109,7 +109,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 
 	async saveDexSwapTxHandler(tx: DexSwapTx): Promise<boolean> {
 		if (
-			new BigNumber(tx.data.usdValue).lt(
+			BN(tx.data.usdValue).lt(
 				this.config.txRules[tx.blockchain.id].minDexSwapValueInUsd
 			)
 		) {
@@ -170,7 +170,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 
 	async saveEthTransferTxHandler(tx: EthTransferTx): Promise<boolean> {
 		if (
-			new BigNumber(tx.data.usdValue).lt(
+			BN(tx.data.usdValue).lt(
 				this.config.txRules[tx.blockchain.id]
 					.minNativeTransferValueInUsd
 			)
@@ -242,10 +242,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		if (!block) {
 			block = await provider.getBlock(receipt.blockNumber);
 		}
-
-		const logsDecoder = new LogDecoder(allAbiList);
-		const logs: TransactionLog[] = this.decodeTxLogs(receipt, logsDecoder);
-
+		const logs: TransactionLog[] = this.decodeTxLogs(receipt);
 		let smartContractCall: RawTx["smartContractCall"];
 		if (isSmartContractCall(txRes)) {
 			const txDecoder = new TxDecoder(allAbiList);
@@ -253,23 +250,22 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		}
 
 		return {
-			original: txRes,
 			hash,
 			blockHeight: receipt.blockNumber,
-			timestamp: block.timestamp * 1000,
+			timestamp: new Date(block.timestamp * 1000),
 			data: txRes.data,
 			to: checksumed(txRes.to),
 			from: checksumed(txRes.from),
-			value: new BigNumber((txRes.value as any).hex).toString(),
+			value: BN(txRes.value).toString(),
 			smartContractCall,
 			logs: logs
 		};
 	}
 
 	private decodeTxLogs(
-		txReceipt: ethers.providers.TransactionReceipt,
-		decoder: LogDecoder
+		txReceipt: ethers.providers.TransactionReceipt
 	): TransactionLog[] {
+		const decoder = new LogDecoder(allAbiList);
 		const decodedLogs = decoder.decodeLogs(txReceipt.logs);
 		return decodedLogs.map((log: any) => {
 			const args = log.eventFragment.inputs.reduce(

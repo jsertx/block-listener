@@ -3,3 +3,6 @@ export const sleep = (ms: number) =>
 
 export const isUndefined = (value: any) =>
 	typeof value === "undefined" || value === undefined;
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const noop = () => {};

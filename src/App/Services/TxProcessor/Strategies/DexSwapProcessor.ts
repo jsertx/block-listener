@@ -19,6 +19,7 @@ import { Blockchain } from "../../../Values/Blockchain";
 import { ERC20 } from "../../SmartContract/ABI/ERC20";
 import { toFormatted } from "../../../Utils/Amount";
 import { TokenService } from "../../TokenService";
+import { DirectToDead } from "../../../../Infrastructure/Broker/Executor";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -218,7 +219,15 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 					]
 				}))
 			)
-			.then(multicallResultHelper);
+			.then(multicallResultHelper)
+			.catch((error) => {
+				if (error && error.code && error.code === "NUMERIC_FAULT") {
+					throw new DirectToDead(
+						`Could not take bugged tokens: [${inputToken}, ${outputToken}]`
+					);
+				}
+				throw error;
+			});
 
 		const [symbolA, decimalsA] = select(inputToken, ["symbol", "decimals"]);
 		const [symbolB, decimalsB] = select(outputToken, [

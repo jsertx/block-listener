@@ -1,6 +1,5 @@
-import { ethers } from "ethers";
 import Joi, { ValidationResult } from "joi";
-import { TransactionLog } from "../Types/TransactionLog";
+import { TransactionLog, TransactionLogSchema } from "../Types/TransactionLog";
 import { checksumed } from "../Utils/Address";
 import { validateOrThrowError } from "../Utils/Validation";
 import { HexAddressStr } from "../Values/Address";
@@ -16,7 +15,7 @@ import { Entity } from "./Base/Entity";
 export interface RawTx {
 	hash: string;
 	blockHeight: number;
-	timestamp: number;
+	timestamp: Date;
 	data: string;
 	to: string;
 	from: string;
@@ -27,7 +26,6 @@ export interface RawTx {
 		signature: string;
 		args: Record<string, any>;
 	};
-	original: ethers.providers.TransactionResponse;
 }
 export interface TxIdProps {
 	blockchain: BlockchainId;
@@ -89,10 +87,30 @@ const DexSwapDataSchema = Joi.object({
 	.unknown()
 	.options({ stripUnknown: true });
 
+const RawTxSchema = Joi.object({
+	hash: Joi.string().required().required(),
+	blockHeight: Joi.number().required().required(),
+	timestamp: Joi.date().required(),
+	data: Joi.string().required(),
+	to: Joi.custom(checksumed).required(),
+	from: Joi.custom(checksumed).required(),
+	value: Joi.string(),
+	logs: Joi.array().items(TransactionLogSchema),
+	smartContractCall: Joi.object({
+		method: Joi.string().required(),
+		signature: Joi.string().required(),
+		args: Joi.any()
+	})
+		.optional()
+		.options({ stripUnknown: true })
+})
+	.unknown()
+	.options({ stripUnknown: true });
+
 const TxSchema = Joi.object({
 	blockchain: Joi.valid(...blockchainIdList).required(),
 	hash: Joi.string().required(),
-	raw: Joi.any(),
+	raw: RawTxSchema,
 	type: Joi.string().valid(...txTypeList),
 	data: Joi.alternatives(DexSwapDataSchema, EthTransferSchema)
 });
@@ -107,7 +125,7 @@ export class Tx<DataTypeRaw = undefined> extends Entity<TxProps<DataTypeRaw>> {
 		return this.props.hash;
 	}
 
-	get timestamp(): number {
+	get timestamp(): Date {
 		return this.props.raw.timestamp;
 	}
 
@@ -137,9 +155,7 @@ export class Tx<DataTypeRaw = undefined> extends Entity<TxProps<DataTypeRaw>> {
 	get data(): DataTypeRaw {
 		return this.props.data;
 	}
-	get original(): ethers.providers.TransactionResponse {
-		return this.props.raw.original;
-	}
+
 	get smartContractCall(): Required<TxProps["raw"]>["smartContractCall"] {
 		if (!this.props.raw.smartContractCall) {
 			throw new Error("Not available");
