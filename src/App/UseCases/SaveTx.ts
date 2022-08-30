@@ -235,6 +235,10 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 
 		if (!txRes) {
 			txRes = await provider.getTransaction(hash);
+			this.logger.debug({
+				type: "save-tx.tx-response.fetched",
+				context: { blockchain, txHash: hash }
+			});
 		}
 
 		if (!block) {

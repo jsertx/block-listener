@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
-
+import { ILogger } from "../../../Interfaces/ILogger";
+import { v4 } from "uuid";
 type JsonRpcProvider = ethers.providers.JsonRpcProvider;
 
 export class ProviderError extends Error {
@@ -13,15 +14,52 @@ export class ProviderError extends Error {
 }
 
 export const createWrappedProvider = (
+	logger: ILogger,
 	_provider: JsonRpcProvider
 ): JsonRpcProvider =>
 	new Proxy(_provider, {
 		get: (target: JsonRpcProvider, key: keyof JsonRpcProvider) => {
 			if (typeof target[key] === "function") {
-				return (...args: any[]) =>
-					(target[key] as any)(...args).catch((error: any) => {
-						throw new ProviderError(key, args, error);
+				return (...args: any[]) => {
+					const requestId = v4();
+					logger.debug({
+						type: "provider.call.started",
+						context: {
+							rpcCall: { method: key, args, requestId }
+						}
 					});
+					const call = (target[key] as any)(...args);
+					if (call instanceof Promise) {
+						return call
+							.then((res) => {
+								logger.debug({
+									type: "provider.call.success",
+									context: {
+										rpcCall: {
+											method: key,
+											args,
+											requestId
+										}
+									}
+								});
+								return res;
+							})
+							.catch((error: any) => {
+								logger.debug({
+									type: "provider.call.failed",
+									context: {
+										rpcCall: {
+											method: key,
+											args,
+											requestId
+										}
+									}
+								});
+								throw new ProviderError(key, args, error);
+							});
+					}
+					return call;
+				};
 			}
 			return target[key];
 		}

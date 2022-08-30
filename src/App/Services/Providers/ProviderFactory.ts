@@ -9,10 +9,14 @@ import {
 import { IProviderFactory } from "../../Interfaces/IProviderFactory";
 import { IocKey } from "../../../Ioc/IocKey";
 import { createWrappedProvider } from "./Utils";
+import { ILogger } from "../../../Interfaces/ILogger";
 
 @injectable()
 export class ProviderFactory implements IProviderFactory {
-	constructor(@inject(IocKey.Config) private config: IConfig) {}
+	constructor(
+		@inject(IocKey.Logger) private logger: ILogger,
+		@inject(IocKey.Config) private config: IConfig
+	) {}
 
 	getMulticallProvider(blockchain: Blockchain | BlockchainId): Multicall {
 		return new Multicall({ ethersProvider: this.getProvider(blockchain) });
@@ -27,6 +31,7 @@ export class ProviderFactory implements IProviderFactory {
 		);
 
 		return createWrappedProvider(
+			this.logger,
 			new ethers.providers.StaticJsonRpcProvider(url, blockchain.chainId)
 		);
 	}

@@ -5,6 +5,11 @@ interface DefaultContext {
 	txHash?: string;
 	message?: any;
 	executorClass?: string;
+	rpcCall?: {
+		requestId: string;
+		method: string;
+		args: any;
+	};
 	request?: {
 		method: string;
 		endpoint: string;
