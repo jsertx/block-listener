@@ -70,8 +70,7 @@ export const createBrokerConnection = async (config: IConfig) => {
 			queue: Queue.SaveToken
 		},
 		[Subscription.SaveWallet]: {
-			queue: Queue.SaveWallet,
-			prefetch: 5
+			queue: Queue.SaveWallet
 		}
 	};
 

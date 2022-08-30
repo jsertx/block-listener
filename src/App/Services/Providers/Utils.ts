@@ -22,7 +22,7 @@ export const createWrappedProvider = (
 			if (typeof target[key] === "function") {
 				return (...args: any[]) => {
 					const requestId = v4();
-					logger.debug({
+					logger.log({
 						type: "provider.call.started",
 						context: {
 							rpcCall: { method: key, args, requestId }
@@ -32,7 +32,7 @@ export const createWrappedProvider = (
 					if (call instanceof Promise) {
 						return call
 							.then((res) => {
-								logger.debug({
+								logger.log({
 									type: "provider.call.success",
 									context: {
 										rpcCall: {
@@ -45,7 +45,7 @@ export const createWrappedProvider = (
 								return res;
 							})
 							.catch((error: any) => {
-								logger.debug({
+								logger.log({
 									type: "provider.call.failed",
 									context: {
 										rpcCall: {
