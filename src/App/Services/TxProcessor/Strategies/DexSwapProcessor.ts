@@ -18,9 +18,9 @@ import {
 import { Blockchain } from "../../../Values/Blockchain";
 import { ERC20 } from "../../SmartContract/ABI/ERC20";
 import { toFormatted } from "../../../Utils/Amount";
-import { TokenService } from "../../TokenService";
 import { DirectToDead } from "../../../../Infrastructure/Broker/Executor";
 import { BN } from "../../../Utils/Numbers";
+import { ITokenService } from "../../../Interfaces/ITokenService";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -33,7 +33,7 @@ interface TokenData {
 export class DexSwapProcessor implements ITxProcessStrategy {
 	constructor(
 		@inject(IocKey.Logger) private logger: ILogger,
-		@inject(IocKey.TokenService) private tokenService: TokenService,
+		@inject(IocKey.TokenService) private tokenService: ITokenService,
 		@inject(IocKey.PriceService) private priceService: IPriceService,
 		@inject(IocKey.ProviderFactory)
 		private providerFactory: IProviderFactory,

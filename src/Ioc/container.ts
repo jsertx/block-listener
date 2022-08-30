@@ -27,6 +27,7 @@ import { BlockRepository } from "../Infrastructure/Repository/BlockRepository";
 import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/ConfigCreation";
 import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
 import { FinnhubApiService } from "../App/Services/PriceService/FinnhubApiService";
+import { TokenService } from "../App/Services/TokenService";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -37,6 +38,7 @@ export const initializeContainer = async () => {
 		bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
 		bind(IocKey.PriceService).to(FinnhubApiService).inSingletonScope();
 		bind(IocKey.BlockchainService).to(CovalentApi).inSingletonScope();
+		bind(IocKey.TokenService).to(TokenService).inSingletonScope();
 		// TxProcessor
 		bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();
 		[NativeTransferProcessor, DexSwapProcessor].forEach((processor) =>
