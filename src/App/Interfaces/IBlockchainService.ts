@@ -1,7 +1,7 @@
 import { BlockchainId } from "../Values/Blockchain";
 
 export interface IBlockchainService {
-	getTransactionsForAddress(
+	getWalletTxsHashes(
 		blockchain: BlockchainId,
 		address: string
 	): Promise<string[]>;

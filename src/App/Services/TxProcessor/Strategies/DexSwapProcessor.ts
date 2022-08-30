@@ -20,6 +20,7 @@ import { ERC20 } from "../../SmartContract/ABI/ERC20";
 import { toFormatted } from "../../../Utils/Amount";
 import { TokenService } from "../../TokenService";
 import { DirectToDead } from "../../../../Infrastructure/Broker/Executor";
+import { BN } from "../../../Utils/Numbers";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -161,7 +162,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 					tx.blockchain,
 					tx.raw.timestamp
 				);
-			nativeValue = nativePrice.multipliedBy(usdValue).toFixed();
+			nativeValue = BN(usdValue).dividedBy(nativePrice).toFixed();
 		}
 
 		const [inputTokenData, outputTokenData] = await this.getTokensData(

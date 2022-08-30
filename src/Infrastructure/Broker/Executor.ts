@@ -103,7 +103,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 				context: {
 					channel: this.channel,
 					executorClass: this.constructor.name,
-					message
+					message: this.getMessageContextTrace(message)
 				}
 			});
 			await this.retryHandler(message, error).then(ack).catch(nack);
@@ -181,13 +181,16 @@ export abstract class Executor<PayloadType> implements IExecutor {
 				message: "Executor retry managing failed",
 				context: {
 					channel: this.channel,
-					message
+					message: this.getMessageContextTrace(message)
 				}
 			});
 			await this.retryHandler(message, error).then(ack).catch(nack);
 		}
 	}
-
+	protected getMessageContextTrace(msg: any) {
+		// make it abstract
+		return "TODO";
+	}
 	async start() {
 		this.logger.log({
 			type: `executor.start`,

@@ -22,13 +22,13 @@ export class CovalentApi implements IBlockchainService {
 		});
 	}
 
-	getTransactionsForAddress(
+	getWalletTxsHashes(
 		blockchain: BlockchainId,
 		address: string
 	): Promise<string[]> {
 		const chainId = new Blockchain(blockchain).chainId;
 		return this.client
 			.get(`/${chainId}/address/${address}/transactions_v2`)
-			.then((res) => res.data.items.map((tx: any) => tx.tx_hash));
+			.then((res) => res?.data?.items.map((tx: any) => tx.tx_hash) || []);
 	}
 }

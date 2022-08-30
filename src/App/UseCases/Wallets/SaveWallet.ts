@@ -75,8 +75,10 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 
 		tags.forEach((t) => wallet.addTag(t));
 		relations.forEach((r) => wallet.addRelation(r));
-
-		await this.findWhaleTxsAndPublish({ address, blockchain });
+		if (type === WalletType.Whale) {
+			// TODO: add test for this scenario
+			await this.findWhaleTxsAndPublish({ address, blockchain });
+		}
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(new WalletSaved({ blockchain, address }));
 	}
@@ -94,7 +96,8 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		);
 
 		if (this.hasBeenFoundIteratingBlocks(tags)) {
-			wallet.setType(WalletType.Whale);
+			// TODO: review if this is correct as it could be a transfer to an exchange main wallet
+			// wallet.setType(WalletType.Whale);
 		}
 
 		await this.walletRepository.save(wallet);
@@ -110,7 +113,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		address,
 		blockchain
 	}: WalletDiscoveredPayload) {
-		const txs = await this.blockchainService.getTransactionsForAddress(
+		const txs = await this.blockchainService.getWalletTxsHashes(
 			blockchain,
 			address
 		);

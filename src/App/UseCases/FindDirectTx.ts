@@ -38,13 +38,13 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 
 	async execute({ block, blockchain }: BlockReceivedPayload): Promise<void> {
 		for (const tx of block.transactions) {
-			const conditions = Promise.all([
+			const publishConditions = Promise.all([
 				isNativeTokenTx(tx),
 				this.isAgainstContractOfInterest(blockchain, tx),
 				this.isDoneByTrackedWallet(blockchain, tx)
 			]);
 
-			const shouldPublish = await conditions.then((res) =>
+			const shouldPublish = await publishConditions.then((res) =>
 				res.some((truthy) => truthy)
 			);
 
