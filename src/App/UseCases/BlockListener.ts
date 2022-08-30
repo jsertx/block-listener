@@ -55,7 +55,8 @@ export class BlockListener implements IStandaloneApps {
 							Block.create({
 								blockchain,
 								height: `${block.number}`,
-								timestamp: new Date(block.timestamp * 1000)
+								timestamp: new Date(block.timestamp * 1000),
+								raw: block
 							})
 						);
 						await this.broker.publish(
