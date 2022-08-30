@@ -84,4 +84,8 @@ export class SaveToken extends Executor<TokenDiscoveredPayload> {
 		});
 		await this.tokenRepository.save(token);
 	}
+
+	getMessageContextTrace({ address, blockchain }: TokenDiscoveredPayload) {
+		return { address, blockchain };
+	}
 }

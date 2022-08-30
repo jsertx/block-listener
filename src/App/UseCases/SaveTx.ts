@@ -41,7 +41,6 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 	) {
 		super(logger, broker, Subscription.SaveTx);
 	}
-
 	async execute(msg: TxDiscoveredPayload) {
 		const { blockchain, hash, saveUnknown } = msg;
 		const existingTx = await this.txRepository.findOne({
@@ -315,5 +314,12 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				args: {}
 			};
 		}
+	}
+
+	getMessageContextTrace({ hash, blockchain }: TxDiscoveredPayload): any {
+		return {
+			hash,
+			blockchain
+		};
 	}
 }

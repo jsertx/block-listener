@@ -101,4 +101,11 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 		await this.cache.set(cacheKey, fromDb.data);
 		return fromDb.data;
 	}
+
+	getMessageContextTrace({ block, blockchain }: BlockReceivedPayload): any {
+		return {
+			block: block.number,
+			blockchain
+		};
+	}
 }

@@ -115,4 +115,11 @@ export class FindInternalTx extends Executor<BlockReceivedPayload> {
 
 		return { fromBlock, toBlock, skip, requestsPerSecond };
 	}
+
+	getMessageContextTrace({ block, blockchain }: BlockReceivedPayload): any {
+		return {
+			block: block.number,
+			blockchain
+		};
+	}
 }

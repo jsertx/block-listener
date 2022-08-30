@@ -27,6 +27,15 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 	) {
 		super(logger, broker, Subscription.SaveWallet);
 	}
+	getMessageContextTrace({
+		address,
+		blockchain
+	}: WalletDiscoveredPayload): any {
+		return {
+			address,
+			blockchain
+		};
+	}
 
 	async execute({
 		address,
