@@ -44,9 +44,7 @@ describe("UseCase > SaveWallet", () => {
 		describe("Save wallet with txs", () => {
 			beforeEach(async () => {
 				walletRepositoryMock.findOne.mockResolvedValue(undefined);
-				blockchainServiceMock.getTransactionsForAddress.mockResolvedValue(
-					txs
-				);
+				blockchainServiceMock.getWalletTxsHashes.mockResolvedValue(txs);
 				await useCase.execute({
 					address,
 					blockchain,
@@ -56,10 +54,10 @@ describe("UseCase > SaveWallet", () => {
 
 			it("should call blockchainService to get txs", async () => {
 				expect(
-					blockchainServiceMock.getTransactionsForAddress
+					blockchainServiceMock.getWalletTxsHashes
 				).toHaveBeenCalledTimes(1);
 				expect(
-					blockchainServiceMock.getTransactionsForAddress
+					blockchainServiceMock.getWalletTxsHashes
 				).toHaveBeenCalledWith(blockchain, address);
 			});
 			describe("should publish events", () => {

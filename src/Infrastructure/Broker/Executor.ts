@@ -82,7 +82,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		return addDeadPrefix(this.channel);
 	}
 
-	abstract execute(
+	protected abstract execute(
 		payload: PayloadType,
 		message?: IExecutorMsgPayload<PayloadType>
 	): Promise<void>;
@@ -187,7 +187,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 			await this.retryHandler(message, error).then(ack).catch(nack);
 		}
 	}
-	protected getMessageContextTrace(msg: any) {
+	protected getMessageContextTrace(_msg: any) {
 		// make it abstract
 		return "TODO";
 	}
