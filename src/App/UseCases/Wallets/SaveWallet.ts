@@ -60,8 +60,6 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		tags = [],
 		relations = []
 	}: Required<WalletDiscoveredPayload>) {
-		// SaveWhale should be SaveWallet as its gonna save different wallet types
-
 		const type = this.hasBeenFoundIteratingBlocks(tags)
 			? WalletType.Whale
 			: WalletType.UnknownWallet;

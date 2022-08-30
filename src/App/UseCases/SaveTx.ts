@@ -115,7 +115,6 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		) {
 			return false;
 		}
-		await this.txRepository.save(tx);
 
 		await Promise.all(
 			[tx.data.input.token, tx.data.output.token].map((address) =>
@@ -164,7 +163,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				})
 			);
 		}
-
+		await this.txRepository.save(tx);
 		return true;
 	}
 
@@ -177,7 +176,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		) {
 			return false;
 		}
-		await this.txRepository.save(tx);
+
 		await Promise.all([
 			this.broker.publish(
 				new WalletDiscovered({
@@ -212,7 +211,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				})
 			)
 		]);
-
+		await this.txRepository.save(tx);
 		return true;
 	}
 
