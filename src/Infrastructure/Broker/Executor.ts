@@ -37,8 +37,8 @@ export class ExecutorMessage<T = any> extends BaseMessage<
 	}
 }
 
-const backoffDelayStrategy = (retry: number, _error?: any) =>
-	Math.floor(2 ** (1.5 * retry) * 1000);
+const backoffDefaultStrategy = (retry: number, _error?: any) =>
+	Math.floor(2 ** (1.5 * retry) * 1000) + 5000;
 
 const serializeError = (error: any) => ({
 	name: error.name,
@@ -48,7 +48,7 @@ const serializeError = (error: any) => ({
 
 const defaultOptions = {
 	retriable: true,
-	backoffStrategy: backoffDelayStrategy
+	backoffStrategy: backoffDefaultStrategy
 };
 export interface ExecutorOptions {
 	retriable: boolean;
