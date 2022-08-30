@@ -1,12 +1,10 @@
 import { inject, injectable } from "inversify";
 import { ethers } from "ethers";
-import BigNumber from "bignumber.js";
 import { ILogger } from "../../Interfaces/ILogger";
 import { IConfig } from "../../Interfaces/IConfig";
 import { checksumed, isSameAddress } from "../Utils/Address";
 import { isNativeTokenTx } from "../Utils/Tx";
 import { IocKey } from "../../Ioc/IocKey";
-import { toPrecision } from "../Utils/Amount";
 import { IContractRepository } from "../Repository/IContractRepository";
 import { IAppBroker } from "../Interfaces/IAppBroker";
 import { TxDiscovered } from "../PubSub/Messages/TxDiscovered";
@@ -41,7 +39,7 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 	async execute({ block, blockchain }: BlockReceivedPayload): Promise<void> {
 		for (const tx of block.transactions) {
 			const conditions = Promise.all([
-				this.isBigNativeTx(blockchain, tx),
+				isNativeTokenTx(tx),
 				this.isAgainstContractOfInterest(blockchain, tx),
 				this.isDoneByTrackedWallet(blockchain, tx)
 			]);
@@ -65,20 +63,6 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 				);
 			}
 		}
-	}
-
-	private isBigNativeTx(
-		blockchain: BlockchainId,
-		tx: ethers.providers.TransactionResponse
-	): boolean {
-		return (
-			isNativeTokenTx(tx) &&
-			new BigNumber(tx.value._hex).isGreaterThanOrEqualTo(
-				toPrecision(
-					this.config.txRules[blockchain].minNativeTransferValue
-				)
-			)
-		);
 	}
 
 	private async isDoneByTrackedWallet(

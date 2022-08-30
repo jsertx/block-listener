@@ -25,16 +25,16 @@ export const Config: IConfig = {
 	},
 	txRules: {
 		[BlockchainId.Ethereum]: {
-			minNativeTransferValue: "10",
-			minDexSwapValueInUsd: `${10_000}`
+			minNativeTransferValueInUsd: `${100_000}`,
+			minDexSwapValueInUsd: `${50_000}`
 		},
 		[BlockchainId.Binance]: {
-			minNativeTransferValue: `${10}`,
-			minDexSwapValueInUsd: `${10_000}`
+			minNativeTransferValueInUsd: `NOT_NEEDED`,
+			minDexSwapValueInUsd: `NOT_NEEDED`
 		},
 		[BlockchainId.Polygon]: {
-			minNativeTransferValue: `${20_000}`,
-			minDexSwapValueInUsd: `${10_000}`
+			minNativeTransferValueInUsd: `NOT_NEEDED`,
+			minDexSwapValueInUsd: `NOT_NEEDED`
 		}
 	},
 	covalent: {

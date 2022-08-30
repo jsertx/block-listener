@@ -4,7 +4,7 @@ export interface IBlockchainProviderConfig {
 	url: string;
 }
 export interface ITxRuleConfig {
-	minNativeTransferValue: string;
+	minNativeTransferValueInUsd: string;
 	minDexSwapValueInUsd: string;
 }
 export interface IConfig {

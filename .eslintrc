@@ -1,6 +1,9 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
+  "ignorePatterns": [
+    "playground/*.ts"
+  ],
   "plugins": [
     "unused-imports",
     "@typescript-eslint",

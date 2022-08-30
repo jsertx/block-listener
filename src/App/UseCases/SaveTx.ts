@@ -24,6 +24,7 @@ import { IConfig } from "../../Interfaces/IConfig";
 import { Executor } from "../../Infrastructure/Broker/Executor";
 import { WalletTagName } from "../Values/WalletTag";
 import { AddressRelationType } from "../Entities/Wallet";
+import { isUndefined } from "../Utils/Misc";
 
 @injectable()
 export class SaveTx extends Executor<TxDiscoveredPayload> {
@@ -41,24 +42,18 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		super(logger, broker, Subscription.SaveTx);
 	}
 
-	async execute({
-		blockchain,
-		hash,
-		saveUnknown,
-		block
-	}: TxDiscoveredPayload) {
+	async execute(msg: TxDiscoveredPayload) {
+		const { blockchain, hash, saveUnknown } = msg;
 		const existingTx = await this.txRepository.findOne({
-			blockchain,
-			hash
+			blockchain: msg.blockchain,
+			hash: msg.hash
 		});
 		if (existingTx) {
 			return;
 		}
-		const successfullTx = await this.getRawTransaction({
-			blockchain,
-			hash,
-			block
-		});
+
+		const successfullTx = await this.getRawTransaction(msg);
+
 		if (!successfullTx) {
 			return;
 		}
@@ -175,8 +170,9 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 
 	async saveEthTransferTxHandler(tx: EthTransferTx): Promise<boolean> {
 		if (
-			new BigNumber(tx.data.value).lt(
-				this.config.txRules[tx.blockchain.id].minNativeTransferValue
+			new BigNumber(tx.data.usdValue).lt(
+				this.config.txRules[tx.blockchain.id]
+					.minNativeTransferValueInUsd
 			)
 		) {
 			return false;
@@ -227,39 +223,44 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		block
 	}: TxDiscoveredPayload): Promise<RawTx | undefined> {
 		const provider = this.providerFactory.getProvider(blockchain);
-		const [res, receipt] = await Promise.all([
-			txRes || provider.getTransaction(hash),
-			provider.getTransactionReceipt(hash)
-		]);
+		const receipt = await provider
+			.getTransactionReceipt(hash)
+			.catch((_err) => undefined);
+
+		if (!receipt || isUndefined(receipt.status)) {
+			throw new Error("TX receipt not available yet");
+		}
 
 		if (receipt.status === 0) {
 			return;
 		}
-		if (!res.blockNumber) {
-			throw new Error("Missing block number");
+
+		if (!txRes) {
+			txRes = await provider.getTransaction(hash);
 		}
+
 		if (!block) {
-			block = await provider.getBlock(res.blockNumber);
+			block = await provider.getBlock(receipt.blockNumber);
 		}
 
 		const logsDecoder = new LogDecoder(allAbiList);
 		const logs: TransactionLog[] = this.decodeTxLogs(receipt, logsDecoder);
 
 		let smartContractCall: RawTx["smartContractCall"];
-		if (isSmartContractCall(res)) {
+		if (isSmartContractCall(txRes)) {
 			const txDecoder = new TxDecoder(allAbiList);
-			smartContractCall = this.decodeTxDetails(res, txDecoder);
+			smartContractCall = this.decodeTxDetails(txRes, txDecoder);
 		}
 
 		return {
-			original: res,
+			original: txRes,
 			hash,
 			blockHeight: receipt.blockNumber,
 			timestamp: block.timestamp * 1000,
-			data: res.data,
-			to: checksumed(res.to),
-			from: checksumed(res.from),
-			value: res.value.toString(),
+			data: txRes.data,
+			to: checksumed(txRes.to),
+			from: checksumed(txRes.from),
+			value: new BigNumber((txRes.value as any).hex).toString(),
 			smartContractCall,
 			logs: logs
 		};
