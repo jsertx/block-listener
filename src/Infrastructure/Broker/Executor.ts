@@ -162,7 +162,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 
 			if (this.shouldWait(message)) {
 				const waitMsg = new ExecutorMessage<PayloadType>(
-					this.channel,
+					this.retryChannel,
 					message.payload,
 					message
 				);
