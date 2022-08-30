@@ -120,10 +120,11 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		address,
 		blockchain
 	}: WalletDiscoveredPayload) {
-		const txs = await this.blockchainService.getWalletTxsHashes(
-			blockchain,
-			address
-		);
+		const txs = await this.blockchainService
+			.getWalletTxsHashes(blockchain, address)
+			.catch((error) => {
+				throw error;
+			});
 		await Promise.all(
 			txs.map((hash) =>
 				this.broker.publish(

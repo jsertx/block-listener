@@ -14,7 +14,6 @@ import { BlockListener } from "../App/UseCases/BlockListener";
 import { HttpAdapter } from "../Api/Http/HttpAdapter";
 import { SaveTx } from "../App/UseCases/SaveTx";
 import { TxProcessor } from "../App/Services/TxProcessor/TxProcessor";
-import { SelectivePairDiscoverer } from "../App/UseCases/SelectivePairDiscoverer";
 import { TokenRepository } from "../Infrastructure/Repository/TokenRepository";
 import { NativeTransferProcessor } from "../App/Services/TxProcessor/Strategies/NativeTransferProcessor";
 import { DexSwapProcessor } from "../App/Services/TxProcessor/Strategies/DexSwapProcessor";
@@ -45,7 +44,10 @@ export const initializeContainer = async () => {
 			bind(IocKey.TxProcessorStrategy).to(processor).inSingletonScope()
 		);
 		// UseCases
-		[BlockListener, SelectivePairDiscoverer].forEach((app) => {
+		[
+			BlockListener
+			//,SelectivePairDiscoverer
+		].forEach((app) => {
 			bind(IocKey.StandAloneApps).to(app).inSingletonScope();
 		});
 		// Executors
