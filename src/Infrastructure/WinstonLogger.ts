@@ -18,8 +18,8 @@ const normalizeEntryError = (error: any) => {
 		}
 		return {
 			name: error.name,
-			message: error.message,
-			stack
+			message: error.message
+			//stack
 		};
 	}
 
