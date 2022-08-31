@@ -8,13 +8,14 @@ import { IBlockchainService } from "../../Interfaces/IBlockchainService";
 import { Blockchain, BlockchainId } from "../../Values/Blockchain";
 
 // https://github.com/SGrondin/bottleneck#step-1-of-3
-const FIVE_REQ_PER_SEC = Math.floor(1000 / 5);
+const FIVE_REQ_PER_SEC = Math.floor(1000 / 4);
 @injectable()
 export class CovalentApi implements IBlockchainService {
 	private baseUrl = "https://api.covalenthq.com/v1/";
 	private client: Axios;
 	private bottleneck: Bottleneck = new Bottleneck({
-		minTime: FIVE_REQ_PER_SEC
+		minTime: FIVE_REQ_PER_SEC,
+		maxConcurrent: 4
 	});
 	constructor(
 		@inject(IocKey.Config) private config: IConfig,
