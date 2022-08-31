@@ -1,5 +1,6 @@
 import { Axios, AxiosRequestConfig } from "axios";
 import BigNumber from "bignumber.js";
+import Bottleneck from "bottleneck";
 import { inject, injectable } from "inversify";
 import { IConfig } from "../../../Interfaces/IConfig";
 import { IocKey } from "../../../Ioc/IocKey";
@@ -21,6 +22,7 @@ export class FinnhubApiService implements IPriceService {
 	private baseUrl = "https://finnhub.io/api";
 	private client: Axios;
 	private resolution = 5;
+	private bottleneck = new Bottleneck({ maxConcurrent: 5 });
 	constructor(
 		@inject(IocKey.Config)
 		private config: IConfig,
@@ -45,21 +47,29 @@ export class FinnhubApiService implements IPriceService {
 		blockchain: Blockchain,
 		time: PriceServiceTimeParam = Date.now()
 	): Promise<BigNumber> {
-		const [from, to] = this.getTimeRangeForSingleRange(time);
-		const cachedValue = await this.cache.get<number>(buildCacheKey(from));
-		if (cachedValue) {
-			return new BigNumber(cachedValue);
-		}
-		const res = await this.client.get<{ c: number[] }>(
-			`/v1/crypto/candle?symbol=BINANCE:${blockchain.nativeTokenSymbol}USDT&resolution=${this.resolution}&from=${from}&to=${to}`
-		);
+		return this.bottleneck.schedule(async () => {
+			console.log("executing");
+			const [from, to] = this.getTimeRangeForSingleRange(time);
+			const cachedValue = await this.cache.get<number>(
+				buildCacheKey(from)
+			);
+			if (cachedValue) {
+				return new BigNumber(cachedValue);
+			}
+			const res = await this.client.get<{ c: number[] }>(
+				`/v1/crypto/candle?symbol=BINANCE:${blockchain.nativeTokenSymbol}USDT&resolution=${this.resolution}&from=${from}&to=${to}`
+			);
 
-		const price = res?.data?.c?.[0];
-		if (!price) {
-			throw new GetPriceError(blockchain.nativeTokenSymbol, from * 1000);
-		}
-		this.cache.set(buildCacheKey(from), price).then(noop).catch(noop);
-		return new BigNumber(price);
+			const price = res?.data?.c?.[0];
+			if (!price) {
+				throw new GetPriceError(
+					blockchain.nativeTokenSymbol,
+					from * 1000
+				);
+			}
+			this.cache.set(buildCacheKey(from), price).then(noop).catch(noop);
+			return new BigNumber(price);
+		});
 	}
 
 	async getBlockchainNativeTokenUsdValue(
