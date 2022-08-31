@@ -7,7 +7,45 @@ import {
 	LogEntryParams
 } from "../Interfaces/ILogger";
 import { injectable } from "inversify";
+import { ILogtailLog, LogLevel } from "@logtail/types";
 
+function flattenObject(
+	a: Record<string, any>,
+	prefix = "context",
+	obj: any = {}
+): Record<string, any> {
+	return Object.entries(a).reduce((_obj, [_key, _value]) => {
+		const key = prefix === "" ? _key : `${prefix}.${_key}`;
+		if (_value.toString() === "[object Object]") {
+			return {
+				...obj,
+				...flattenObject(_value, key, _obj)
+			};
+		}
+
+		return {
+			..._obj,
+			[key]: _value
+		};
+	}, obj);
+}
+
+export const mapToPaperTrail = ({
+	time,
+	level,
+	message,
+	context,
+	type
+}: LogEntry): ILogtailLog => {
+	const entry: ILogtailLog = {
+		dt: time,
+		level: level as LogLevel,
+		message,
+		type,
+		...flattenObject(context || {})
+	};
+	return entry;
+};
 const stackErrorMaxLevels = 4;
 const normalizeEntryError = (error: any) => {
 	if (error instanceof Error) {
@@ -28,7 +66,7 @@ const normalizeEntryError = (error: any) => {
 const prepareEntry = (
 	entryParams: LogEntryParams,
 	{ level }: Pick<LogEntry, "level">
-): LogEntry => {
+): ILogtailLog => {
 	const entry: LogEntry = {
 		...entryParams,
 		time: new Date(),
@@ -38,7 +76,7 @@ const prepareEntry = (
 		entry.error = normalizeEntryError(entry.error);
 	}
 
-	return entry;
+	return mapToPaperTrail(entry);
 };
 
 @injectable()

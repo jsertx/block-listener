@@ -76,6 +76,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		if (saved) {
 			this.logger.log({
 				type: "save-tx.saved",
+				message: `Tx saved: ${hash}@${blockchain}`,
 				context: { txHash: hash, blockchain }
 			});
 		}
@@ -235,22 +236,10 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 
 		if (!txRes) {
 			txRes = await provider.getTransaction(hash);
-			this.logger.log({
-				type: "save-tx.tx-response-fetched",
-				context: { blockchain, txHash: hash }
-			});
 		}
 
 		if (!block) {
 			block = await provider.getBlock(receipt.blockNumber);
-			this.logger.log({
-				type: "save-tx.tx-block-fetched",
-				context: {
-					blockchain,
-					txHash: hash,
-					blockNumber: receipt.blockNumber
-				}
-			});
 		}
 		const logs: TransactionLog[] = this.decodeTxLogs(receipt);
 		let smartContractCall: RawTx["smartContractCall"];

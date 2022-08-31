@@ -35,10 +35,12 @@ export class FullPairDiscoverer implements IStandaloneApps {
 			try {
 				await this.execute();
 				this.logger.log({
+					message: "FullPair Discovered executed",
 					type: "full-pair-discoverer.execute"
 				});
 			} catch (error) {
 				this.logger.error({
+					message: "FullPair Discovered execution failed",
 					type: "full-pair-discoverer.execute",
 					error
 				});

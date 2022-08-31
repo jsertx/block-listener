@@ -16,7 +16,7 @@ interface DefaultContext {
 	};
 }
 export interface LogEntry<Context = DefaultContext> {
-	message?: string;
+	message: string;
 	level: "info" | "debug" | "warn" | "error";
 	type: string;
 	time: Date;

@@ -35,6 +35,7 @@ export class BlockListener implements IStandaloneApps {
 	async start() {
 		this.config.enabledBlockchains.forEach(async (blockchain) => {
 			this.logger.log({
+				message: `BlockListener started @${blockchain}`,
 				type: "block-listener.start",
 				context: {
 					blockchain
@@ -69,6 +70,7 @@ export class BlockListener implements IStandaloneApps {
 
 						this.logger.log({
 							type: "block-listener.new-block",
+							message: `Block fetched ${block.number}@${blockchain}`,
 							context: {
 								blockchain,
 								blockNumber: block.number
@@ -77,6 +79,7 @@ export class BlockListener implements IStandaloneApps {
 					} catch (error) {
 						this.logger.error({
 							type: "block-listener.on-block",
+							message: `Error getting block ${block.number}@${blockchain}`,
 							error,
 							context: {
 								blockchain,

@@ -43,10 +43,12 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
 			try {
 				await this.execute();
 				this.logger.log({
+					message: "SelectivePair Discovered executed",
 					type: "selective-pair-discoverer.execute"
 				});
 			} catch (error) {
 				this.logger.error({
+					message: "SelectivePair Discovered execution failed",
 					type: "selective-pair-discoverer.execute",
 					error
 				});
