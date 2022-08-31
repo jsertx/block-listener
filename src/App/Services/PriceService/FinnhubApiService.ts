@@ -3,6 +3,7 @@ import BigNumber from "bignumber.js";
 import Bottleneck from "bottleneck";
 import { inject, injectable } from "inversify";
 import { IConfig } from "../../../Interfaces/IConfig";
+import { ILogger } from "../../../Interfaces/ILogger";
 import { IocKey } from "../../../Ioc/IocKey";
 import { ICache } from "../../Interfaces/ICache";
 import {
@@ -26,6 +27,8 @@ export class FinnhubApiService implements IPriceService {
 	constructor(
 		@inject(IocKey.Config)
 		private config: IConfig,
+		@inject(IocKey.Logger)
+		private logger: ILogger,
 		@inject(IocKey.Cache)
 		private cache: ICache
 	) {
@@ -55,9 +58,17 @@ export class FinnhubApiService implements IPriceService {
 			if (cachedValue) {
 				return new BigNumber(cachedValue);
 			}
-			const res = await this.client.get<{ c: number[] }>(
-				`/v1/crypto/candle?symbol=BINANCE:${blockchain.nativeTokenSymbol}USDT&resolution=${this.resolution}&from=${from}&to=${to}`
-			);
+			const endpoint = `/v1/crypto/candle?symbol=BINANCE:${blockchain.nativeTokenSymbol}USDT&resolution=${this.resolution}&from=${from}&to=${to}`;
+			const res = await this.client
+				.get<{ c: number[] }>(endpoint)
+				.catch((error) => {
+					this.logger.error({
+						message: "[Finnhub] Get price call failed",
+						type: "finnhub-api.call.failed.get-crypto-candle",
+						error
+					});
+					throw error;
+				});
 
 			const price = res?.data?.c?.[0];
 			if (!price) {
