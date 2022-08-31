@@ -12,10 +12,14 @@ import { BlockReceivedPayload } from "../PubSub/Messages/BlockReceived";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { IWalletRepository } from "../Repository/IWalletRepository";
 import { Contract } from "../Entities/Contract";
-import { BlockchainId } from "../Values/Blockchain";
+import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { Executor } from "../../Infrastructure/Broker/Executor";
 import { ICache } from "../Interfaces/ICache";
 import { WalletType } from "../Values/WalletType";
+import { BlockWithTransactions } from "../Types/BlockWithTransactions";
+import { IPriceService } from "../Interfaces/IPriceService";
+import { toFormatted } from "../Utils/Amount";
+import { BN } from "../Utils/Numbers";
 
 const contractCacheKey = (blockchain: string) =>
 	`find_direct_tx_contracts_${blockchain}`;
@@ -31,7 +35,9 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 		@inject(IocKey.WalletRepository)
 		private walletRepository: IWalletRepository,
 		@inject(IocKey.Cache)
-		private cache: ICache
+		private cache: ICache,
+		@inject(IocKey.PriceService)
+		private priceService: IPriceService
 	) {
 		super(logger, broker, Subscription.FindDirectTx, {});
 	}
@@ -39,7 +45,7 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 	async execute({ block, blockchain }: BlockReceivedPayload): Promise<void> {
 		for (const tx of block.transactions) {
 			const publishConditions = Promise.all([
-				isNativeTokenTx(tx),
+				this.isNativeTransferOverThreshold(blockchain, tx, block), //isNativeTokenTx(tx),
 				this.isAgainstContractOfInterest(blockchain, tx),
 				this.isDoneByTrackedWallet(blockchain, tx)
 			]);
@@ -101,7 +107,25 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 		await this.cache.set(cacheKey, fromDb.data);
 		return fromDb.data;
 	}
-
+	private async isNativeTransferOverThreshold(
+		blockchain: BlockchainId,
+		tx: ethers.providers.TransactionResponse,
+		block: BlockWithTransactions
+	) {
+		if (!isNativeTokenTx(tx)) {
+			return false;
+		}
+		const amount = toFormatted(BN(tx.value).toString());
+		const usdValue =
+			await this.priceService.getBlockchainNativeTokenUsdValue(
+				new Blockchain(blockchain),
+				amount,
+				block.timestamp * 1000
+			);
+		return BN(usdValue).isGreaterThanOrEqualTo(
+			this.config.txRules[blockchain].minNativeTransferValueInUsd
+		);
+	}
 	getMessageContextTrace({ block, blockchain }: BlockReceivedPayload): any {
 		return {
 			block: block.number,
