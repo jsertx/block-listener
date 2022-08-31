@@ -16,13 +16,13 @@ import { Blockchain } from "../../Values/Blockchain";
 import { GetPriceError } from "./Errors";
 
 const buildCacheKey = (time: number) => `finnhub_price_at_${time}`;
-
+const SIXTY_REQ_PER_MIN = Math.floor(60_000 / 60);
 @injectable()
 export class FinnhubApiService implements IPriceService {
 	private baseUrl = "https://finnhub.io/api";
 	private client: Axios;
 	private resolution = 5;
-	private bottleneck = new Bottleneck({ maxConcurrent: 5 });
+	private bottleneck = new Bottleneck({ minTime: SIXTY_REQ_PER_MIN });
 	constructor(
 		@inject(IocKey.Config)
 		private config: IConfig,
@@ -48,7 +48,6 @@ export class FinnhubApiService implements IPriceService {
 		time: PriceServiceTimeParam = Date.now()
 	): Promise<BigNumber> {
 		return this.bottleneck.schedule(async () => {
-			console.log("executing");
 			const [from, to] = this.getTimeRangeForSingleRange(time);
 			const cachedValue = await this.cache.get<number>(
 				buildCacheKey(from)

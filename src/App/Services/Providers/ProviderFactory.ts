@@ -1,5 +1,4 @@
 import { Multicall } from "ethereum-multicall";
-import { ethers } from "ethers";
 import { inject, injectable } from "inversify";
 import { Blockchain, BlockchainId } from "../../Values/Blockchain";
 import {
@@ -30,10 +29,7 @@ export class ProviderFactory implements IProviderFactory {
 			this.config.providers[blockchain.id]
 		);
 
-		return createWrappedProvider(
-			this.logger,
-			new ethers.providers.StaticJsonRpcProvider(url, blockchain.chainId)
-		);
+		return createWrappedProvider(this.logger, url, blockchain.chainId);
 	}
 }
 
