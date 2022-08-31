@@ -17,6 +17,9 @@ export const Config: IConfig = {
 		database: getEnv("DATABASE_NAME", "blocklistener"),
 		connectionUri: getEnv("DATABASE_URI")
 	},
+	logtail: {
+		accessToken: getEnv("LOGTAIL_ACCESS_TOKEN", "")
+	},
 	http: {
 		port: getEnv("PORT", "80")
 	},

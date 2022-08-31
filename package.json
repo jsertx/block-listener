@@ -30,6 +30,8 @@
 		]
 	},
 	"dependencies": {
+		"@logtail/node": "^0.1.12",
+		"@logtail/winston": "^0.1.13",
 		"@maticnetwork/eth-decoder": "git+https://github.com/jsertx/eth-decoder.git",
 		"amqplib": "0.5.5",
 		"axios": "^0.27.2",

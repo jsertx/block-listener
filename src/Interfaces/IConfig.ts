@@ -16,6 +16,10 @@ export interface IConfig {
 	finnhub: {
 		apiKey: string;
 	};
+	logtail: {
+		// if undefined disabled
+		accessToken?: string;
+	};
 	database: {
 		database?: string;
 		connectionUri: string;

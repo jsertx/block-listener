@@ -6,8 +6,13 @@ import {
 	LogEntry,
 	LogEntryParams
 } from "../Interfaces/ILogger";
-import { injectable } from "inversify";
+import { inject, injectable } from "inversify";
 import { ILogtailLog, LogLevel } from "@logtail/types";
+import { Logtail } from "@logtail/node";
+import { LogtailTransport } from "@logtail/winston";
+import { IocKey } from "../Ioc/IocKey";
+import { IConfig } from "../Interfaces/IConfig";
+import * as Transport from "winston-transport";
 
 function flattenObject(
 	a: Record<string, any>,
@@ -82,14 +87,25 @@ const prepareEntry = (
 @injectable()
 export class WinstonLogger implements ILogger {
 	logger: winston.Logger;
-	constructor() {
+	constructor(@inject(IocKey.Config) private config: IConfig) {
+		const transports: Transport[] = [new winston.transports.Console()];
+		if (this.config.logtail.accessToken) {
+			transports.push(
+				new LogtailTransport(
+					new Logtail(this.config.logtail.accessToken, {
+						batchSize: 500,
+						batchInterval: 10_000
+					})
+				)
+			);
+		}
 		this.logger = winston.createLogger({
 			format: winston.format.json(),
 			defaultMeta: {
 				app: getEnv("APP_NAME"),
 				id: getEnv("HOSTNAME", getEnv("APP_NAME"))
 			},
-			transports: [new winston.transports.Console()]
+			transports
 		});
 	}
 	log(entry: LogEntryParams) {
