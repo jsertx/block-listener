@@ -6,7 +6,6 @@ interface DefaultContext {
 	message?: any;
 	executorClass?: string;
 	rpcCall?: {
-		requestId: string;
 		method: string;
 		args: any;
 	};
