@@ -5,6 +5,7 @@ interface DefaultContext {
 	txHash?: string;
 	message?: any;
 	executorClass?: string;
+	address?: string;
 	rpcCall?: {
 		method: string;
 		params: any[];

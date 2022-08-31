@@ -83,6 +83,11 @@ export class SaveToken extends Executor<TokenDiscoveredPayload> {
 			isStable: false
 		});
 		await this.tokenRepository.save(token);
+		this.logger.log({
+			type: "save-token.saved",
+			message: `Token saved: ${symbol} ${address}@${blockchain}`,
+			context: { address, blockchain }
+		});
 	}
 
 	getMessageContextTrace({ address, blockchain }: TokenDiscoveredPayload) {

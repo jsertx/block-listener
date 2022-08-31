@@ -88,6 +88,11 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		}
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(new WalletSaved({ blockchain, address }));
+		this.logger.log({
+			type: "save-wallet.saved",
+			message: `Wallet saved: ${wallet}@${blockchain}`,
+			context: { address: wallet.address, blockchain }
+		});
 	}
 
 	async updateWallet(
