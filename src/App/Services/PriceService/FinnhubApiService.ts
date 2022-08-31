@@ -65,6 +65,9 @@ export class FinnhubApiService implements IPriceService {
 					this.logger.error({
 						message: "[Finnhub] Get price call failed",
 						type: "finnhub-api.call.failed.get-crypto-candle",
+						context: {
+							blockchain: blockchain.id
+						},
 						error
 					});
 					throw error;

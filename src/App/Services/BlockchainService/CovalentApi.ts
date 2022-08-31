@@ -45,6 +45,10 @@ export class CovalentApi implements IBlockchainService {
 					this.logger.error({
 						message: "[Covalent] Get wallet txs call failed",
 						type: "covalent-api.call.failed.get-wallet-txs",
+						context: {
+							blockchain,
+							address
+						},
 						error
 					});
 					throw error;
