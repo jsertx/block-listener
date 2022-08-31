@@ -36,7 +36,7 @@ export const createWrappedProvider = (
 						})
 						.catch((error) => {
 							logger.log({
-								type: "provider.call.failed",
+								type: `provider.call.failed.${method}`,
 								message: "Rpc call failed",
 								context: {
 									rpcCall: {
