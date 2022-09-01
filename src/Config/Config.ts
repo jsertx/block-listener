@@ -52,18 +52,46 @@ function prepareNodeList(
 	providers: IConfig["providers"]
 ): IConfig["providers"] {
 	Object.entries(providers).forEach(([blockchain, providers]) => {
-		const jsonRpcUrls = getEnv(
+		const jsonRpcUrlCfgs = getEnv(
 			`${blockchain.toUpperCase()}_JSON_RPC_URLS`,
 			""
 		);
-
-		if (jsonRpcUrls) {
-			jsonRpcUrls
-				.split(",")
-				.forEach((jsonRpcUrl) =>
-					providers.push({ url: jsonRpcUrl.trim() })
-				);
+		if (jsonRpcUrlCfgs) {
+			(JSON.parse(jsonRpcUrlCfgs) as JsonRpcConfig[])
+				.map(validateInlineJsonRpcCfg)
+				.forEach(({ maxConcurrent, minTime, url }) => {
+					providers.push({
+						url,
+						rateConfig: {
+							maxConcurrent,
+							minTime
+						}
+					});
+				});
 		}
 	});
 	return providers;
+}
+interface JsonRpcConfig {
+	maxConcurrent: number | undefined;
+	minTime: number | undefined;
+	url: string;
+}
+function validateInlineJsonRpcCfg({
+	url,
+	maxConcurrent,
+	minTime
+}: JsonRpcConfig): {
+	maxConcurrent: number | undefined;
+	minTime: number | undefined;
+	url: string;
+} {
+	if (!url) {
+		throw new Error("Invalidurl");
+	}
+	return {
+		maxConcurrent,
+		minTime,
+		url
+	};
 }

@@ -13,19 +13,15 @@ export class ProviderError extends Error {
 		super(`[Provider#${method}] ${originalError.message}`);
 	}
 }
-const providers: Record<string, ethers.providers.StaticJsonRpcProvider> = {};
 
 export const createWrappedProvider = (
 	logger: ILogger,
 	url: string,
-	chainId: number
-): JsonRpcProvider => {
-	const providerKey = `${chainId}_${url}`;
-	if (providers[providerKey]) {
-		return providers[providerKey];
-	}
+	chainId: number,
+	rateConfig: Bottleneck.ConstructorOptions
+): { bottleneck: Bottleneck; provider: JsonRpcProvider } => {
 	const _provider = new ethers.providers.StaticJsonRpcProvider(url, chainId);
-	const bottleneck = new Bottleneck({ maxConcurrent: 10 });
+	const bottleneck = new Bottleneck(rateConfig);
 	const provider = new Proxy(_provider, {
 		get: (target: JsonRpcProvider, key: keyof JsonRpcProvider) => {
 			if (key === "send") {
@@ -53,7 +49,5 @@ export const createWrappedProvider = (
 		}
 	});
 
-	providers[providerKey] = provider;
-
-	return provider;
+	return { bottleneck, provider };
 };

@@ -1,8 +1,11 @@
+import Bottleneck from "bottleneck";
 import { BlockchainId } from "../Config/Blockchains";
 
 export interface IBlockchainProviderConfig {
 	url: string;
+	rateConfig: Bottleneck.ConstructorOptions;
 }
+
 export interface ITxRuleConfig {
 	minNativeTransferValueInUsd: string;
 	minDexSwapValueInUsd: string;
