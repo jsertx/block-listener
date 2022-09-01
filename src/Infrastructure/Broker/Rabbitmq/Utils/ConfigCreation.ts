@@ -58,14 +58,14 @@ export const createBrokerConnection = async (config: IConfig) => {
 	let subscriptions: VhostConfig["subscriptions"] = {
 		[Subscription.FindDirectTx]: {
 			queue: Queue.FindDirectTx,
-			prefetch: 5
+			prefetch: 10
 		},
 		[Subscription.FindInternalTx]: {
 			queue: Queue.FindInternalTx
 		},
 		[Subscription.SaveTx]: {
 			queue: Queue.SaveTx,
-			prefetch: 5
+			prefetch: 40
 		},
 		[Subscription.SaveToken]: {
 			queue: Queue.SaveToken
