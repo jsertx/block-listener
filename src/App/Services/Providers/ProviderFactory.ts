@@ -2,7 +2,10 @@ import { Multicall } from "ethereum-multicall";
 import { inject, injectable } from "inversify";
 import { Blockchain, BlockchainId } from "../../Values/Blockchain";
 import { IConfig } from "../../../Interfaces/IConfig";
-import { IProviderFactory } from "../../Interfaces/IProviderFactory";
+import {
+	IProviderFactory,
+	MulticallOptions
+} from "../../Interfaces/IProviderFactory";
 import { IocKey } from "../../../Ioc/IocKey";
 import { createWrappedProvider } from "./Utils";
 import { ILogger } from "../../../Interfaces/ILogger";
@@ -44,8 +47,14 @@ export class ProviderFactory implements IProviderFactory {
 		});
 	}
 
-	getMulticallProvider(blockchain: Blockchain | BlockchainId): Multicall {
-		return new Multicall({ ethersProvider: this.getProvider(blockchain) });
+	getMulticallProvider(
+		blockchain: Blockchain | BlockchainId,
+		{ tryAggregate }: MulticallOptions = { tryAggregate: false }
+	): Multicall {
+		return new Multicall({
+			ethersProvider: this.getProvider(blockchain),
+			tryAggregate
+		});
 	}
 
 	getProvider(blockchain: Blockchain | BlockchainId) {

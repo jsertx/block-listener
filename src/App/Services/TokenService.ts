@@ -5,6 +5,13 @@ import { Token } from "../Entities/Token";
 import { ITokenRepository } from "../Repository/ITokenRepository";
 
 import { BlockchainId } from "../Values/Blockchain";
+import { ethers } from "ethers";
+import {
+	IProviderFactory,
+	multicallResultHelper
+} from "../Interfaces/IProviderFactory";
+import { ERC20, ERC20_32bytesSymbol } from "./SmartContract/ABI/ERC20";
+import { ContractCallContext } from "ethereum-multicall";
 
 interface ServiceCache {
 	stable: Token[];
@@ -25,7 +32,9 @@ export class TokenService implements ITokenService {
 
 	constructor(
 		@inject(IocKey.TokenRepository)
-		private tokenRepository: ITokenRepository
+		private tokenRepository: ITokenRepository,
+		@inject(IocKey.ProviderFactory)
+		private providerFactory: IProviderFactory
 	) {}
 
 	async getWrappedToken(blockchain: BlockchainId): Promise<Token> {
@@ -54,5 +63,94 @@ export class TokenService implements ITokenService {
 		});
 		this.cache[blockchain].stable = tokens.data;
 		return tokens.data;
+	}
+
+	async fetchTokensData(
+		blockchain: BlockchainId,
+		tokenAddrs: string[]
+	): Promise<Token[]> {
+		const multicall = this.providerFactory.getMulticallProvider(
+			blockchain,
+			{ tryAggregate: true }
+		);
+		let calls: ContractCallContext<any>[] = [];
+
+		tokenAddrs.forEach(
+			(address) =>
+				(calls = [
+					...calls,
+
+					{
+						abi: ERC20,
+						reference: `std_${address}`,
+						contractAddress: address,
+						calls: [
+							{
+								methodName: "name",
+								reference: "name",
+								methodParameters: []
+							},
+							{
+								methodName: "symbol",
+								reference: "symbol",
+								methodParameters: []
+							},
+							{
+								methodName: "decimals",
+								reference: "decimals",
+								methodParameters: []
+							}
+						]
+					},
+					{
+						abi: ERC20_32bytesSymbol,
+						reference: `b32_${address}`,
+						contractAddress: address,
+						calls: [
+							{
+								methodName: "name",
+								reference: "name",
+								methodParameters: []
+							},
+							{
+								methodName: "symbol",
+								reference: "symbol",
+								methodParameters: []
+							}
+						]
+					}
+				])
+		);
+		const select = await multicall.call(calls).then(multicallResultHelper);
+		return tokenAddrs.map((address) => {
+			const [_name, _symbol, decimals] = select(`std_${address}`, [
+				"name",
+				"symbol",
+				"decimals"
+			]);
+			const [name32, symbol32] = select(`b32_${address}`, [
+				"name",
+				"symbol"
+			]);
+			const name =
+				_name || (name32 && ethers.utils.parseBytes32String(name32));
+			const symbol =
+				_symbol ||
+				(symbol32 && ethers.utils.parseBytes32String(name32));
+
+			if (!name || !symbol || !decimals) {
+				throw new Error("Invalid token data received");
+			}
+			return Token.create({
+				address,
+				blockchain,
+				decimals,
+				name,
+				symbol,
+				useAsBaseForPairDiscovery: false,
+				isNativeWrapped: false,
+				isStable: false
+			});
+		});
 	}
 }

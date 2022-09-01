@@ -4,4 +4,8 @@ import { BlockchainId } from "../Values/Blockchain";
 export interface ITokenService {
 	getWrappedToken(blockchain: BlockchainId): Promise<Token>;
 	getStableCoins(blockchain: BlockchainId): Promise<Token[]>;
+	fetchTokensData(
+		blockchain: BlockchainId,
+		tokenAddrs: string[]
+	): Promise<Token[]>;
 }

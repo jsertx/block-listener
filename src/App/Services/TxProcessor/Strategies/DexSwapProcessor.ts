@@ -11,24 +11,14 @@ import { TransactionLog } from "../../../Types/TransactionLog";
 import { IPriceService } from "../../../Interfaces/IPriceService";
 import { HexAddressStr } from "../../../Values/Address";
 import { ILogger } from "../../../../Interfaces/ILogger";
-import {
-	IProviderFactory,
-	multicallResultHelper
-} from "../../../Interfaces/IProviderFactory";
-import { Blockchain } from "../../../Values/Blockchain";
-import { ERC20 } from "../../SmartContract/ABI/ERC20";
+import { IProviderFactory } from "../../../Interfaces/IProviderFactory";
 import { toFormatted } from "../../../Utils/Amount";
-import { DirectToDead } from "../../../../Infrastructure/Broker/Executor";
 import { BN } from "../../../Utils/Numbers";
 import { ITokenService } from "../../../Interfaces/ITokenService";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
 
-interface TokenData {
-	symbol: string;
-	decimals: number;
-}
 @injectable()
 export class DexSwapProcessor implements ITxProcessStrategy {
 	constructor(
@@ -165,11 +155,11 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 			nativeValue = BN(usdValue).dividedBy(nativePrice).toFixed();
 		}
 
-		const [inputTokenData, outputTokenData] = await this.getTokensData(
-			tx.blockchain,
-			inputToken,
-			outToken
-		);
+		const [inputTokenData, outputTokenData] =
+			await this.tokenService.fetchTokensData(tx.blockchain.id, [
+				inputToken,
+				outToken
+			]);
 		if (!nativeValue || !usdValue) {
 			return;
 		}
@@ -192,53 +182,6 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		};
 
 		return details;
-	}
-
-	private async getTokensData(
-		blockchain: Blockchain,
-		inputToken: string,
-		outputToken: string
-	): Promise<[TokenData, TokenData]> {
-		const multicall = this.providerFactory.getMulticallProvider(blockchain);
-		const select = await multicall
-			.call(
-				[inputToken, outputToken].map((address) => ({
-					abi: ERC20,
-					reference: address,
-					contractAddress: address,
-					calls: [
-						{
-							methodName: "symbol",
-							reference: "symbol",
-							methodParameters: []
-						},
-						{
-							methodName: "decimals",
-							reference: "decimals",
-							methodParameters: []
-						}
-					]
-				}))
-			)
-			.then(multicallResultHelper)
-			.catch((error) => {
-				if (error && error.code && error.code === "NUMERIC_FAULT") {
-					throw new DirectToDead(
-						`Could not take bugged tokens: [${inputToken}, ${outputToken}]`
-					);
-				}
-				throw error;
-			});
-
-		const [symbolA, decimalsA] = select(inputToken, ["symbol", "decimals"]);
-		const [symbolB, decimalsB] = select(outputToken, [
-			"symbol",
-			"decimals"
-		]);
-		return [
-			{ symbol: symbolA, decimals: decimalsA },
-			{ symbol: symbolB, decimals: decimalsB }
-		];
 	}
 }
 
