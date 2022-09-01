@@ -13,12 +13,12 @@ export class MemoryCache implements ICache {
 	async get<T>(key: string): Promise<T | undefined> {
 		const value = this.cacheStorage.get<T>(key);
 		if (this.cacheStorage.has(key)) {
-			this.logger.debug({
+			this.logger.info({
 				type: `cache.hit.${key}`,
 				message: `Cache hit for key ${key}`
 			});
 		} else {
-			this.logger.debug({
+			this.logger.info({
 				type: `cache.miss.${key}`,
 				message: `Cache miss for key ${key}`
 			});
