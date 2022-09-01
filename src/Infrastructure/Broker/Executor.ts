@@ -96,16 +96,6 @@ export abstract class Executor<PayloadType> implements IExecutor {
 			await this.execute(message.payload, message);
 			ack();
 		} catch (error) {
-			this.logger.error({
-				error,
-				type: "executor.execution",
-				message: "Executor execution failed",
-				context: {
-					channel: this.channel,
-					executorClass: this.constructor.name,
-					message: this.getMessageContextTrace(message.payload)
-				}
-			});
 			await this.retryHandler(message, error).then(ack).catch(nack);
 		}
 	}
