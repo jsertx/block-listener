@@ -17,14 +17,14 @@ import { Blockchain } from "../../Values/Blockchain";
 import { GetPriceError } from "./Errors";
 
 const buildCacheKey = (time: number) => `finnhub_price_at_${time}`;
-const SIXTY_REQ_PER_MIN = Math.floor(60_000 / 60);
+// const SIXTY_REQ_PER_MIN = Math.floor(60_000 / 60);
 const ONE_DAY_IN_S = 86_4000;
 @injectable()
 export class FinnhubApiService implements IPriceService {
 	private baseUrl = "https://finnhub.io/api";
 	private client: Axios;
 	private resolution = 5;
-	private bottleneck = new Bottleneck({ minTime: SIXTY_REQ_PER_MIN });
+	private bottleneck = new Bottleneck({ maxConcurrent: 5 });
 	constructor(
 		@inject(IocKey.Config)
 		private config: IConfig,
