@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { injectable, unmanaged } from "inversify";
 import { IBroker } from "../../Interfaces/IBroker";
 import { DeadRecoveryOptions, IExecutor } from "../../Interfaces/IExecutor";
@@ -116,10 +117,10 @@ export abstract class Executor<PayloadType> implements IExecutor {
 	) {
 		const { retries } = message;
 		if (error instanceof DirectToDead) {
-			const deadMsg = new ExecutorMessage<PayloadType>(
-				this.deadChannel,
-				message.payload
-			);
+			const deadMsg = new ExecutorMessage<PayloadType>(this.deadChannel, {
+				...message.payload,
+				error
+			});
 			return this.broker.publish(deadMsg);
 		}
 		const delay = this.options.backoffStrategy(retries, error);
@@ -198,15 +199,20 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		await this.broker.subscribe(
 			this.deadChannel,
 			async (message, ack, nack) => {
-				if (amount && msgCount === amount) {
-					process.exit(0);
-				}
 				const processMsg = new ExecutorMessage<PayloadType>(
 					this.channel,
 					message.payload
 				);
-				this.broker.publish(processMsg).then(ack).catch(nack);
+				await this.broker.publish(processMsg).then(ack).catch(nack);
 				msgCount++;
+
+				if (amount && msgCount === amount) {
+					console.log(`${msgCount}/${amount}`);
+					return process.exit(0);
+				}
+				if (msgCount % 5 === 0) {
+					console.log(`${msgCount}/${amount}`);
+				}
 			}
 		);
 	}
