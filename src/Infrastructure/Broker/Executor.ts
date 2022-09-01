@@ -1,6 +1,6 @@
 import { injectable, unmanaged } from "inversify";
 import { IBroker } from "../../Interfaces/IBroker";
-import { IExecutor } from "../../Interfaces/IExecutor";
+import { DeadRecoveryOptions, IExecutor } from "../../Interfaces/IExecutor";
 import { ILogger } from "../../Interfaces/ILogger";
 import { BaseMessage } from "./BaseMessage";
 import { addRetryPrefix, addDeadPrefix } from "./Rabbitmq/Utils/ConfigCreation";
@@ -193,15 +193,20 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		);
 	}
 
-	async startDeadRecovery() {
+	async startDeadRecovery({ amount }: DeadRecoveryOptions) {
+		let msgCount = 0;
 		await this.broker.subscribe(
 			this.deadChannel,
 			async (message, ack, nack) => {
+				if (amount && msgCount === amount) {
+					process.exit(0);
+				}
 				const processMsg = new ExecutorMessage<PayloadType>(
 					this.channel,
 					message.payload
 				);
 				this.broker.publish(processMsg).then(ack).catch(nack);
+				msgCount++;
 			}
 		);
 	}
