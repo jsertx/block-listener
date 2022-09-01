@@ -16,7 +16,7 @@ import { truncateNumberBy } from "../../Utils/Numbers";
 import { Blockchain } from "../../Values/Blockchain";
 import { GetPriceError } from "./Errors";
 
-const buildCacheKey = (time: number) => `finnhub_price_at_${time}`;
+const buildCacheKey = (time: number) => `finnhub.price_at.${time}`;
 // const SIXTY_REQ_PER_MIN = Math.floor(60_000 / 60);
 const ONE_DAY_IN_S = 86_4000;
 @injectable()
