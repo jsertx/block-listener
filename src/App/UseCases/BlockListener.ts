@@ -5,15 +5,15 @@ import { ILogger } from "../../Interfaces/ILogger";
 
 import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IocKey } from "../../Ioc/IocKey";
-import { BlockchainId } from "../Values/Blockchain";
+import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { BlockReceived } from "../PubSub/Messages/BlockReceived";
 import { IConfig } from "../../Interfaces/IConfig";
-import { sleep } from "../Utils/Misc";
+import { noop, sleep } from "../Utils/Misc";
 import { ICache } from "../Interfaces/ICache";
 import { IBlockRepository } from "../Repository/IBlockRepository";
 import { Block } from "../Entities/Block";
-import BigNumber from "bignumber.js";
+import { IPriceService } from "../Interfaces/IPriceService";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
@@ -26,7 +26,8 @@ export class BlockListener implements IStandaloneApps {
 		@inject(IocKey.Broker) private broker: IBroker,
 		@inject(IocKey.Cache) private cache: ICache,
 		@inject(IocKey.BlockRepository)
-		private blockRepository: IBlockRepository
+		private blockRepository: IBlockRepository,
+		@inject(IocKey.PriceService) private priceService: IPriceService
 	) {}
 
 	private getProvider(blockchain: BlockchainId) {
@@ -42,12 +43,11 @@ export class BlockListener implements IStandaloneApps {
 				}
 			});
 
-			let latestBlock = await this.getStartBlock(blockchain);
+			const latestBlock = await this.getStartBlock(blockchain);
+			let nextBlockNum = latestBlock + 1;
 			for (;;) {
 				const block = await this.getProvider(blockchain)
-					.getBlockWithTransactions(
-						new BigNumber(latestBlock).toNumber()
-					)
+					.getBlockWithTransactions(nextBlockNum)
 					.catch(() => undefined);
 
 				if (block) {
@@ -59,6 +59,12 @@ export class BlockListener implements IStandaloneApps {
 								timestamp: new Date(block.timestamp * 1000)
 							})
 						);
+
+						await this.prepareNextBlockPriceCache(
+							blockchain,
+							nextBlockNum
+						).catch(noop);
+
 						await this.broker.publish(
 							new BlockReceived({
 								blockchain,
@@ -66,7 +72,7 @@ export class BlockListener implements IStandaloneApps {
 							})
 						);
 
-						latestBlock = block.number + 1;
+						nextBlockNum = block.number + 1;
 
 						this.logger.log({
 							type: "block-listener.new-block",
@@ -91,6 +97,15 @@ export class BlockListener implements IStandaloneApps {
 				await sleep(10_000);
 			}
 		});
+	}
+	private async prepareNextBlockPriceCache(
+		blockchain: BlockchainId,
+		latestBlock: number
+	) {
+		await this.priceService.getBlockchainNativeTokenUsdPrice(
+			new Blockchain(blockchain),
+			latestBlock
+		);
 	}
 	private async getStartBlock(blockchain: BlockchainId): Promise<number> {
 		const latestBlockFromDb = await this.blockRepository
