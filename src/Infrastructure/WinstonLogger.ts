@@ -93,8 +93,8 @@ export class WinstonLogger implements ILogger {
 			transports.push(
 				new LogtailTransport(
 					new Logtail(this.config.logtail.accessToken, {
-						batchSize: 500,
-						batchInterval: 10_000
+						batchSize: 1000,
+						batchInterval: 60_000
 					})
 				)
 			);
