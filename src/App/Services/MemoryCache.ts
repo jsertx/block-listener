@@ -16,7 +16,7 @@ export class MemoryCache implements ICache {
 		value: T,
 		ttlMilis = this.defaultTtlMilis
 	): Promise<boolean> {
-		return this.cacheStorage.set<T>(key, value, ttlMilis);
+		return this.cacheStorage.set<T>(key, value, ttlMilis / 1000);
 	}
 
 	async has(key: string): Promise<boolean> {
