@@ -37,7 +37,10 @@ services:
         networks:
             - main
     rabbitmq:
-        image: rabbitmq:3-management-alpine
+        #image: rabbitmq:3-management-alpine
+        build:
+            context: .
+            dockerfile: ./Dockerfile.rabbit
         container_name: "rabbitmq"
         ports:
             - 5672:5672
