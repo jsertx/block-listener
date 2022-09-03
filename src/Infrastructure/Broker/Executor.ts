@@ -188,10 +188,14 @@ export abstract class Executor<PayloadType> implements IExecutor {
 				executorClass: this.constructor.name
 			}
 		});
-		await this.broker.subscribe(
+		const { off } = await this.broker.subscribe(
 			this.channel,
 			this.executionWrapper.bind(this)
 		);
+		// REVIEW: check how to reconnect on closed connections
+		setTimeout(async () => {
+			await off();
+		}, 1800_000);
 	}
 
 	async startDeadRecovery({ amount }: DeadRecoveryOptions) {
