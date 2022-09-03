@@ -7,7 +7,6 @@ import { TokenDiscoveredPayload } from "../../PubSub/Messages/TokenDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
 import { checksumed } from "../../Utils/Address";
 import { Executor } from "../../../Infrastructure/Broker/Executor";
-import { BlockchainId } from "../../Values/Blockchain";
 import { ITokenService } from "../../Interfaces/ITokenService";
 @injectable()
 export class SaveToken extends Executor<TokenDiscoveredPayload> {
@@ -20,12 +19,7 @@ export class SaveToken extends Executor<TokenDiscoveredPayload> {
 	) {
 		super(logger, broker, Subscription.SaveToken);
 	}
-	async start(): Promise<void> {
-		await this.execute({
-			blockchain: BlockchainId.Ethereum,
-			address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
-		});
-	}
+
 	async execute({ address, blockchain }: TokenDiscoveredPayload) {
 		const existingToken = await this.tokenRepository.findOne({
 			address: checksumed(address),
