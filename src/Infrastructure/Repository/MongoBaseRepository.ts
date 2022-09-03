@@ -1,5 +1,5 @@
 import { injectable, unmanaged } from "inversify";
-import { Filter, MongoClient, WithId } from "mongodb";
+import { Document, Filter, MongoClient, WithId } from "mongodb";
 import { IConfig } from "../../Interfaces/IConfig";
 import {
 	findAllOptions,
@@ -13,9 +13,9 @@ export type MongoProvider = () => Promise<MongoClient>;
 
 @injectable()
 export abstract class MongoBaseRepository<
-	TModel,
+	TModel extends Document,
 	TEntity extends Entity<any>,
-	TId = Record<string, any>
+	TId extends Record<string, any> = Record<string, any>
 > implements IBaseRepository<TEntity, TId>
 {
 	constructor(
@@ -41,14 +41,15 @@ export abstract class MongoBaseRepository<
 		page,
 		pageSize = 500
 	}: findAllOptions = {}): Promise<FindAllResponse<TEntity>> {
-		let query = this.getCollection().find(where as any);
+		const filter: Filter<TModel> = where;
+		let query = this.getCollection().find(where);
 		if (page) {
 			const skip = (page - 1) * pageSize;
 			query = query.skip(skip).limit(pageSize);
 		}
 
 		const [total, data] = await Promise.all([
-			this.getCollection().countDocuments(),
+			this.getCollection().countDocuments(filter),
 			query.map(this.modelToEntityMapper).toArray()
 		]);
 
