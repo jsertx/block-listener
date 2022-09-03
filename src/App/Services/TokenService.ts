@@ -74,7 +74,8 @@ export class TokenService implements ITokenService {
 			{ tryAggregate: true }
 		);
 		let calls: ContractCallContext<any>[] = [];
-
+		const standardKey = (address: string) => `std_${address}`;
+		const bytes32Key = (address: string) => `b32_${address}`;
 		tokenAddrs.forEach(
 			(address) =>
 				(calls = [
@@ -82,7 +83,7 @@ export class TokenService implements ITokenService {
 
 					{
 						abi: ERC20,
-						reference: `std_${address}`,
+						reference: standardKey(address),
 						contractAddress: address,
 						calls: [
 							{
@@ -104,7 +105,7 @@ export class TokenService implements ITokenService {
 					},
 					{
 						abi: ERC20_32bytesSymbol,
-						reference: `b32_${address}`,
+						reference: bytes32Key(address),
 						contractAddress: address,
 						calls: [
 							{
@@ -123,12 +124,12 @@ export class TokenService implements ITokenService {
 		);
 		const select = await multicall.call(calls).then(multicallResultHelper);
 		return tokenAddrs.map((address) => {
-			const [_name, _symbol, decimals] = select(`std_${address}`, [
+			const [_name, _symbol, decimals] = select(standardKey(address), [
 				"name",
 				"symbol",
 				"decimals"
 			]);
-			const [name32, symbol32] = select(`b32_${address}`, [
+			const [name32, symbol32] = select(bytes32Key(address), [
 				"name",
 				"symbol"
 			]);

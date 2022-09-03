@@ -49,6 +49,13 @@ export interface DexSwapData {
 	usdValue: string;
 	from: string;
 	to: string; //normally will be the same as "from"
+	/*
+	 estimated value fields are true when they where calculated throug PriceService 
+	 rather than from the logs
+	 undefined, should calculate later
+	 */
+	calculatedNativeValue?: boolean;
+	calculatedUsdValue?: boolean;
 	input: {
 		token: HexAddressStr;
 		symbol: string;

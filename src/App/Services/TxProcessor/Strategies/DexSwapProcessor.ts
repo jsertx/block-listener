@@ -11,7 +11,6 @@ import { TransactionLog } from "../../../Types/TransactionLog";
 import { IPriceService } from "../../../Interfaces/IPriceService";
 import { HexAddressStr } from "../../../Values/Address";
 import { ILogger } from "../../../../Interfaces/ILogger";
-import { IProviderFactory } from "../../../Interfaces/IProviderFactory";
 import { toFormatted } from "../../../Utils/Amount";
 import { BN } from "../../../Utils/Numbers";
 import { ITokenService } from "../../../Interfaces/ITokenService";
@@ -25,8 +24,6 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		@inject(IocKey.Logger) private logger: ILogger,
 		@inject(IocKey.TokenService) private tokenService: ITokenService,
 		@inject(IocKey.PriceService) private priceService: IPriceService,
-		@inject(IocKey.ProviderFactory)
-		private providerFactory: IProviderFactory,
 		@inject(IocKey.ContractRepository)
 		private contractRepository: IContractRepository
 	) {}
@@ -87,7 +84,8 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 		);
 		let nativeValue = getTokenValueFromLogs(weth, tx.raw.logs);
 		let usdValue = getStableUsdValueFromLogs(stables, tx.raw.logs);
-
+		const calculatedNativeValue = !nativeValue;
+		const calculatedUsdValue = !usdValue;
 		switch (method) {
 			case UniswapV2RouterSwapMethods.swapETHForExactTokens:
 				inputAmount = tx.raw.value;
@@ -169,6 +167,8 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 			usdValue,
 			from,
 			to: outDest,
+			calculatedNativeValue: calculatedNativeValue,
+			calculatedUsdValue: calculatedUsdValue,
 			input: {
 				symbol: inputTokenData.symbol,
 				amount: toFormatted(inputAmount, inputTokenData.decimals),
