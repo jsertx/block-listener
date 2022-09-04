@@ -74,7 +74,7 @@ export class BlockListener implements IStandaloneApps {
 						nextBlockNum = block.number + 1;
 
 						this.logger.log({
-							type: "block-listener.new-block",
+							type: "block-listener.new-block.saved",
 							message: `Block fetched ${block.number}@${blockchain}`,
 							context: {
 								blockchain,
@@ -83,7 +83,7 @@ export class BlockListener implements IStandaloneApps {
 						});
 					} catch (error) {
 						this.logger.error({
-							type: "block-listener.on-block",
+							type: "block-listener.new-block.error",
 							message: `Error getting block ${block.number}@${blockchain}`,
 							error,
 							context: {
@@ -108,6 +108,10 @@ export class BlockListener implements IStandaloneApps {
 				return sleep(10_000);
 			}
 			// many messages = wait 2 min and check again
+			this.logger.log({
+				message: `Channel ${Subscription.SaveTx} has ${pendingSaveTxMsgs} msgs. Waiting to cool down.`,
+				type: "block-listener.new-block.cool-down"
+			});
 			await sleep(120_000);
 		}
 	}
