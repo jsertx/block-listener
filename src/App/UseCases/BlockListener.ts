@@ -100,13 +100,15 @@ export class BlockListener implements IStandaloneApps {
 
 	private async nextRoundAwaiter() {
 		for (;;) {
-			await sleep(10_000);
 			const pendingSaveTxMsgs = await this.broker.getPendingMessages(
 				Subscription.SaveTx
 			);
+			// few messages = stop waiting after 10s
 			if (pendingSaveTxMsgs < 1000) {
-				break;
+				return sleep(10_000);
 			}
+			// many messages = wait 2 min and check again
+			await sleep(120_000);
 		}
 	}
 	private async prepareNextBlockPriceCache(
