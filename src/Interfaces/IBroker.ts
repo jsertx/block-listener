@@ -27,4 +27,5 @@ export interface IBroker<Publications = string, Subscriptions = string> {
 		channel: Subscriptions,
 		callback: IBrokerSubCallback
 	): Promise<IBrokerSubscription>;
+	getPendingMessages(channel: Subscriptions): Promise<number>;
 }

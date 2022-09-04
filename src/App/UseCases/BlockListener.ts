@@ -10,10 +10,10 @@ import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
 import { BlockReceived } from "../PubSub/Messages/BlockReceived";
 import { IConfig } from "../../Interfaces/IConfig";
 import { noop, sleep } from "../Utils/Misc";
-import { ICache } from "../Interfaces/ICache";
 import { IBlockRepository } from "../Repository/IBlockRepository";
 import { Block } from "../Entities/Block";
 import { IPriceService } from "../Interfaces/IPriceService";
+import { Subscription } from "../../Infrastructure/Broker/Subscription";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
@@ -24,7 +24,6 @@ export class BlockListener implements IStandaloneApps {
 		private providerFactory: IProviderFactory,
 		@inject(IocKey.Logger) private logger: ILogger,
 		@inject(IocKey.Broker) private broker: IBroker,
-		@inject(IocKey.Cache) private cache: ICache,
 		@inject(IocKey.BlockRepository)
 		private blockRepository: IBlockRepository,
 		@inject(IocKey.PriceService) private priceService: IPriceService
@@ -94,9 +93,21 @@ export class BlockListener implements IStandaloneApps {
 						});
 					}
 				}
-				await sleep(10_000);
+				await this.nextRoundAwaiter();
 			}
 		});
+	}
+
+	private async nextRoundAwaiter() {
+		for (;;) {
+			await sleep(10_000);
+			const pendingSaveTxMsgs = await this.broker.getPendingMessages(
+				Subscription.SaveTx
+			);
+			if (pendingSaveTxMsgs < 1000) {
+				break;
+			}
+		}
 	}
 	private async prepareNextBlockPriceCache(
 		blockchain: BlockchainId,

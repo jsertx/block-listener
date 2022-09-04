@@ -1,4 +1,4 @@
-import { IConfig } from "../Interfaces/IConfig";
+import { BrokerType, IConfig } from "../Interfaces/IConfig";
 import { getEnv } from "../App/Utils/Env";
 import { BlockchainId } from "./Blockchains";
 
@@ -24,7 +24,11 @@ export const Config: IConfig = {
 		port: getEnv("PORT", "80")
 	},
 	broker: {
-		brokerUri: getEnv("BROKER_URI")
+		type: BrokerType.Rabbit,
+		config: {
+			uri: getEnv("BROKER_URI"),
+			apiUrl: getEnv("BROKER_API_URL")
+		}
 	},
 	txRules: {
 		[BlockchainId.Ethereum]: {

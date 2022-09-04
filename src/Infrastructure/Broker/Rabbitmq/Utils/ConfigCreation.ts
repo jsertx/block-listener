@@ -114,7 +114,7 @@ export const createBrokerConnection = async (config: IConfig) => {
 	});
 
 	const vhostConfig: VhostConfig = {
-		connections: getConnections(config.broker.brokerUri),
+		connections: getConnections(config.broker.config.uri),
 		exchanges: Object.values(Exchange),
 		queues,
 		bindings,

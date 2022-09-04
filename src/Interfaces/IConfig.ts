@@ -10,6 +10,14 @@ export interface ITxRuleConfig {
 	minNativeTransferValueInUsd: string;
 	minDexSwapValueInUsd: string;
 }
+export enum BrokerType {
+	Rabbit = "rabbitmq"
+}
+export interface IRabbitBrokerConfig {
+	uri: string;
+	apiUrl: string;
+}
+
 export interface IConfig {
 	providers: Record<BlockchainId, IBlockchainProviderConfig[]>;
 	enabledBlockchains: BlockchainId[];
@@ -31,7 +39,8 @@ export interface IConfig {
 		port: string;
 	};
 	broker: {
-		brokerUri: string;
+		type: BrokerType;
+		config: IRabbitBrokerConfig;
 	};
 	txRules: Record<BlockchainId, ITxRuleConfig>;
 }

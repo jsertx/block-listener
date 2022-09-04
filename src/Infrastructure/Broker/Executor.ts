@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { injectable, unmanaged } from "inversify";
-import { IBroker } from "../../Interfaces/IBroker";
+import { noop } from "../../App/Utils/Misc";
+import { IBroker, IBrokerSubscription } from "../../Interfaces/IBroker";
 import { DeadRecoveryOptions, IExecutor } from "../../Interfaces/IExecutor";
 import { ILogger } from "../../Interfaces/ILogger";
 import { BaseMessage } from "./BaseMessage";
@@ -58,6 +59,7 @@ export interface ExecutorOptions {
 
 @injectable()
 export abstract class Executor<PayloadType> implements IExecutor {
+	protected sub: IBrokerSubscription | undefined;
 	private options: ExecutorOptions;
 	constructor(
 		@unmanaged()
@@ -100,6 +102,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 			await this.retryHandler(message, error).then(ack).catch(nack);
 		}
 	}
+
 	private shouldWait(message: IExecutorMsgPayload<PayloadType>) {
 		return message.processAfter > Date.now();
 	}
@@ -179,6 +182,19 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		}
 	}
 	abstract getMessageContextTrace(payload: PayloadType): any;
+
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	protected async postStart() {
+		// REVIEW: check how to reconnect on closed connections
+		setTimeout(async () => {
+			if (!this.sub) {
+				return;
+			}
+			await this.sub.off();
+			await this.start();
+		}, 1800_000);
+	}
+
 	async start() {
 		this.logger.log({
 			type: `executor.start`,
@@ -188,14 +204,12 @@ export abstract class Executor<PayloadType> implements IExecutor {
 				executorClass: this.constructor.name
 			}
 		});
-		const { off } = await this.broker.subscribe(
+		this.sub = await this.broker.subscribe(
 			this.channel,
 			this.executionWrapper.bind(this)
 		);
-		// REVIEW: check how to reconnect on closed connections
-		setTimeout(async () => {
-			await off();
-		}, 1800_000);
+
+		this.postStart().then(noop).catch(noop);
 	}
 
 	async startDeadRecovery({ amount }: DeadRecoveryOptions) {

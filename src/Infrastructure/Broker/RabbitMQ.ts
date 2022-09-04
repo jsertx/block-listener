@@ -8,13 +8,43 @@ import {
 	IBrokerSubscription
 } from "../../Interfaces/IBroker";
 import { ILogger } from "../../Interfaces/ILogger";
+import { Axios } from "axios";
+import { IConfig } from "../../Interfaces/IConfig";
 
+interface IQueueInfo {
+	backing_queue_status: {
+		len: number;
+	};
+}
 @injectable()
 export class RabbitMQ implements IBroker<any, any> {
+	private apiClient: Axios;
 	constructor(
 		@inject(IocKey.RabbitMQClient) private client: BrokerAsPromised,
-		@inject(IocKey.Logger) private logger: ILogger
-	) {}
+		@inject(IocKey.Logger) private logger: ILogger,
+		@inject(IocKey.Config) private config: IConfig
+	) {
+		this.apiClient = new Axios({
+			baseURL: this.config.broker.config.apiUrl
+		});
+	}
+
+	async getPendingMessages(channel: any): Promise<number> {
+		const config = this.client.config.vhosts?.["/"];
+		if (!config) {
+			throw new Error("No RabbitMQ Config for the default vhost '/'");
+		}
+		const vHost = "%2F";
+		const queue = (config.queues as any)?.[channel].name;
+		if (!queue) {
+			throw new Error(`No queue for subscription ${channel}`);
+		}
+		const res = await this.apiClient
+			.get<IQueueInfo>(`/queues/${vHost}/${queue}`)
+			.then((res) => res.data && JSON.parse(res.data as any));
+
+		return res.backing_queue_status.len || 0;
+	}
 
 	async publish({
 		channel,
