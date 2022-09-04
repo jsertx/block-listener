@@ -16,6 +16,13 @@ const blockchainToTokenSymbol: Record<BlockchainId, string> = {
 	[BlockchainId.Polygon]: "MATIC"
 };
 
+const blockLink: Record<BlockchainId, (height: string) => string> = {
+	[BlockchainId.Ethereum]: (height) => `https://etherscan.io/block/${height}`,
+	[BlockchainId.Binance]: (height) => `https://bscscan.com/block/${height}`,
+	[BlockchainId.Polygon]: (height) =>
+		`https://polygonscan.com//block/${height}`
+};
+
 export class Blockchain {
 	constructor(public id: BlockchainId) {
 		if (!Object.values(BlockchainId).find((bid) => bid === id)) {
@@ -29,7 +36,9 @@ export class Blockchain {
 	get nativeTokenSymbol(): string {
 		return blockchainToTokenSymbol[this.id];
 	}
-
+	getBlockLink(height: string) {
+		return blockLink[this.id](height);
+	}
 	static toChainId(id: BlockchainId): number {
 		const chainId = blockchainToChainId[id];
 		if (chainId === undefined) {

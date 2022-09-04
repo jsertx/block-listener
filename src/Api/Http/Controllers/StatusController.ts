@@ -6,6 +6,7 @@ import { ITxRepository } from "../../../App/Repository/ITxRepository";
 import { IWalletRepository } from "../../../App/Repository/IWalletRepository";
 import { notUndefined } from "../../../App/Utils/Array";
 import { TxType } from "../../../App/Values/TxType";
+import { WalletType } from "../../../App/Values/WalletType";
 import { IConfig } from "../../../Interfaces/IConfig";
 import { IocKey } from "../../../Ioc/IocKey";
 import { StatusResponseDto } from "../Dto/StatusDto";
@@ -50,7 +51,13 @@ export class StatusController implements interfaces.Controller {
 		});
 		const wallets = await this.walletRepository.findAll({
 			pageSize: 1,
-			page: 1
+			page: 1,
+			where: { type: WalletType.Whale }
+		});
+		const unknownWallets = await this.walletRepository.findAll({
+			pageSize: 1,
+			page: 1,
+			where: { type: WalletType.UnknownWallet }
 		});
 		const tokens = await this.tokenRepository.findAll({
 			pageSize: 1,
@@ -59,11 +66,16 @@ export class StatusController implements interfaces.Controller {
 
 		return {
 			tokens: tokens.total,
-			wallets: wallets.total,
+			wallets: {
+				whales: wallets.total,
+				unknown: unknownWallets.total,
+				total: wallets.total + unknownWallets.total
+			},
 			txs: {
 				dexSwaps: dexSwaps.total,
 				ethTransfers: ethTransfers.total,
-				unknown: unknownTxs.total
+				unknown: unknownTxs.total,
+				total: ethTransfers.total + dexSwaps.total + unknownTxs.total
 			}
 		};
 	}
@@ -78,7 +90,14 @@ export class StatusController implements interfaces.Controller {
 		return latestBlocksByChain
 			.filter(notUndefined)
 			.reduce<StatusResponseDto["latestBlocks"]>((map, block) => {
-				return { ...map, [block.blockchain.id]: block.height };
+				return {
+					...map,
+					[block.blockchain.id]: {
+						height: block.height,
+						timestamp: block.timestamp.toISOString(),
+						link: block.blockchain.getBlockLink(block.height)
+					}
+				};
 			}, {});
 	}
 }
