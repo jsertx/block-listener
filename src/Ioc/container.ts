@@ -27,6 +27,7 @@ import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/
 import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
 import { FinnhubApiService } from "../App/Services/PriceService/FinnhubApiService";
 import { TokenService } from "../App/Services/TokenService";
+import { FeatureFlagService } from "../App/Services/FeatureFlagService";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -59,7 +60,9 @@ export const initializeContainer = async () => {
 			FindDirectTx
 			/*FindInternalTx,*/
 		].forEach((app) => bind(IocKey.Executors).to(app).inSingletonScope());
-
+		bind(IocKey.FeatureFlagService)
+			.to(FeatureFlagService)
+			.inSingletonScope();
 		// Adapters
 		bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
 		// Brokers
