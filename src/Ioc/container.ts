@@ -1,6 +1,6 @@
 import { AsyncContainerModule, Container } from "inversify";
-import { Config } from "../Config/Config";
-import { WinstonLogger } from "../Infrastructure/WinstonLogger";
+import { getConfig } from "../Config/Config";
+import { WinstonLoggerClient } from "../Infrastructure/Logger/WinstonLogger";
 import { ProviderFactory } from "../App/Services/Providers/ProviderFactory";
 
 import { IocKey } from "./IocKey";
@@ -30,11 +30,12 @@ import { TokenService } from "../App/Services/TokenService";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
+		const Config = getConfig();
 		// Services
 		bind(IocKey.Config).toConstantValue(Config);
 		bind(IocKey.ProviderFactory).to(ProviderFactory).inSingletonScope();
 		bind(IocKey.Cache).to(MemoryCache).inSingletonScope();
-		bind(IocKey.Logger).to(WinstonLogger).inSingletonScope();
+		bind(IocKey.Logger).to(WinstonLoggerClient).inSingletonScope();
 		bind(IocKey.PriceService).to(FinnhubApiService).inSingletonScope();
 		bind(IocKey.BlockchainService).to(CovalentApi).inSingletonScope();
 		bind(IocKey.TokenService).to(TokenService).inSingletonScope();

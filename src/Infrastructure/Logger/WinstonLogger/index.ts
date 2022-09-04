@@ -1,0 +1,1 @@
+export { WinstonLoggerClient } from "./WinstonLoggerClient";

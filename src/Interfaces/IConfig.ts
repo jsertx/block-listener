@@ -17,7 +17,9 @@ export interface IRabbitBrokerConfig {
 	uri: string;
 	apiUrl: string;
 }
-
+export interface ILogtailConfig {
+	accessToken: string;
+}
 export interface IConfig {
 	providers: Record<BlockchainId, IBlockchainProviderConfig[]>;
 	enabledBlockchains: BlockchainId[];
@@ -27,10 +29,8 @@ export interface IConfig {
 	finnhub: {
 		apiKey: string;
 	};
-	logtail: {
-		// if undefined disabled
-		accessToken?: string;
-	};
+	// if undefined disabled
+	logtail?: ILogtailConfig;
 	database: {
 		database?: string;
 		connectionUri: string;
