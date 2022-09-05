@@ -18,7 +18,8 @@ import { GetPriceError } from "./Errors";
 
 const buildCacheKey = (time: number) => `finnhub.price_at.${time}`;
 // const SIXTY_REQ_PER_MIN = Math.floor(60_000 / 60);
-const ONE_DAY_IN_S = 86_4000;
+const SIX_HOURS_IN_S = 60 * 60 * 6;
+const CACHE_DURATION = SIX_HOURS_IN_S;
 @injectable()
 export class FinnhubApiService implements IPriceService {
 	private baseUrl = "https://finnhub.io/api";
@@ -82,7 +83,7 @@ export class FinnhubApiService implements IPriceService {
 				);
 			}
 			this.cache
-				.set(buildCacheKey(from), price, ONE_DAY_IN_S)
+				.set(buildCacheKey(from), price, CACHE_DURATION)
 				.then(noop)
 				.catch(noop);
 			return new BigNumber(price);

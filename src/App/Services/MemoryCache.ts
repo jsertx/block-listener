@@ -7,7 +7,7 @@ import { ICache } from "../Interfaces/ICache";
 @injectable()
 export class MemoryCache implements ICache {
 	private cacheStorage = new NodeCache();
-	private defaultTtlMilis = 60_000;
+	private defaultTtlSecs = 120;
 	constructor(@inject(IocKey.Logger) private logger: ILogger) {}
 
 	async get<T>(key: string): Promise<T | undefined> {
@@ -29,9 +29,9 @@ export class MemoryCache implements ICache {
 	async set<T>(
 		key: string,
 		value: T,
-		ttlMilis = this.defaultTtlMilis
+		ttlSecs = this.defaultTtlSecs
 	): Promise<boolean> {
-		return this.cacheStorage.set<T>(key, value, ttlMilis / 1000);
+		return this.cacheStorage.set<T>(key, value, ttlSecs);
 	}
 
 	async has(key: string): Promise<boolean> {
