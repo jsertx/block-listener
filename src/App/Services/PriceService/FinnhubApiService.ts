@@ -24,7 +24,7 @@ const CACHE_DURATION = TWELVE_HOURS_IN_S;
 export class FinnhubApiService implements IPriceService {
 	private baseUrl = "https://finnhub.io/api";
 	private client: Axios;
-	private resolution = 5;
+	private resolutionInMinutes = 15;
 	private bottleneck = new Bottleneck({ maxConcurrent: 5 });
 	constructor(
 		@inject(IocKey.Config)
@@ -60,7 +60,7 @@ export class FinnhubApiService implements IPriceService {
 			if (cachedValue) {
 				return new BigNumber(cachedValue);
 			}
-			const endpoint = `/v1/crypto/candle?symbol=BINANCE:${blockchain.nativeTokenSymbol}USDT&resolution=${this.resolution}&from=${from}&to=${to}`;
+			const endpoint = `/v1/crypto/candle?symbol=BINANCE:${blockchain.nativeTokenSymbol}USDT&resolution=${this.resolutionInMinutes}&from=${from}&to=${to}`;
 			const res = await this.client
 				.get<{ c: number[] }>(endpoint)
 				.catch((error) => {
@@ -107,7 +107,7 @@ export class FinnhubApiService implements IPriceService {
 		timestamp.setSeconds(0);
 		timestamp.setMilliseconds(0);
 		timestamp.setMinutes(
-			truncateNumberBy(timestamp.getMinutes(), this.resolution)
+			truncateNumberBy(timestamp.getMinutes(), this.resolutionInMinutes)
 		);
 		const from = Math.floor(timestamp.getTime() / 1000);
 		const to = from + 1;
