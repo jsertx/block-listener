@@ -18,8 +18,8 @@ import { GetPriceError } from "./Errors";
 
 const buildCacheKey = (time: number) => `finnhub.price_at.${time}`;
 // const SIXTY_REQ_PER_MIN = Math.floor(60_000 / 60);
-const SIX_HOURS_IN_S = 60 * 60 * 6;
-const CACHE_DURATION = SIX_HOURS_IN_S;
+const TWELVE_HOURS_IN_S = 12 * 60 * 60;
+const CACHE_DURATION = TWELVE_HOURS_IN_S;
 @injectable()
 export class FinnhubApiService implements IPriceService {
 	private baseUrl = "https://finnhub.io/api";
