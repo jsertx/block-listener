@@ -53,6 +53,11 @@ export const getConfig = (): IConfig => {
 		},
 		finnhub: {
 			apiKey: getEnv("FINNHUB_API_KEY")
+		},
+		blockListener: {
+			maxSaveTxMessagesToHalt: Number(
+				getEnv("MAX_SAVE_TX_MSGS_TO_HALT", "10000")
+			)
 		}
 	};
 

@@ -104,7 +104,10 @@ export class BlockListener implements IStandaloneApps {
 				Subscription.SaveTx
 			);
 			// few messages = stop waiting after 10s
-			if (pendingSaveTxMsgs < 1000) {
+			if (
+				pendingSaveTxMsgs <
+				this.config.blockListener.maxSaveTxMessagesToHalt
+			) {
 				return sleep(10_000);
 			}
 			// many messages = wait 2 min and check again
@@ -112,7 +115,7 @@ export class BlockListener implements IStandaloneApps {
 				message: `Channel ${Subscription.SaveTx} has ${pendingSaveTxMsgs} msgs. Waiting to cool down.`,
 				type: "block-listener.new-block.cool-down"
 			});
-			await sleep(120_000);
+			await sleep(60_000);
 		}
 	}
 	private async prepareNextBlockPriceCache(

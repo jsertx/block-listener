@@ -43,4 +43,7 @@ export interface IConfig {
 		config: IRabbitBrokerConfig;
 	};
 	txRules: Record<BlockchainId, ITxRuleConfig>;
+	blockListener: {
+		maxSaveTxMessagesToHalt: number;
+	};
 }

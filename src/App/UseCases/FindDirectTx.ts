@@ -24,6 +24,7 @@ import { BN } from "../Utils/Numbers";
 const contractCacheKey = (blockchain: string) =>
 	`find_direct_tx_contracts_${blockchain}`;
 
+const contractCacheDurationInSecs = 3600;
 @injectable()
 export class FindDirectTx extends Executor<BlockReceivedPayload> {
 	constructor(
@@ -104,7 +105,11 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 			where: { blockchain }
 		});
 
-		await this.cache.set(cacheKey, fromDb.data);
+		await this.cache.set(
+			cacheKey,
+			fromDb.data,
+			contractCacheDurationInSecs
+		);
 		return fromDb.data;
 	}
 	private async isNativeTransferOverThreshold(
