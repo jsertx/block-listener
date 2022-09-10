@@ -72,7 +72,7 @@ export const createBrokerConnection = async (config: IConfig) => {
 		},
 		[Subscription.SaveWallet]: {
 			queue: Queue.SaveWallet,
-			prefetch: 1 // they generate too much txs
+			prefetch: 5 // they generate too much txs
 		}
 	};
 
