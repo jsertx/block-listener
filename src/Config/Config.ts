@@ -55,6 +55,10 @@ export const getConfig = (): IConfig => {
 			apiKey: getEnv("FINNHUB_API_KEY")
 		},
 		blockListener: {
+			defaultStartingBlock: (() => {
+				const def = getEnv("DEF_LISTENER_START_BLOCK", "latest");
+				return def === "latest" ? def : parseInt(def);
+			})(),
 			maxSaveTxMessagesToHalt: Number(
 				getEnv("MAX_SAVE_TX_MSGS_TO_HALT", "10000")
 			)

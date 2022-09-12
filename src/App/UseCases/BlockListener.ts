@@ -136,7 +136,7 @@ export class BlockListener implements IStandaloneApps {
 		}
 
 		return await this.getProvider(blockchain)
-			.getBlock("latest")
+			.getBlock(this.config.blockListener.defaultStartingBlock)
 			.then((res) => res.number);
 	}
 }

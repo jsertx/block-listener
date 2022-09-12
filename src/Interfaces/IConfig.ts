@@ -44,6 +44,7 @@ export interface IConfig {
 	};
 	txRules: Record<BlockchainId, ITxRuleConfig>;
 	blockListener: {
+		defaultStartingBlock: "latest" | number;
 		maxSaveTxMessagesToHalt: number;
 	};
 }
