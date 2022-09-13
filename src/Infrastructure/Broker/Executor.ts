@@ -122,7 +122,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		if (error instanceof DirectToDead) {
 			const deadMsg = new ExecutorMessage<PayloadType>(this.deadChannel, {
 				...message.payload,
-				error
+				error: serializeError(error)
 			});
 			return this.broker.publish(deadMsg);
 		}

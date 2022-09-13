@@ -2,7 +2,11 @@ import { inject, injectable } from "inversify";
 import { ILogger } from "../../../Interfaces/ILogger";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IBroker } from "../../../Interfaces/IBroker";
-import { Wallet, WalletIdProps } from "../../Entities/Wallet";
+import {
+	AddressRelationType,
+	Wallet,
+	WalletIdProps
+} from "../../Entities/Wallet";
 import { WalletType } from "../../Values/WalletType";
 import { IWalletRepository } from "../../Repository/IWalletRepository";
 import { WalletDiscoveredPayload } from "../../PubSub/Messages/WalletDiscovered";
@@ -38,6 +42,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 			address: checksumed(address),
 			blockchain
 		});
+
 		if (existingWhale) {
 			return this.updateWallet(existingWhale, {
 				address,
@@ -63,6 +68,14 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		relations = [],
 		type
 	}: WalletDiscoveredPayload) {
+		if (!type) {
+			// todo: change when all wallets in queue ends
+			type = relations.some(
+				(rel) => rel.type === AddressRelationType.TransferSent
+			)
+				? WalletType.Whale
+				: WalletType.UnknownWallet;
+		}
 		const wallet = Wallet.create({
 			address,
 			blockchain,
@@ -90,7 +103,10 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		wallet: Wallet,
 		{ tags, relations, type }: Required<WalletDiscoveredPayload>
 	) {
-		wallet.setType(type);
+		if (type) {
+			// remove after some time
+			wallet.setType(type);
+		}
 		relations.forEach((r) => wallet.addRelation(r));
 		tags.forEach((t) => wallet.addTag(t));
 
