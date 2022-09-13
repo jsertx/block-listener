@@ -109,7 +109,7 @@ export class BlockListener implements IStandaloneApps {
 				pendingSaveTxMsgs <
 				this.config.blockListener.maxSaveTxMessagesToHalt
 			) {
-				return sleep(1000);
+				return sleep(0);
 			}
 			// many messages = wait 2 min and check again
 			this.logger.log({
