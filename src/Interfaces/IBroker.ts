@@ -19,6 +19,10 @@ export class BaseMessage<Publication, Payload> {
 	) {}
 }
 
+export interface IBrokerQueueStatus {
+	name: string;
+	messages: number;
+}
 export interface IBroker<Publications = string, Subscriptions = string> {
 	publish<T = any>(
 		msg: BaseMessage<Publications, T>
@@ -28,4 +32,5 @@ export interface IBroker<Publications = string, Subscriptions = string> {
 		callback: IBrokerSubCallback
 	): Promise<IBrokerSubscription>;
 	getPendingMessages(channel: Subscriptions): Promise<number>;
+	getAllQueueStatus(): Promise<IBrokerQueueStatus[]>;
 }

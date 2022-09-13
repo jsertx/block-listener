@@ -24,7 +24,7 @@ import { MemoryCache } from "../App/Services/MemoryCache";
 
 import { BlockRepository } from "../Infrastructure/Repository/BlockRepository";
 import { createBrokerConnection } from "../Infrastructure/Broker/Rabbitmq/Utils/ConfigCreation";
-import { RabbitMQ } from "../Infrastructure/Broker/RabbitMQ";
+import { RabbitMqClient } from "../Infrastructure/Broker/Rabbitmq";
 import { FinnhubApiService } from "../App/Services/PriceService/FinnhubApiService";
 import { TokenService } from "../App/Services/TokenService";
 import { FeatureFlagService } from "../App/Services/FeatureFlagService";
@@ -69,7 +69,7 @@ export const initializeContainer = async () => {
 		bind(IocKey.RabbitMQClient).toConstantValue(
 			await createBrokerConnection(Config)
 		);
-		bind(IocKey.Broker).to(RabbitMQ).inSingletonScope();
+		bind(IocKey.Broker).to(RabbitMqClient).inSingletonScope();
 
 		// DB & Repos
 		bind(IocKey.DbClient).toConstantValue(

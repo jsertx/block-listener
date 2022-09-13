@@ -1,5 +1,10 @@
 import { BlockchainId } from "../../../Config/Blockchains";
 
+export interface IQueueStatus {
+	processing: number;
+	retrying: number;
+	dead: number;
+}
 export interface StatusResponseDto {
 	latestBlocks: Partial<
 		Record<BlockchainId, { height: number; link: string }>
@@ -18,4 +23,5 @@ export interface StatusResponseDto {
 		};
 		tokens: number;
 	};
+	broker: Record<string, IQueueStatus>;
 }

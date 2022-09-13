@@ -7,9 +7,10 @@ import { IWalletRepository } from "../../../App/Repository/IWalletRepository";
 import { notUndefined } from "../../../App/Utils/Array";
 import { TxType } from "../../../App/Values/TxType";
 import { WalletType } from "../../../App/Values/WalletType";
+import { IBroker } from "../../../Interfaces/IBroker";
 import { IConfig } from "../../../Interfaces/IConfig";
 import { IocKey } from "../../../Ioc/IocKey";
-import { StatusResponseDto } from "../Dto/StatusDto";
+import { IQueueStatus, StatusResponseDto } from "../Dto/StatusDto";
 import { IApiResponse } from "../Types/Response";
 
 @controller("/")
@@ -21,7 +22,8 @@ export class StatusController implements interfaces.Controller {
 		@inject(IocKey.WalletRepository)
 		private walletRepository: IWalletRepository,
 		@inject(IocKey.TxRepository) private txRepository: ITxRepository,
-		@inject(IocKey.BlockRepository) private block: IBlockRepository
+		@inject(IocKey.BlockRepository) private block: IBlockRepository,
+		@inject(IocKey.Broker) private broker: IBroker
 	) {}
 	@httpGet("/")
 	async index(): Promise<IApiResponse<StatusResponseDto>> {
@@ -29,9 +31,30 @@ export class StatusController implements interfaces.Controller {
 			success: true,
 			data: {
 				latestBlocks: await this.getLatestBlocks(),
-				counter: await this.getCounter()
+				counter: await this.getCounter(),
+				broker: await this.getBrokerStatus()
 			}
 		};
+	}
+	private async getBrokerStatus(): Promise<StatusResponseDto["broker"]> {
+		const queues = await this.broker.getAllQueueStatus();
+		const def: IQueueStatus = { processing: 0, retrying: 0, dead: 0 };
+		const map = queues.reduce<StatusResponseDto["broker"]>((map, q) => {
+			const queue = q.name.replace("dead_", "").replace("retry_", "");
+			const status = map[queue] || { ...def };
+
+			if (q.name.startsWith("dead_")) {
+				status.dead = q.messages;
+			} else if (q.name.startsWith("retry_")) {
+				status.retrying = q.messages;
+			} else {
+				status.processing = q.messages;
+			}
+
+			return { ...map, [queue]: { ...status, retrying: q.messages } };
+		}, {});
+
+		return map;
 	}
 	private async getCounter(): Promise<StatusResponseDto["counter"]> {
 		const dexSwaps = await this.txRepository.findAll({

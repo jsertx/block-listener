@@ -1,24 +1,22 @@
 import { inject, injectable } from "inversify";
-import { IocKey } from "../../Ioc/IocKey";
+import { IocKey } from "../../../Ioc/IocKey";
 import { BrokerAsPromised } from "rascal";
 import {
 	BaseMessage,
 	IBroker,
 	IBrokerPublicationReceipt,
+	IBrokerQueueStatus,
 	IBrokerSubscription
-} from "../../Interfaces/IBroker";
-import { ILogger } from "../../Interfaces/ILogger";
+} from "../../../Interfaces/IBroker";
+import { ILogger } from "../../../Interfaces/ILogger";
 import { Axios } from "axios";
-import { IConfig } from "../../Interfaces/IConfig";
+import { IConfig } from "../../../Interfaces/IConfig";
+import { IRabbitQueueData, RabbitQueues } from "./Types";
 
-interface IQueueInfo {
-	backing_queue_status: {
-		len: number;
-	};
-}
 @injectable()
-export class RabbitMQ implements IBroker<any, any> {
+export class RabbitMqClient implements IBroker<any, any> {
 	private apiClient: Axios;
+	private vhost = "/";
 	constructor(
 		@inject(IocKey.RabbitMQClient) private client: BrokerAsPromised,
 		@inject(IocKey.Logger) private logger: ILogger,
@@ -28,19 +26,33 @@ export class RabbitMQ implements IBroker<any, any> {
 			baseURL: this.config.broker.config.apiUrl
 		});
 	}
+	async getAllQueueStatus(): Promise<IBrokerQueueStatus[]> {
+		const res = await this.apiClient
+			.get<RabbitQueues>(`/queues/${encodeURIComponent(this.vhost)}`)
+			.then(
+				(res) =>
+					res.data && (JSON.parse(res.data as any) as RabbitQueues)
+			);
+		return res.map((queue) => ({
+			name: queue.name,
+			messages: queue.messages
+		}));
+	}
 
 	async getPendingMessages(channel: any): Promise<number> {
-		const config = this.client.config.vhosts?.["/"];
+		const config = this.client.config.vhosts?.[this.vhost];
 		if (!config) {
 			throw new Error("No RabbitMQ Config for the default vhost '/'");
 		}
-		const vHost = "%2F";
+
 		const queue = (config.queues as any)?.[channel].name;
 		if (!queue) {
 			throw new Error(`No queue for subscription ${channel}`);
 		}
 		const res = await this.apiClient
-			.get<IQueueInfo>(`/queues/${vHost}/${queue}`)
+			.get<IRabbitQueueData>(
+				`/queues/${encodeURIComponent(this.vhost)}/${queue}`
+			)
 			.then((res) => res.data && JSON.parse(res.data as any));
 
 		return res.backing_queue_status.len || 0;
