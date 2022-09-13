@@ -5,6 +5,7 @@ import { WalletDiscovered } from "../../../../src/App/PubSub/Messages/WalletDisc
 import { WalletSaved } from "../../../../src/App/PubSub/Messages/WalletSaved";
 import { WalletUpdated } from "../../../../src/App/PubSub/Messages/WalletUpdated";
 import { WalletTagName } from "../../../../src/App/Values/WalletTag";
+import { WalletType } from "../../../../src/App/Values/WalletType";
 import { BlockchainId } from "../../../../src/Config/Blockchains";
 import { BaseMessage } from "../../../../src/Interfaces/IBroker";
 
@@ -27,6 +28,7 @@ describe("PubSub > Messages", () => {
 	});
 	const walletDiscoveredMsg = new WalletDiscovered({
 		blockchain: BlockchainId.Ethereum,
+		type: WalletType.Whale,
 		address: "0xAddress",
 		tags: [WalletTagName.AddedManually],
 		relations: []

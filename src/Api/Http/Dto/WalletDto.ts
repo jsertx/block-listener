@@ -5,7 +5,7 @@ import {
 	WalletRelationSchema
 } from "../../../App/Entities/Wallet";
 import { BlockchainId, blockchainIdList } from "../../../App/Values/Blockchain";
-import { WalletTag } from "../../../App/Values/WalletTag";
+import { WalletTagName } from "../../../App/Values/WalletTag";
 import { WalletType, walletTypeList } from "../../../App/Values/WalletType";
 
 export interface CreateWalletDto {
@@ -14,7 +14,7 @@ export interface CreateWalletDto {
 	type: WalletType;
 	alias: string;
 
-	tags: WalletTag[];
+	tags: WalletTagName[];
 	relations: AddressRelation[];
 	createdAt: Date;
 }

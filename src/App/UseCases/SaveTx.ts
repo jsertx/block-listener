@@ -25,6 +25,7 @@ import { WalletTagName } from "../Values/WalletTag";
 import { AddressRelationType } from "../Entities/Wallet";
 import { isUndefined } from "../Utils/Misc";
 import { BN } from "../Utils/Numbers";
+import { WalletType } from "../Values/WalletType";
 
 @injectable()
 export class SaveTx extends Executor<TxDiscoveredPayload> {
@@ -139,6 +140,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			new WalletDiscovered({
 				blockchain: tx.blockchain.id,
 				address: tx.from,
+				type: WalletType.Whale,
 				tags: [WalletTagName.FoundIteratingBlocks],
 				relations: swapOutAddressIsNotSender
 					? [transferSentRelation]
@@ -150,6 +152,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				new WalletDiscovered({
 					blockchain: tx.blockchain.id,
 					address: tx.data.to,
+					type: WalletType.UnknownWallet,
 					tags: [WalletTagName.FoundByIncomingTransfer],
 					relations: [
 						{
@@ -183,6 +186,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 					blockchain: tx.blockchain.id,
 					address: tx.data.from,
 					tags: [WalletTagName.FoundIteratingBlocks],
+					type: WalletType.Whale,
 					relations: [
 						{
 							address: tx.data.to,
@@ -198,6 +202,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				new WalletDiscovered({
 					blockchain: tx.blockchain.id,
 					address: tx.data.to,
+					type: WalletType.UnknownWallet,
 					tags: [WalletTagName.FoundByIncomingTransfer],
 					relations: [
 						{

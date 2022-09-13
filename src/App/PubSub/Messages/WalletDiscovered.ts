@@ -3,10 +3,12 @@ import { Publication } from "../../../Infrastructure/Broker/Publication";
 import { ExecutorMessage } from "../../../Infrastructure/Broker/Executor";
 import { WalletTagName } from "../../Values/WalletTag";
 import { AddressRelation } from "../../Entities/Wallet";
+import { WalletType } from "../../Values/WalletType";
 
 export interface WalletDiscoveredPayload {
 	blockchain: BlockchainId;
 	address: string;
+	type: WalletType;
 	tags?: WalletTagName[];
 	relations?: Omit<AddressRelation, "createdAt">[];
 }

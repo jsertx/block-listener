@@ -79,15 +79,28 @@ export const WalletSchema = Joi.object({
 	.unknown()
 	.options({ stripUnknown: true });
 
+export type WalletCreateProps = SetOptional<
+	WalletRaw,
+	"tags" | "relations" | "createdAt"
+>;
+
 export class Wallet extends Entity<WalletProps> {
 	constructor(props: WalletPropsConstructor, _id?: string) {
 		super({ relations: [], tags: [], ...props }, _id);
 	}
 
-	addRelation(rel: SetOptional<AddressRelation, "createdAt">) {
+	addRelation(newRel: SetOptional<AddressRelation, "createdAt">) {
+		const existing = this.props.relations.some(
+			(rel) => rel.address === newRel.address && rel.type === newRel.type
+		);
+
+		if (existing) {
+			return;
+		}
+
 		this.props.relations.push({
-			...rel,
-			createdAt: rel.createdAt || new Date()
+			...newRel,
+			createdAt: newRel.createdAt || new Date()
 		});
 	}
 
@@ -96,13 +109,18 @@ export class Wallet extends Entity<WalletProps> {
 	}
 
 	addTag(tag: SetOptional<WalletTag, "createdAt"> | WalletTagName) {
-		if (typeof tag === "string") {
-			this.props.tags.push({ tag, createdAt: new Date() });
+		const newTag =
+			typeof tag === "string" ? { tag, createdAt: new Date() } : tag;
+
+		const existing = this.props.tags.some((rel) => rel.tag === newTag.tag);
+
+		if (existing) {
 			return;
 		}
+
 		this.props.tags.push({
-			...tag,
-			createdAt: tag.createdAt || new Date()
+			...newTag,
+			createdAt: newTag.createdAt || new Date()
 		});
 	}
 
@@ -126,13 +144,10 @@ export class Wallet extends Entity<WalletProps> {
 		return new Blockchain(this.props.blockchain);
 	}
 
-	static create(
-		props: SetOptional<WalletRaw, "tags" | "relations">,
-		_id?: string
-	): Wallet {
+	static create(props: WalletCreateProps, _id?: string): Wallet {
 		return new Wallet(
 			validateOrThrowError(
-				{ relations: [], tags: [], ...props },
+				{ relations: [], tags: [], createdAt: new Date(), ...props },
 				WalletSchema
 			),
 			_id

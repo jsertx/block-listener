@@ -16,7 +16,7 @@ interface IExecutorMsgPayload<T> {
 }
 
 export class DirectToDead extends Error {
-	constructor(message: string, public readonly retriable: boolean = true) {
+	constructor(message: string) {
 		super(`[Executor] Direct to Dead. Reason: ${message}`);
 	}
 }

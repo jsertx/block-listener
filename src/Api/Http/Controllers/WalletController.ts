@@ -5,20 +5,18 @@ import {
 	httpGet,
 	httpPost,
 	requestBody,
-	requestParam,
 	response,
 	queryParam
 } from "inversify-express-utils";
 
 import { IocKey } from "../../../Ioc/IocKey";
-import { IApiPaginatedResponse, IApiResponse } from "../Types/Response";
+import { IApiPaginatedResponse, IApiResponseEmpty } from "../Types/Response";
 import { buildPaginatedResponse } from "../Utils/Response";
 import { validateOrThrowError } from "../../../App/Utils/Validation";
-import { Wallet, WalletRaw } from "../../../App/Entities/Wallet";
+import { WalletRaw } from "../../../App/Entities/Wallet";
 import { CreateWalletDto, CreateWalletDtoSchema } from "../Dto/WalletDto";
 import { IWalletRepository } from "../../../App/Repository/IWalletRepository";
 import { IBroker } from "../../../Interfaces/IBroker";
-import { BlockchainId } from "../../../Config/Blockchains";
 import { WalletDiscovered } from "../../../App/PubSub/Messages/WalletDiscovered";
 import { Response } from "express";
 import { WalletTagName } from "../../../App/Values/WalletTag";
@@ -53,31 +51,18 @@ export class WalletController implements interfaces.Controller {
 
 	@httpPost("/")
 	async createWallet(
-		@requestBody() body: CreateWalletDto
-	): Promise<IApiResponse> {
-		validateOrThrowError(body, CreateWalletDtoSchema);
-		const wallet = await this.walletRepository.save(
-			Wallet.create({ ...body, createdAt: new Date() })
-		);
-		return {
-			success: true,
-			data: wallet.toRaw()
-		};
-	}
-
-	@httpPost("/async/:blockchain/:address")
-	async saveTx(
-		@requestParam("blockchain") blockchain: BlockchainId,
-		@requestParam("address") address: string,
+		@requestBody() body: CreateWalletDto,
 		@response() res: Response
-	) {
+	): Promise<Response> {
+		validateOrThrowError(body, CreateWalletDtoSchema);
+		const tags = body.tags || [];
 		await this.broker.publish(
 			new WalletDiscovered({
-				blockchain,
-				address,
-				tags: [WalletTagName.AddedManually]
+				...body,
+				tags: [...tags, WalletTagName.AddedManually]
 			})
 		);
-		return res.sendStatus(202);
+		const resBody: IApiResponseEmpty = { success: true };
+		return res.status(202).send(resBody);
 	}
 }

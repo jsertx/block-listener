@@ -61,6 +61,7 @@ Object {
     "tags": Array [
       "added-manually",
     ],
+    "type": "whale.wallet",
   },
   "processAfter": 1662163200000,
   "retries": 0,

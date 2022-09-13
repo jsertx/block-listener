@@ -49,7 +49,7 @@ export class EventBusBroker implements IBroker<any, any> {
 	private bus = new EventEmitter();
 	constructor(@inject(IocKey.Logger) private logger: ILogger) {}
 
-	async getPendingMessages(channel: any): Promise<number> {
+	async getPendingMessages(_channel: any): Promise<number> {
 		return 0;
 	}
 

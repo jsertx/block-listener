@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { ILogger } from "../../../Interfaces/ILogger";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IBroker } from "../../../Interfaces/IBroker";
-import { AddressRelation, Wallet } from "../../Entities/Wallet";
+import { Wallet, WalletIdProps } from "../../Entities/Wallet";
 import { WalletType } from "../../Values/WalletType";
 import { IWalletRepository } from "../../Repository/IWalletRepository";
 import { WalletDiscoveredPayload } from "../../PubSub/Messages/WalletDiscovered";
@@ -12,7 +12,6 @@ import { IBlockchainService } from "../../Interfaces/IBlockchainService";
 import { TxDiscovered } from "../../PubSub/Messages/TxDiscovered";
 import { checksumed } from "../../Utils/Address";
 import { Executor } from "../../../Infrastructure/Broker/Executor";
-import { WalletTag, WalletTagName } from "../../Values/WalletTag";
 import { WalletUpdated } from "../../PubSub/Messages/WalletUpdated";
 
 @injectable()
@@ -27,18 +26,10 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 	) {
 		super(logger, broker, Subscription.SaveWallet);
 	}
-	getMessageContextTrace({
-		address,
-		blockchain
-	}: WalletDiscoveredPayload): any {
-		return {
-			address,
-			blockchain
-		};
-	}
 
 	async execute({
 		address,
+		type,
 		blockchain,
 		tags = [],
 		relations = []
@@ -50,6 +41,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		if (existingWhale) {
 			return this.updateWallet(existingWhale, {
 				address,
+				type,
 				blockchain,
 				tags,
 				relations
@@ -57,6 +49,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		}
 		return this.createWallet({
 			address,
+			type,
 			blockchain,
 			tags,
 			relations
@@ -67,27 +60,25 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		address,
 		blockchain,
 		tags = [],
-		relations = []
-	}: Required<WalletDiscoveredPayload>) {
-		const type = this.hasBeenFoundIteratingBlocks(tags)
-			? WalletType.Whale
-			: WalletType.UnknownWallet;
-
+		relations = [],
+		type
+	}: WalletDiscoveredPayload) {
 		const wallet = Wallet.create({
 			address,
 			blockchain,
-			type,
-			createdAt: new Date()
+			type
 		});
 
 		tags.forEach((t) => wallet.addTag(t));
 		relations.forEach((r) => wallet.addRelation(r));
+
 		if (type === WalletType.Whale) {
-			// TODO: add test for this scenario
 			await this.findWhaleTxsAndPublish({ address, blockchain });
 		}
+
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(new WalletSaved({ blockchain, address }));
+
 		this.logger.log({
 			type: "save-wallet.saved",
 			message: `Wallet saved: ${wallet}@${blockchain}`,
@@ -97,20 +88,11 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 
 	async updateWallet(
 		wallet: Wallet,
-		{ tags, relations }: Required<WalletDiscoveredPayload>
+		{ tags, relations, type }: Required<WalletDiscoveredPayload>
 	) {
-		relations
-			.filter(notExistingRelations(wallet.relations))
-			.forEach((r) => wallet.addRelation(r));
-
-		tags.filter(notExistingTags(wallet.tags)).forEach((t) =>
-			wallet.addTag(t)
-		);
-
-		if (this.hasBeenFoundIteratingBlocks(tags)) {
-			// TODO: review if this is correct as it could be a transfer to an exchange main wallet
-			// wallet.setType(WalletType.Whale);
-		}
+		wallet.setType(type);
+		relations.forEach((r) => wallet.addRelation(r));
+		tags.forEach((t) => wallet.addTag(t));
 
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(
@@ -124,7 +106,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 	private async findWhaleTxsAndPublish({
 		address,
 		blockchain
-	}: WalletDiscoveredPayload) {
+	}: WalletIdProps) {
 		const txs = await this.blockchainService
 			.getWalletTxsHashes(blockchain, address)
 			.catch((error) => {
@@ -143,18 +125,13 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		);
 	}
 
-	private hasBeenFoundIteratingBlocks(tags: WalletTagName[]) {
-		return tags.find((tag) => tag === WalletTagName.FoundIteratingBlocks);
+	getMessageContextTrace({
+		address,
+		blockchain
+	}: WalletDiscoveredPayload): any {
+		return {
+			address,
+			blockchain
+		};
 	}
-}
-// TODO: consider moving both functions below to inside entities and allow addRelation/addTag to filter inside existing values
-function notExistingRelations(relations: AddressRelation[]) {
-	return (newRel: Omit<AddressRelation, "createdAt">) =>
-		!relations.some(
-			(rel) => rel.address === newRel.address && rel.type === newRel.type
-		);
-}
-
-function notExistingTags(tags: WalletTag[]) {
-	return (newTag: WalletTagName) => !tags.some((rel) => rel.tag === newTag);
 }

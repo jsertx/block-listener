@@ -34,7 +34,11 @@ describe("UseCase > SaveWallet", () => {
 		);
 	});
 
-	describe("New wallet", () => {
+	describe.each([
+		[WalletType.Whale, true],
+		[WalletType.UnknownWallet, false],
+		[WalletType.ExchangeWallet, false]
+	])("New wallet", (walletType, shouldSaveWalletTxs) => {
 		const txs = [
 			"0x292af104617f967b55f43e90afbd070f7d0cd8a3e80c59af3fe219207d4c4456",
 			"0xf3023f2df436b81632bf399f9639b80e63d52b349c462e5600ee08f501e69db3"
@@ -46,29 +50,35 @@ describe("UseCase > SaveWallet", () => {
 				walletRepositoryMock.findOne.mockResolvedValue(undefined);
 				blockchainServiceMock.getWalletTxsHashes.mockResolvedValue(txs);
 				await useCase.execute({
+					type: walletType,
 					address,
 					blockchain,
 					tags: [WalletTagName.FoundIteratingBlocks]
 				});
 			});
 
-			it("should call blockchainService to get txs", async () => {
+			it(`should call ${
+				shouldSaveWalletTxs ? "" : "not"
+			} blockchainService to get txs`, async () => {
 				expect(
 					blockchainServiceMock.getWalletTxsHashes
-				).toHaveBeenCalledTimes(1);
-				expect(
-					blockchainServiceMock.getWalletTxsHashes
-				).toHaveBeenCalledWith(blockchain, address);
+				).toHaveBeenCalledTimes(shouldSaveWalletTxs ? 1 : 0);
+				if (shouldSaveWalletTxs) {
+					expect(
+						blockchainServiceMock.getWalletTxsHashes
+					).toHaveBeenCalledWith(blockchain, address);
+				}
 			});
 			describe("should publish events", () => {
-				it("should have published three events", () => {
-					expect(brokerMock.publish).toHaveBeenCalledTimes(3);
-				});
-
-				it("should publish tx_discovered event", () => {
-					txs.forEach((hash, callNumber) => {
-						expect(brokerMock.publish).toHaveBeenNthCalledWith(
-							callNumber + 1,
+				it(`should ${
+					shouldSaveWalletTxs ? "" : "not"
+				} publish tx_discovered event`, () => {
+					txs.forEach((hash) => {
+						let expectSubject: any = expect(brokerMock.publish);
+						if (!shouldSaveWalletTxs) {
+							expectSubject = expectSubject.not;
+						}
+						expectSubject.toHaveBeenCalledWith(
 							new TxDiscovered({
 								hash,
 								blockchain,
@@ -79,8 +89,7 @@ describe("UseCase > SaveWallet", () => {
 				});
 
 				it("should publish wallet_saved event", () => {
-					expect(brokerMock.publish).toHaveBeenNthCalledWith(
-						3,
+					expect(brokerMock.publish).toHaveBeenCalledWith(
 						new WalletSaved({
 							address,
 							blockchain
@@ -97,68 +106,76 @@ describe("UseCase > SaveWallet", () => {
 
 	describe("Update existing wallet", () => {
 		const blockchain = BlockchainId.Ethereum;
-		const existingWallet = new Wallet({
-			address,
-			blockchain,
-			createdAt: new Date(),
-			tags: [
-				{
-					createdAt: new Date(),
-					tag: WalletTagName.FoundByIncomingTransfer
-				}
-			],
-			type: WalletType.UnknownWallet,
-			relations: [
-				{
-					address: address2,
-					createdAt: new Date(),
-					type: AddressRelationType.TransferReceived
-				}
-			]
-		});
-
-		beforeEach(async () => {
-			walletRepositoryMock.findOne.mockResolvedValueOnce(existingWallet);
-			await useCase.execute({
+		let existingWallet: Wallet;
+		beforeEach(() => {
+			existingWallet = new Wallet({
 				address,
 				blockchain,
-				tags: [WalletTagName.FoundIteratingBlocks],
+				createdAt: new Date(),
+				tags: [
+					{
+						createdAt: new Date(),
+						tag: WalletTagName.FoundByIncomingTransfer
+					}
+				],
+				type: WalletType.UnknownWallet,
 				relations: [
 					{
 						address: address2,
-						type: AddressRelationType.TransferSent
+						createdAt: new Date(),
+						type: AddressRelationType.TransferReceived
 					}
 				]
 			});
 		});
 
-		describe("should save wallet", () => {
-			let savedWallet: Wallet;
-			beforeEach(() => {
-				savedWallet = walletRepositoryMock.save.mock.calls[0][0];
-			});
-			it("should call repository save method", () => {
-				expect(walletRepositoryMock.save).toHaveBeenCalledTimes(1);
-			});
-			it("should add new tags", () => {
-				expect(savedWallet.tags).toHaveLength(2);
-			});
-			it("should add new relationships", () => {
-				expect(savedWallet.relations).toHaveLength(2);
-			});
-			// TODO
-			// it("should change unknown wallet to whale", () => {
-			// 	expect(savedWallet.type).toBe(WalletType.Whale);
-			// });
-		});
-
-		it("should publish wallet_updated event", () => {
-			expect(brokerMock.publish).toHaveBeenCalledWith(
-				new WalletUpdated({
+		describe("Happy path", () => {
+			beforeEach(async () => {
+				walletRepositoryMock.findOne.mockResolvedValueOnce(
+					existingWallet
+				);
+				await useCase.execute({
 					address,
-					blockchain
-				})
-			);
+					blockchain,
+					type: WalletType.Whale,
+					tags: [WalletTagName.FoundIteratingBlocks],
+					relations: [
+						{
+							address: address2,
+							type: AddressRelationType.TransferSent
+						}
+					]
+				});
+			});
+
+			describe("should save wallet", () => {
+				let savedWallet: Wallet;
+				beforeEach(() => {
+					savedWallet = walletRepositoryMock.save.mock.calls[0][0];
+				});
+				it("should call repository save method", () => {
+					expect(walletRepositoryMock.save).toHaveBeenCalledTimes(1);
+				});
+				it("should add new tags", () => {
+					expect(savedWallet.tags).toHaveLength(2);
+				});
+				it("should add new relationships", () => {
+					expect(savedWallet.relations).toHaveLength(2);
+				});
+				// TODO
+				// it("should change unknown wallet to whale", () => {
+				// 	expect(savedWallet.type).toBe(WalletType.Whale);
+				// });
+			});
+
+			it("should publish wallet_updated event", () => {
+				expect(brokerMock.publish).toHaveBeenCalledWith(
+					new WalletUpdated({
+						address,
+						blockchain
+					})
+				);
+			});
 		});
 	});
 });
