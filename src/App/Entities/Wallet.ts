@@ -107,6 +107,9 @@ export class Wallet extends Entity<WalletProps> {
 	setType(type: WalletType) {
 		this.props.type = type;
 	}
+	setAlias(alias: string) {
+		this.props.alias = alias;
+	}
 
 	addTag(tag: SetOptional<WalletTag, "createdAt"> | WalletTagName) {
 		const newTag =

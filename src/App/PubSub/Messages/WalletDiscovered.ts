@@ -7,6 +7,7 @@ import { WalletType } from "../../Values/WalletType";
 
 export interface WalletDiscoveredPayload {
 	blockchain: BlockchainId;
+	alias?: string;
 	address: string;
 	type: WalletType;
 	tags?: WalletTagName[];

@@ -2,11 +2,7 @@ import { inject, injectable } from "inversify";
 import { ILogger } from "../../../Interfaces/ILogger";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IBroker } from "../../../Interfaces/IBroker";
-import {
-	AddressRelationType,
-	Wallet,
-	WalletIdProps
-} from "../../Entities/Wallet";
+import { Wallet, WalletIdProps } from "../../Entities/Wallet";
 import { WalletType } from "../../Values/WalletType";
 import { IWalletRepository } from "../../Repository/IWalletRepository";
 import { WalletDiscoveredPayload } from "../../PubSub/Messages/WalletDiscovered";
@@ -34,6 +30,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 	async execute({
 		address,
 		type,
+		alias,
 		blockchain,
 		tags = [],
 		relations = []
@@ -45,6 +42,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 
 		if (existingWhale) {
 			return this.updateWallet(existingWhale, {
+				alias,
 				address,
 				type,
 				blockchain,
@@ -53,6 +51,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 			});
 		}
 		return this.createWallet({
+			alias,
 			address,
 			type,
 			blockchain,
@@ -62,21 +61,15 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 	}
 
 	private async createWallet({
+		alias,
 		address,
 		blockchain,
 		tags = [],
 		relations = [],
 		type
 	}: WalletDiscoveredPayload) {
-		if (!type) {
-			// todo: change when all wallets in queue ends
-			type = relations.some(
-				(rel) => rel.type === AddressRelationType.TransferSent
-			)
-				? WalletType.Whale
-				: WalletType.UnknownWallet;
-		}
 		const wallet = Wallet.create({
+			alias,
 			address,
 			blockchain,
 			type
@@ -101,11 +94,19 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 
 	async updateWallet(
 		wallet: Wallet,
-		{ tags, relations, type }: Required<WalletDiscoveredPayload>
+		{
+			tags = [],
+			relations = [],
+			type,
+			alias = undefined
+		}: WalletDiscoveredPayload
 	) {
 		if (type) {
 			// remove after some time
 			wallet.setType(type);
+		}
+		if (alias !== undefined) {
+			wallet.setAlias(alias);
 		}
 		relations.forEach((r) => wallet.addRelation(r));
 		tags.forEach((t) => wallet.addTag(t));
