@@ -74,10 +74,6 @@ describe("Infrastructure >  Executor", () => {
 			const msg = new ExecutorMessage(channel, { message: "Hello" });
 			await listener(msg, ackMock, nackMock);
 
-			expect(loggerMock.error).toHaveBeenCalledTimes(1);
-			const errorEntry = loggerMock.error.mock.calls[0][0];
-			expect(errorEntry).toMatchObject({ type: "executor.execution" });
-
 			expect(brokerMock.publish).toHaveBeenCalledTimes(1);
 			const retryMsg = brokerMock.publish.mock.calls[0][0];
 			expect(retryMsg.channel).toBe(retryChannel);

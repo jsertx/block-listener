@@ -14,4 +14,8 @@ export class TestingExecutor extends Executor<any> {
 	async execute(payload: any): Promise<void> {
 		await this.executeMock(payload);
 	}
+
+	getMessageContextTrace(payload: any) {
+		return payload;
+	}
 }
