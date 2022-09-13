@@ -90,7 +90,7 @@ export class FullPairDiscoverer implements IStandaloneApps {
 		blockchain: BlockchainId,
 		dex: Dex
 	): Promise<Contract> {
-		const provider = this.providerFactory.getProvider(
+		const provider = await this.providerFactory.getProvider(
 			new Blockchain(blockchain)
 		);
 		const pairContract = new ethers.Contract(
@@ -140,7 +140,7 @@ export class FullPairDiscoverer implements IStandaloneApps {
 		blockchain: BlockchainId,
 		factories: Contract<FactoryData>[]
 	): Promise<Record<string, string[]>> {
-		const provider = this.providerFactory.getProvider(
+		const provider = await this.providerFactory.getProvider(
 			new Blockchain(blockchain)
 		);
 		const addressesByFactory: Record<string, string[]> = {};

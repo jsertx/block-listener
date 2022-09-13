@@ -154,7 +154,7 @@ export class SelectivePairDiscoverer implements IStandaloneApps {
 			{ baseTokens: [] as Token[], otherTokens: [] as Token[] }
 		);
 
-		const provider = this.providerFactory.getProvider(
+		const provider = await this.providerFactory.getProvider(
 			new Blockchain(blockchain)
 		);
 		const addressesByFactory: Record<string, PairAndTokens[]> = {};

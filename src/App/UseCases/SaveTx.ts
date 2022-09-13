@@ -226,7 +226,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		txRes,
 		block
 	}: TxDiscoveredPayload): Promise<RawTx | undefined> {
-		const provider = this.providerFactory.getProvider(blockchain);
+		const provider = await this.providerFactory.getProvider(blockchain);
 		const receipt = await provider
 			.getTransactionReceipt(hash)
 			.catch((_err) => undefined);

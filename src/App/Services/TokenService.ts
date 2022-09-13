@@ -69,7 +69,7 @@ export class TokenService implements ITokenService {
 		blockchain: BlockchainId,
 		tokenAddrs: string[]
 	): Promise<Token[]> {
-		const multicall = this.providerFactory.getMulticallProvider(
+		const multicall = await this.providerFactory.getMulticallProvider(
 			blockchain,
 			{ tryAggregate: true }
 		);

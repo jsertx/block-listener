@@ -47,32 +47,48 @@ export class ProviderFactory implements IProviderFactory {
 		});
 	}
 
-	getMulticallProvider(
+	async getMulticallProvider(
 		blockchain: Blockchain | BlockchainId,
 		{ tryAggregate }: MulticallOptions = { tryAggregate: false }
-	): Multicall {
+	): Promise<Multicall> {
+		const ethersProvider = await this.getProvider(blockchain);
 		return new Multicall({
-			ethersProvider: this.getProvider(blockchain),
+			ethersProvider,
 			tryAggregate
 		});
 	}
 
-	getProvider(blockchain: Blockchain | BlockchainId) {
+	async getProvider(
+		blockchain: Blockchain | BlockchainId
+	): Promise<ethers.providers.JsonRpcProvider> {
 		if (!(blockchain instanceof Blockchain)) {
 			blockchain = new Blockchain(blockchain);
 		}
-		const availableProvider = this.nodes[blockchain.id].find((node) =>
-			node.bottleneck.check()
-		);
-		if (availableProvider) {
-			return availableProvider.provider;
-		}
-
-		const { provider } = randomItem<ILimittedProvider>(
+		const randomProvider = randomItem<ILimittedProvider>(
 			this.nodes[blockchain.id]
 		);
 
-		return provider;
+		if (await randomProvider.bottleneck.check()) {
+			return randomProvider.provider;
+		}
+
+		const providerStatuses = await Promise.all(
+			this.nodes[blockchain.id].map(async (n) => {
+				return {
+					provider: n.provider,
+					available: await n.bottleneck.check()
+				};
+			})
+		);
+		const firstAvailableProvider = providerStatuses.find(
+			(p) => p.available
+		);
+
+		if (firstAvailableProvider) {
+			return firstAvailableProvider.provider;
+		}
+
+		return randomProvider.provider;
 	}
 }
 

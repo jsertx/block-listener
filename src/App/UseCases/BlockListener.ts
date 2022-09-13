@@ -45,7 +45,8 @@ export class BlockListener implements IStandaloneApps {
 			const latestBlock = await this.getStartBlock(blockchain);
 			let nextBlockNum = latestBlock + 1;
 			for (;;) {
-				const block = await this.getProvider(blockchain)
+				const provider = await this.getProvider(blockchain);
+				const block = await provider
 					.getBlockWithTransactions(nextBlockNum)
 					.catch(() => undefined);
 
@@ -134,8 +135,8 @@ export class BlockListener implements IStandaloneApps {
 		if (latestBlockFromDb) {
 			return parseInt(latestBlockFromDb);
 		}
-
-		return await this.getProvider(blockchain)
+		const provider = await this.getProvider(blockchain);
+		return await provider
 			.getBlock(this.config.blockListener.defaultStartingBlock)
 			.then((res) => res.number);
 	}
