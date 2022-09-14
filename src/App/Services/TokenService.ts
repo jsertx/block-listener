@@ -1,17 +1,22 @@
 import { inject, injectable } from "inversify";
+import { ContractCallContext } from "ethereum-multicall";
+import { ethers } from "ethers";
 import { ITokenService } from "../Interfaces/ITokenService";
 import { IocKey } from "../../Ioc/IocKey";
 import { Token } from "../Entities/Token";
 import { ITokenRepository } from "../Repository/ITokenRepository";
 
-import { BlockchainId } from "../Values/Blockchain";
-import { ethers } from "ethers";
+import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import {
 	IProviderFactory,
 	multicallResultHelper
 } from "../Interfaces/IProviderFactory";
 import { ERC20, ERC20_32bytesSymbol } from "./SmartContract/ABI/ERC20";
-import { ContractCallContext } from "ethereum-multicall";
+import { checksumed, isSameAddress } from "../Utils/Address";
+import { notUndefined } from "../Utils/Array";
+import { ICache } from "../Interfaces/ICache";
+import { uniqueTokenList } from "../Utils/Token";
+import { noop } from "../Utils/Misc";
 
 interface ServiceCache {
 	stable: Token[];
@@ -24,7 +29,7 @@ const createEmptyCache = (): ServiceCache => ({
 
 @injectable()
 export class TokenService implements ITokenService {
-	private cache: Record<BlockchainId, ServiceCache> = {
+	private staticCache: Record<BlockchainId, ServiceCache> = {
 		[BlockchainId.Ethereum]: createEmptyCache(),
 		[BlockchainId.Binance]: createEmptyCache(),
 		[BlockchainId.Polygon]: createEmptyCache()
@@ -34,11 +39,12 @@ export class TokenService implements ITokenService {
 		@inject(IocKey.TokenRepository)
 		private tokenRepository: ITokenRepository,
 		@inject(IocKey.ProviderFactory)
-		private providerFactory: IProviderFactory
+		private providerFactory: IProviderFactory,
+		@inject(IocKey.Cache) private cache: ICache
 	) {}
 
 	async getWrappedToken(blockchain: BlockchainId): Promise<Token> {
-		const cachedValue = this.cache[blockchain].wrapped;
+		const cachedValue = this.staticCache[blockchain].wrapped;
 		if (cachedValue) {
 			return cachedValue;
 		}
@@ -47,21 +53,21 @@ export class TokenService implements ITokenService {
 		});
 
 		if (tokens.data.length > 0) {
-			this.cache[blockchain].wrapped = tokens.data[0];
+			this.staticCache[blockchain].wrapped = tokens.data[0];
 			return tokens.data[0];
 		}
 		throw new Error(`Wrapped token not found for ${blockchain}`);
 	}
 
 	async getStableCoins(blockchain: BlockchainId): Promise<Token[]> {
-		const cachedValue = this.cache[blockchain].stable;
+		const cachedValue = this.staticCache[blockchain].stable;
 		if (cachedValue.length > 0) {
 			return cachedValue;
 		}
 		const tokens = await this.tokenRepository.findAll({
 			where: { isStable: true, blockchain }
 		});
-		this.cache[blockchain].stable = tokens.data;
+		this.staticCache[blockchain].stable = tokens.data;
 		return tokens.data;
 	}
 
@@ -69,61 +75,39 @@ export class TokenService implements ITokenService {
 		blockchain: BlockchainId,
 		tokenAddrs: string[]
 	): Promise<Token[]> {
+		const tokensFromDbAndCache = await this.getTokensFromDbAndCache(
+			blockchain,
+			tokenAddrs
+		);
+		// avoid multicall call
+		if (tokensFromDbAndCache.length === tokenAddrs.length) {
+			return tokenAddrs
+				.map((addr) =>
+					tokensFromDbAndCache.find((t) =>
+						isSameAddress(t.address, addr)
+					)
+				)
+				.filter(notUndefined);
+		}
+
 		const multicall = await this.providerFactory.getMulticallProvider(
 			blockchain,
 			{ tryAggregate: true }
 		);
-		let calls: ContractCallContext<any>[] = [];
-		const standardKey = (address: string) => `std_${address}`;
-		const bytes32Key = (address: string) => `b32_${address}`;
-		tokenAddrs.forEach(
-			(address) =>
-				(calls = [
-					...calls,
 
-					{
-						abi: ERC20,
-						reference: standardKey(address),
-						contractAddress: address,
-						calls: [
-							{
-								methodName: "name",
-								reference: "name",
-								methodParameters: []
-							},
-							{
-								methodName: "symbol",
-								reference: "symbol",
-								methodParameters: []
-							},
-							{
-								methodName: "decimals",
-								reference: "decimals",
-								methodParameters: []
-							}
-						]
-					},
-					{
-						abi: ERC20_32bytesSymbol,
-						reference: bytes32Key(address),
-						contractAddress: address,
-						calls: [
-							{
-								methodName: "name",
-								reference: "name",
-								methodParameters: []
-							},
-							{
-								methodName: "symbol",
-								reference: "symbol",
-								methodParameters: []
-							}
-						]
-					}
-				])
-		);
+		const calls: ContractCallContext<any>[] = tokenAddrs.reduce<
+			ContractCallContext<any>[]
+		>((calls, address) => {
+			return [
+				...calls,
+				buildNameSymbolDecimalsErc20Call(address),
+				buildBytes32NameSymbolDecimalsErc20Call(address)
+			];
+		}, []);
+
 		const select = await multicall.call(calls).then(multicallResultHelper);
-		return tokenAddrs.map((address) => {
+
+		const tokens = tokenAddrs.map((address) => {
 			const [_name, _symbol, decimals] = select(standardKey(address), [
 				"name",
 				"symbol",
@@ -153,5 +137,87 @@ export class TokenService implements ITokenService {
 				isStable: false
 			});
 		});
+
+		await Promise.all(
+			tokens.map(async (token) => {
+				if (
+					!tokensFromDbAndCache.some((t) =>
+						isSameAddress(t.address, token.address)
+					)
+				) {
+					return this.cache
+						.set(tokenCacheKey(blockchain, token.address), token)
+						.then(noop)
+						.catch(noop);
+				}
+			})
+		);
+		return tokens;
+	}
+	async getTokensFromDbAndCache(
+		blockchain: BlockchainId,
+		tokenAddrs: string[]
+	): Promise<Token[]> {
+		const tokensFromCache = (
+			await Promise.all(
+				tokenAddrs.map((tokenAddr) =>
+					this.cache.get<Token>(tokenCacheKey(blockchain, tokenAddr))
+				)
+			)
+		).filter(notUndefined);
+
+		const tokensFromDb =
+			await this.tokenRepository.findTokensByBlockchainAddress({
+				addresses: tokenAddrs.map(checksumed),
+				blockchain: new Blockchain(blockchain)
+			});
+		return [...tokensFromDb, ...tokensFromCache].filter(uniqueTokenList);
 	}
 }
+
+const standardKey = (address: string) => `std_${address}`;
+const bytes32Key = (address: string) => `b32_${address}`;
+
+const buildNameSymbolDecimalsErc20Call = (address: string) => ({
+	abi: ERC20,
+	reference: standardKey(address),
+	contractAddress: address,
+	calls: [
+		{
+			methodName: "name",
+			reference: "name",
+			methodParameters: []
+		},
+		{
+			methodName: "symbol",
+			reference: "symbol",
+			methodParameters: []
+		},
+		{
+			methodName: "decimals",
+			reference: "decimals",
+			methodParameters: []
+		}
+	]
+});
+
+const buildBytes32NameSymbolDecimalsErc20Call = (address: string) => ({
+	abi: ERC20_32bytesSymbol,
+	reference: bytes32Key(address),
+	contractAddress: address,
+	calls: [
+		{
+			methodName: "name",
+			reference: "name",
+			methodParameters: []
+		},
+		{
+			methodName: "symbol",
+			reference: "symbol",
+			methodParameters: []
+		}
+	]
+});
+
+const tokenCacheKey = (blockchain: BlockchainId, addr: string) =>
+	`token_service_token_${blockchain}_${addr}`;

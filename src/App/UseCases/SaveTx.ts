@@ -20,7 +20,7 @@ import { TokenDiscovered } from "../PubSub/Messages/TokenDiscovered";
 import { IWalletRepository } from "../Repository/IWalletRepository";
 import { checksumed } from "../Utils/Address";
 import { IConfig } from "../../Interfaces/IConfig";
-import { Executor } from "../../Infrastructure/Broker/Executor";
+import { DirectToDead, Executor } from "../../Infrastructure/Broker/Executor";
 import { WalletTagName } from "../Values/WalletTag";
 import { AddressRelationType } from "../Entities/Wallet";
 import { isUndefined } from "../Utils/Misc";
@@ -229,7 +229,12 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		const provider = await this.providerFactory.getProvider(blockchain);
 		const receipt = await provider
 			.getTransactionReceipt(hash)
-			.catch((_err) => undefined);
+			.catch((err) => {
+				if (err && err.reason && err.reason === "invalid hash") {
+					throw new DirectToDead("Invalid tx hash given");
+				}
+				return undefined;
+			});
 
 		if (!receipt || isUndefined(receipt.status)) {
 			throw new Error("TX receipt not available yet");
