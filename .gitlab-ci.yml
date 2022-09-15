@@ -8,5 +8,5 @@ build-push-docker-image-job:
         - docker:dind
     script:
         - echo "$ENV_FILE" > "$(pwd)/.env"
-        - docker-compose up -d
-        - docker ps
+        - docker build -t blocklistener-app .
+        - docker run --env-file=.env blocklistener-app
