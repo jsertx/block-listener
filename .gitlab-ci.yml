@@ -9,4 +9,4 @@ build-push-docker-image-job:
     script:
         - echo "$ENV_FILE" > "$(pwd)/.env"
         - docker build -t blocklistener-app .
-        - docker run --env-file=.env blocklistener-app
+        - docker run --env-file=.env blocklistener-app --network="infra_main"
