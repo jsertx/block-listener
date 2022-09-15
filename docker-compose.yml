@@ -1,31 +1,24 @@
 version: "3.7"
 services:
-    # redis:
-    #   image: redis
-    #   ports:
-    #     - '6379:6379'
-    # block-listener:
-    #     depends_on:
-    #         - rabbitmq
-    #         - mongodb
-    #     container_name: block-listener
-    #     volumes:
-    #         - ./src/:/app/src
-    #     ports:
-    #         - 3001:3000
-    #         - 9229:9229
-    #     links:
-    #         - rabbitmq
-    #         - mongodb
-    #     env_file:
-    #         - ./.env
-    #     build:
-    #         context: .
-    #         dockerfile: ./Dockerfile
-    #     networks:
-    #         - main
+    app:
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        restart: always
+        env_file: .env
+        depends_on:
+            - rabbitmq
+            - mongodb
+        links:
+            - mongodb
+            - rabbitmq
+        ports:
+            - 80:80
+        networks:
+            - main
     mongodb:
         image: mongo:5.0
+        container_name: "mongodb"
         restart: always
         ports:
             - 27017:27017

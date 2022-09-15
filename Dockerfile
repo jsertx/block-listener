@@ -17,7 +17,6 @@ RUN yarn build
 FROM node:16-alpine3.14
 
 # APP 
-ENV NODE_ENV=production
 RUN apk add git
 RUN apk add yarn --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community
 
