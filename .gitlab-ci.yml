@@ -7,9 +7,6 @@ build-push-docker-image-job:
     services:
         - docker:dind
     script:
-        - echo $ENV_FILE
-        - docker info
-        - docker ps
-        - cp $ENV_FILE .env
+        - cat "$ENV_FILE" > "$(pwd)/.env"
         - docker-compose up -d
         - docker ps
