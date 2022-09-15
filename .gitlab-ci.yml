@@ -9,3 +9,4 @@ build-push-docker-image-job:
     script:
         - docker info
         - docker ps
+        - docker-compose up -d
