@@ -6,6 +6,7 @@ export interface IQueueStatus {
 	dead: number;
 }
 export interface StatusResponseDto {
+	v: string;
 	latestBlocks: Partial<
 		Record<BlockchainId, { height: number; link: string }>
 	>;

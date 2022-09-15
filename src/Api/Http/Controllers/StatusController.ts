@@ -30,6 +30,7 @@ export class StatusController implements interfaces.Controller {
 		return {
 			success: true,
 			data: {
+				v: "1",
 				latestBlocks: await this.getLatestBlocks(),
 				counter: await this.getCounter(),
 				broker: await this.getBrokerStatus()
