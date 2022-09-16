@@ -11,11 +11,6 @@ build-push-docker-image-job:
         - echo "$ENV_FILE" > "$(pwd)/.env"
         - docker build -t $IMAGE_NAME .
         - current_container_running=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
-        # stop previous container if running
-        - docker rm -f $CONTAINER_NAME &>/dev/null && echo 'Removed old container'
-        #- >
-        #    if [ ! -z "$current_container_running" ]; then 
-        #        echo "Removing previous run on container: $current_container_running"
-        #        docker rm -f $current_container_running
-        #    fi
+        # remove previous container if running
+        - docker rm -f $CONTAINER_NAME &>/dev/null && echo 'Removed old container $CONTAINER_NAME'
         - docker run -d -p 3000:80 --restart=always --env-file=.env --network="infra_main" --name=$CONTAINER_NAME --hostname=$HOSTNAME $IMAGE_NAME
