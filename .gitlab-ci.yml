@@ -1,5 +1,7 @@
 variables:
     IMAGE_NAME: "blocklistener-app"
+    CONTAINER_NAME: "blocklistener-app"
+    HOSTNAME: "blocklistener-app"
 
 build-push-docker-image-job:
     image: docker:latest
@@ -10,9 +12,10 @@ build-push-docker-image-job:
         - docker build -t $IMAGE_NAME .
         - current_container_running=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
         # stop previous container if running
-        - >
-            if [ ! -z "$current_container_running" ]; then 
-                echo "Removing previous run on container: $current_container_running"
-                docker rm -f $current_container_running
-            fi
-        - docker run -d -p 3000:80 --restart=always --env-file=.env --network="infra_main" --name=$IMAGE_NAME --hostname=$IMAGE_NAME $IMAGE_NAME
+        - docker rm -f $CONTAINER_NAME &>/dev/null && echo 'Removed old container'
+        #- >
+        #    if [ ! -z "$current_container_running" ]; then 
+        #        echo "Removing previous run on container: $current_container_running"
+        #        docker rm -f $current_container_running
+        #    fi
+        - docker run -d -p 3000:80 --restart=always --env-file=.env --network="infra_main" --name=$CONTAINER_NAME --hostname=$HOSTNAME $IMAGE_NAME
