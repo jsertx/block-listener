@@ -9,10 +9,4 @@ build-push-docker-image-job:
     script:
         - echo "$ENV_FILE" > "$(pwd)/.env"
         - docker build -t blocklistener-app .
-        - docker run \
-          --detach \
-          --publish 80:80 \
-          --restart=always \
-          --env-file=.env \
-          --network="infra_main" \
-          blocklistener-app
+        - docker run -d -p 80:80 --restart=always --env-file=.env --network="infra_main" blocklistener-app
