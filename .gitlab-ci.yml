@@ -11,8 +11,7 @@ build-push-docker-image-job:
         - current_container_running=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
         # stop previous container if running
         - >
-            if [ ! -z "$current_container_running" ]
-            then 
+            if [ ! -z "$current_container_running" ]; then 
                 echo "Removing previous run on container: $current_container_running"
                 docker rm -f $current_container_running
             fi
