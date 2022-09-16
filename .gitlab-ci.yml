@@ -1,15 +1,16 @@
 variables:
     IMAGE_NAME: "blocklistener-app"
 
-
 build-push-docker-image-job:
     image: docker:latest
     services:
         - docker:dind
-    script:
-        - echo "$ENV_FILE" > "$(pwd)/.env"
-        - docker build -t $IMAGE_NAME .
-        - current_container_running=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
-        # stop previous container if running
-        - [ ! -z "$current_container_running" ] && docker rm -f $current_container_running
-        - docker run -d -p 80:80 --restart=always --env-file=.env --network="infra_main" $IMAGE_NAME
+    script: |
+        echo "$ENV_FILE" > "$(pwd)/.env"
+        docker build -t $IMAGE_NAME .
+        current_container_running=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
+        if [ ! -z "$current_container_running" ]
+        then
+            docker rm -f $current_container_running
+        fi
+        docker run -d -p 80:80 --restart=always --env-file=.env --network="infra_main" $IMAGE_NAME
