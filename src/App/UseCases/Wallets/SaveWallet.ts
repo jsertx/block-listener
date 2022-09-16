@@ -87,7 +87,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 
 		this.logger.log({
 			type: "save-wallet.saved",
-			message: `Wallet saved: ${wallet}@${blockchain}`,
+			message: `Wallet saved: ${wallet.address}@${blockchain}`,
 			context: { address: wallet.address, blockchain }
 		});
 	}
