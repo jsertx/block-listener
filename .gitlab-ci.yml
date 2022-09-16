@@ -15,4 +15,4 @@ build-push-docker-image-job:
                 echo "Removing previous run on container: $current_container_running"
                 docker rm -f $current_container_running
             fi
-        - docker run -d -p 80:80 --restart=always --env-file=.env --network="infra_main" $IMAGE_NAME
+        - docker run -d -p 80:80 --restart=always --env-file=.env --network="infra_main" --name $IMAGE_NAME --hostname $IMAGE_NAME $IMAGE_NAME
