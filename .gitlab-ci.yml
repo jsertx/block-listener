@@ -13,4 +13,4 @@ build-push-docker-image-job:
         - current_container_running=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
         # remove previous container if running
         - docker rm -f $CONTAINER_NAME &>/dev/null && echo 'Removed old container $CONTAINER_NAME'
-        - docker run -d -p 3000:80 --restart=always --env-file=.env --network="cloud-infra_apps" --name=$CONTAINER_NAME --hostname=$HOSTNAME $IMAGE_NAME
+        - docker run -d -p 3000:80 --restart=always --env-file=.env --network="main" --name=$CONTAINER_NAME --hostname=$HOSTNAME $IMAGE_NAME
