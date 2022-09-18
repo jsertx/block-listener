@@ -76,6 +76,7 @@ export const getConfig = (): IConfig => {
 			if (jsonRpcUrlCfgs) {
 				(JSON.parse(jsonRpcUrlCfgs) as JsonRpcConfig[])
 					.map(validateInlineJsonRpcCfg)
+					.filter((node) => !node.disabled)
 					.forEach(({ maxConcurrent, minTime, url }) => {
 						providers.push({
 							url,
@@ -93,13 +94,16 @@ export const getConfig = (): IConfig => {
 interface JsonRpcConfig {
 	maxConcurrent: number | undefined;
 	minTime: number | undefined;
+	disabled?: boolean;
 	url: string;
 }
 function validateInlineJsonRpcCfg({
 	url,
 	maxConcurrent,
-	minTime
+	minTime,
+	disabled = false
 }: JsonRpcConfig): {
+	disabled: boolean;
 	maxConcurrent: number | undefined;
 	minTime: number | undefined;
 	url: string;
@@ -108,6 +112,7 @@ function validateInlineJsonRpcCfg({
 		throw new Error("Invalidurl");
 	}
 	return {
+		disabled,
 		maxConcurrent,
 		minTime,
 		url
