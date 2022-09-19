@@ -13,4 +13,5 @@ build-push-docker-image-job:
         - current_container_running=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
         # remove previous container if running
         - docker rm -f $CONTAINER_NAME &>/dev/null && echo 'Removed old container $CONTAINER_NAME'
+        - echo "$GRAFANA_LOKI_USER"
         - docker run -d -p 3000:80 --restart=always --env-file=.env --network="main" --name=$CONTAINER_NAME --hostname=$HOSTNAME --log-driver=loki --log-opt loki-url="https://${GRAFANA_LOKI_USER}:${GRAFANA_LOKI_APY_KEY}@logs-prod-008.grafana.net/loki/api/v1/push" --log-opt loki-retries=10 --log-opt loki-batch-size=400 --log-opt max-size="4m" --log-opt max-buffer-size="20m" --log-opt loki-timeout="15s" --log-opt mode="non-blocking" $IMAGE_NAME
