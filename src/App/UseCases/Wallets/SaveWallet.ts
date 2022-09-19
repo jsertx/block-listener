@@ -3,7 +3,6 @@ import { ILogger } from "../../../Interfaces/ILogger";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IBroker } from "../../../Interfaces/IBroker";
 import { Wallet, WalletIdProps } from "../../Entities/Wallet";
-import { WalletType } from "../../Values/WalletType";
 import { IWalletRepository } from "../../Repository/IWalletRepository";
 import { WalletDiscoveredPayload } from "../../PubSub/Messages/WalletDiscovered";
 import { Subscription } from "../../../Infrastructure/Broker/Subscription";
@@ -78,9 +77,13 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		tags.forEach((t) => wallet.addTag(t));
 		relations.forEach((r) => wallet.addRelation(r));
 
+		/* 
+		Omit for now to save resources.
+		Reenable it when we are up to date.
 		if (type === WalletType.Whale) {
 			await this.findWhaleTxsAndPublish({ address, blockchain });
 		}
+		*/
 
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(new WalletSaved({ blockchain, address }));
