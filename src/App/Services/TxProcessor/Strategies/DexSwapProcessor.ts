@@ -55,10 +55,10 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 				message: "Router not found",
 				context: {
 					blockchain: tx.blockchain.id,
-					txHash: tx.hash
+					txHash: tx.hash,
+					address: tx.raw.to
 				}
 			});
-			return;
 		}
 
 		const dexSwapData = await this.getDexSwapData(tx);
