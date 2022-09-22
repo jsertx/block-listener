@@ -4,7 +4,6 @@ import { DexSwapData, DexSwapTx, Tx } from "../../../Entities/Tx";
 import { TxType } from "../../../Values/TxType";
 import { ITxProcessStrategy } from "../ITxProcessStrategy";
 import { Token } from "../../../Entities/Token";
-import { IContractRepository } from "../../../Repository/IContractRepository";
 import { UniswapV2RouterSwapMethods } from "../../../Types/UniswapV2RouterSwapMethods";
 import { isSameAddress } from "../../../Utils/Address";
 import { TransactionLog } from "../../../Types/TransactionLog";
@@ -23,9 +22,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 	constructor(
 		@inject(IocKey.Logger) private logger: ILogger,
 		@inject(IocKey.TokenService) private tokenService: ITokenService,
-		@inject(IocKey.PriceService) private priceService: IPriceService,
-		@inject(IocKey.ContractRepository)
-		private contractRepository: IContractRepository
+		@inject(IocKey.PriceService) private priceService: IPriceService
 	) {}
 
 	private shouldProcess(tx: Tx<any>): boolean {
