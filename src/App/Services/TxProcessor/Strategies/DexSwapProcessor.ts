@@ -14,6 +14,8 @@ import { ILogger } from "../../../../Interfaces/ILogger";
 import { toFormatted } from "../../../Utils/Amount";
 import { BN } from "../../../Utils/Numbers";
 import { ITokenService } from "../../../Interfaces/ITokenService";
+import { Contract } from "../../../Entities/Contract";
+import { ContractType } from "../../../Values/ContractType";
 
 const transferSignature = "Transfer(address,address,uint256)";
 const swapSignature = "Swap(address,uint256,uint256,uint256,uint256,address)";
@@ -49,6 +51,16 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 			tx.blockchain.id
 		);
 		if (!router) {
+			await this.contractRepository.save(
+				Contract.create({
+					address: tx.raw.to,
+					blockchain: tx.blockchain.id,
+					alias: "uniswap.v2.unknown",
+					createdAt: new Date(),
+					data: {},
+					type: ContractType.UniswapRouterV2Like
+				})
+			);
 			// maybe just set dex to unknown
 			this.logger.warn({
 				type: "dex-swap-processor.router-not-found",
