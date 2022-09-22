@@ -7,11 +7,9 @@ import {
 	LogEntryParams
 } from "../../../Interfaces/ILogger";
 import { inject, injectable } from "inversify";
-import { ILogtailLog } from "@logtail/types";
 import { IocKey } from "../../../Ioc/IocKey";
 import { IConfig } from "../../../Interfaces/IConfig";
 import * as Transport from "winston-transport";
-import { createLogtailTransport, mapToPaperTrail } from "./Logtail";
 
 const stackErrorMaxLevels = 4;
 
@@ -20,9 +18,6 @@ export class WinstonLoggerClient implements ILogger {
 	logger: winston.Logger;
 	constructor(@inject(IocKey.Config) private config: IConfig) {
 		const transports: Transport[] = [new winston.transports.Console()];
-		if (this.config.logtail?.accessToken) {
-			transports.push(createLogtailTransport(this.config.logtail));
-		}
 		this.logger = winston.createLogger({
 			format: winston.format.json(),
 			defaultMeta: {
@@ -98,7 +93,7 @@ export class WinstonLoggerClient implements ILogger {
 	private prepareEntry(
 		entryParams: LogEntryParams,
 		{ level }: Pick<LogEntry, "level">
-	): ILogtailLog {
+	): LogEntry {
 		const entry: LogEntry = {
 			...entryParams,
 			time: new Date(),
@@ -108,6 +103,6 @@ export class WinstonLoggerClient implements ILogger {
 			entry.error = this.normalizeEntryError(entry.error);
 		}
 
-		return mapToPaperTrail(entry);
+		return entry;
 	}
 }
