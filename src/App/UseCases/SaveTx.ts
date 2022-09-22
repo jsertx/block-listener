@@ -89,17 +89,19 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 	}
 
 	private async saveTxIfApplies(tx: Tx<any>): Promise<{ saved: boolean }> {
+		let saved = false;
+
+		/*
+		// TODO: disabled because we dont need it yet
 		const walletOfTxInDb = await this.walletRepository.findOne({
 			blockchain: tx.blockchain.id,
 			address: tx.from
 		});
-
-		let saved = false;
-
 		if (walletOfTxInDb) {
 			await this.txRepository.save(tx);
 			return { saved: true };
 		}
+		*/
 
 		switch (tx.type) {
 			case TxType.DexSwap:
