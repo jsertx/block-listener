@@ -26,6 +26,9 @@ import { AddressRelationType } from "../Entities/Wallet";
 import { isUndefined } from "../Utils/Misc";
 import { BN } from "../Utils/Numbers";
 import { WalletType } from "../Values/WalletType";
+import { Contract } from "../Entities/Contract";
+import { ContractType } from "../Values/ContractType";
+import { IContractRepository } from "../Repository/IContractRepository";
 
 @injectable()
 export class SaveTx extends Executor<TxDiscoveredPayload> {
@@ -38,7 +41,9 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		private providerFactory: IProviderFactory,
 		@inject(IocKey.Broker) broker: IBroker,
 		@inject(IocKey.Logger) logger: ILogger,
-		@inject(IocKey.TxProcessor) private txProcessor: ITxProcessor
+		@inject(IocKey.TxProcessor) private txProcessor: ITxProcessor,
+		@inject(IocKey.ContractRepository)
+		private contractRepository: IContractRepository
 	) {
 		super(logger, broker, Subscription.SaveTx);
 	}
@@ -147,6 +152,34 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 					: []
 			})
 		);
+
+		const router = await this.contractRepository.findContract(
+			tx.raw.to,
+			tx.blockchain.id
+		);
+		if (!router) {
+			await this.contractRepository.save(
+				Contract.create({
+					address: tx.raw.to,
+					blockchain: tx.blockchain.id,
+					alias: "unknown-dex.v2.router",
+					createdAt: new Date(),
+					data: {},
+					type: ContractType.UniswapRouterV2Like
+				})
+			);
+			// maybe just set dex to unknown
+			this.logger.warn({
+				type: "dex-swap-processor.router-not-found",
+				message: "Router not found",
+				context: {
+					blockchain: tx.blockchain.id,
+					txHash: tx.hash,
+					address: tx.raw.to
+				}
+			});
+		}
+
 		if (swapOutAddressIsNotSender) {
 			await this.broker.publish(
 				new WalletDiscovered({
