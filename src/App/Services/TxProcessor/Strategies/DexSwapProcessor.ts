@@ -55,7 +55,7 @@ export class DexSwapProcessor implements ITxProcessStrategy {
 				Contract.create({
 					address: tx.raw.to,
 					blockchain: tx.blockchain.id,
-					alias: "uniswap.v2.unknown",
+					alias: "unknown-dex.v2.router",
 					createdAt: new Date(),
 					data: {},
 					type: ContractType.UniswapRouterV2Like
