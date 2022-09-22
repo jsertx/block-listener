@@ -27,13 +27,18 @@ export class StatusController implements interfaces.Controller {
 	) {}
 	@httpGet("/")
 	async index(): Promise<IApiResponse<StatusResponseDto>> {
+		const [latestBlocks, counter, broker] = await Promise.all([
+			this.getLatestBlocks(),
+			this.getCounter(),
+			this.getBrokerStatus()
+		]);
 		return {
 			success: true,
 			data: {
 				v: "1",
-				latestBlocks: await this.getLatestBlocks(),
-				counter: await this.getCounter(),
-				broker: await this.getBrokerStatus()
+				latestBlocks,
+				counter,
+				broker
 			}
 		};
 	}
@@ -58,35 +63,51 @@ export class StatusController implements interfaces.Controller {
 		return map;
 	}
 	private async getCounter(): Promise<StatusResponseDto["counter"]> {
-		const dexSwaps = await this.txRepository.findAll({
+		const dexSwaps$ = this.txRepository.findAll({
 			pageSize: 1,
 			page: 1,
 			where: { type: TxType.DexSwap }
 		});
-		const unknownTxs = await this.txRepository.findAll({
+		const unknownTxs$ = this.txRepository.findAll({
 			pageSize: 1,
 			page: 1,
 			where: { type: TxType.Unknown }
 		});
-		const ethTransfers = await this.txRepository.findAll({
+		const ethTransfers$ = this.txRepository.findAll({
 			pageSize: 1,
 			page: 1,
 			where: { type: TxType.EthTransfer }
 		});
-		const wallets = await this.walletRepository.findAll({
+		const wallets$ = this.walletRepository.findAll({
 			pageSize: 1,
 			page: 1,
 			where: { type: WalletType.Whale }
 		});
-		const unknownWallets = await this.walletRepository.findAll({
+		const unknownWallets$ = this.walletRepository.findAll({
 			pageSize: 1,
 			page: 1,
 			where: { type: WalletType.UnknownWallet }
 		});
-		const tokens = await this.tokenRepository.findAll({
+		const tokens$ = this.tokenRepository.findAll({
 			pageSize: 1,
 			page: 1
 		});
+
+		const [
+			dexSwaps,
+			unknownTxs,
+			ethTransfers,
+			wallets,
+			unknownWallets,
+			tokens
+		] = await Promise.all([
+			dexSwaps$,
+			unknownTxs$,
+			ethTransfers$,
+			wallets$,
+			unknownWallets$,
+			tokens$
+		]);
 
 		return {
 			tokens: tokens.total,
