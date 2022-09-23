@@ -21,7 +21,7 @@ export const createWrappedProvider = (
 	rateConfig: Bottleneck.ConstructorOptions
 ): { bottleneck: Bottleneck; provider: JsonRpcProvider } => {
 	const _provider = new ethers.providers.StaticJsonRpcProvider(url, chainId);
-	const bottleneck = new Bottleneck(rateConfig);
+	const bottleneck = new Bottleneck({ ...rateConfig, id: url });
 	const provider = new Proxy(_provider, {
 		get: (target: JsonRpcProvider, key: keyof JsonRpcProvider) => {
 			if (key === "send") {

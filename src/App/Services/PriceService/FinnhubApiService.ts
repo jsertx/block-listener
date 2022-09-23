@@ -25,7 +25,7 @@ export class FinnhubApiService implements IPriceService {
 	private baseUrl = "https://finnhub.io/api";
 	private client: Axios;
 	private resolutionInMinutes = 15;
-	private bottleneck = new Bottleneck({ maxConcurrent: 5 });
+	private bottleneck = new Bottleneck({ id: this.baseUrl, maxConcurrent: 5 });
 	constructor(
 		@inject(IocKey.Config)
 		private config: IConfig,

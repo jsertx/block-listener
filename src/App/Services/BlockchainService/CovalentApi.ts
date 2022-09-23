@@ -14,6 +14,7 @@ export class CovalentApi implements IBlockchainService {
 	private baseUrl = "https://api.covalenthq.com/v1/";
 	private client: Axios;
 	private bottleneck: Bottleneck = new Bottleneck({
+		id: this.baseUrl,
 		minTime: FIVE_REQ_PER_SEC,
 		maxConcurrent: 4
 	});
