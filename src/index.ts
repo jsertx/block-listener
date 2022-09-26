@@ -36,7 +36,14 @@ async function main() {
 		message: `App started in full mode.`,
 		type: "app.start.full-mode"
 	});
+
+	process.on("SIGINT", () => {
+		process.exit(0);
+	});
 }
 
-// eslint-disable-next-line no-console
-main().catch(console.error);
+main().catch((err) => {
+	// eslint-disable-next-line no-console
+	console.error(err);
+	process.exit(0);
+});
