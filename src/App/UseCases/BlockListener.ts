@@ -94,7 +94,6 @@ export class BlockListener implements IStandaloneApps {
 						});
 					}
 				}
-				await sleep(1000);
 				///await this.nextRoundAwaiter().catch(noop);
 			}
 		});
