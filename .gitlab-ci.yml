@@ -24,3 +24,14 @@ docker_deploy:
         - rm "$(pwd)/.env"
     only:
         - main
+
+# SCHEDULES
+docker_housekeeping:
+    only:
+        - schedules
+    script:
+        - echo "Removing exited containers"
+        - docker rm $(docker ps --filter status=exited -q)
+    rules:
+        - if: $CI_PIPELINE_TRIGGER == "schedule"
+          when: always
