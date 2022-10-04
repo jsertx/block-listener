@@ -36,10 +36,9 @@ async function main() {
 		message: `App started in full mode.`,
 		type: "app.start.full-mode"
 	});
-
-	process.on("SIGINT", () => {
-		process.exit(0);
-	});
+	const exit = () => process.exit(0);
+	process.on("SIGINT", exit);
+	process.on("SIGTERM", exit);
 }
 
 main().catch((err) => {

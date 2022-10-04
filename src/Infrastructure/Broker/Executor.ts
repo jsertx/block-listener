@@ -184,16 +184,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 	abstract getMessageContextTrace(payload: PayloadType): any;
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	protected async postStart() {
-		// // REVIEW: check how to reconnect on closed connections
-		setTimeout(async () => {
-			if (!this.sub) {
-				return;
-			}
-			await this.sub.off();
-			await this.start();
-		}, 1800_000);
-	}
+	protected async postStart() {}
 
 	async start() {
 		this.logger.log({
@@ -208,6 +199,12 @@ export abstract class Executor<PayloadType> implements IExecutor {
 			this.channel,
 			this.executionWrapper.bind(this)
 		);
+		const exit = async () => {
+			await this.sub?.off();
+			process.exit(0);
+		};
+		process.on("SIGINT", exit);
+		process.on("SIGTERM", exit);
 
 		this.postStart().then(noop).catch(noop);
 	}
@@ -236,9 +233,16 @@ export abstract class Executor<PayloadType> implements IExecutor {
 	}
 
 	async startRetryManager() {
-		await this.broker.subscribe(
+		const { off } = await this.broker.subscribe(
 			this.retryChannel,
 			this.retryManager.bind(this)
 		);
+
+		const exit = async () => {
+			await off();
+			process.exit(0);
+		};
+		process.on("SIGINT", exit);
+		process.on("SIGTERM", exit);
 	}
 }
