@@ -199,12 +199,6 @@ export abstract class Executor<PayloadType> implements IExecutor {
 			this.channel,
 			this.executionWrapper.bind(this)
 		);
-		const exit = async () => {
-			await this.sub?.off();
-			process.exit(0);
-		};
-		process.on("SIGINT", exit);
-		process.on("SIGTERM", exit);
 
 		this.postStart().then(noop).catch(noop);
 	}
@@ -237,12 +231,5 @@ export abstract class Executor<PayloadType> implements IExecutor {
 			this.retryChannel,
 			this.retryManager.bind(this)
 		);
-
-		const exit = async () => {
-			await off();
-			process.exit(0);
-		};
-		process.on("SIGINT", exit);
-		process.on("SIGTERM", exit);
 	}
 }
