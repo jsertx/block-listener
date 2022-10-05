@@ -19,7 +19,7 @@ FROM node:16-alpine3.14
 # APP 
 RUN apk add git
 RUN apk add yarn --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community
-RUN apt add dumb-init
+RUN apk add dumb-init
 
 
 WORKDIR /app
