@@ -37,8 +37,12 @@ async function main() {
 		type: "app.start.full-mode"
 	});
 	const exit = () => process.exit(0);
-	process.on("SIGINT", exit);
-	process.on("SIGTERM", exit);
+	process
+		.on("SIGINT", exit)
+		.on("SIGTERM", exit)
+		.on("exit", function () {
+			process.kill(process.pid, "SIGTERM");
+		});
 }
 
 main().catch((err) => {
