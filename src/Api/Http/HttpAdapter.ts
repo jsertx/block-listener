@@ -44,11 +44,17 @@ export class HttpAdapter implements IAdapter {
 
 		const app = server.build();
 
-		app.listen(this.config.http.port, () => {
+		const expressServer = app.listen(this.config.http.port, () => {
 			this.logger.log({
 				type: "api.start",
 				message: `Api started listening on port ${this.config.http.port}`
 			});
 		});
+
+		const close = () => {
+			expressServer.close();
+		};
+		process.on("SIGINT", close);
+		process.on("SIGTERM", close);
 	}
 }
