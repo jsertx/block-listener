@@ -7,6 +7,7 @@ interface DefaultContext {
 	executorClass?: string;
 	address?: string;
 	rpcCall?: {
+		url: string;
 		method: string;
 		params: any[];
 	};

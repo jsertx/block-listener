@@ -28,7 +28,20 @@ export const createWrappedProvider = (
 				return (method: string, params: any[]) => {
 					return bottleneck
 						.schedule(() => {
-							return target.send(method, params);
+							return target.send(method, params).then((res) => {
+								logger.log({
+									type: `provider.call.success.${method}`,
+									message: "Rpc call succeeded",
+									context: {
+										rpcCall: {
+											url,
+											method: key,
+											params
+										}
+									}
+								});
+								return res;
+							});
 						})
 						.catch((error) => {
 							logger.error({
@@ -36,6 +49,7 @@ export const createWrappedProvider = (
 								message: "Rpc call failed",
 								context: {
 									rpcCall: {
+										url,
 										method: key,
 										params
 									}
