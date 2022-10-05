@@ -28,4 +28,4 @@ COPY ./yarn.lock .
 
 RUN yarn --production
 
-CMD [ "npm", "start" ]
+CMD node build/index.js
