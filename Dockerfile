@@ -28,4 +28,5 @@ COPY ./yarn.lock .
 
 RUN yarn --production
 
-CMD node build/index.js
+ENTRYPOINT ["node"]
+CMD ["build/index.js"]
