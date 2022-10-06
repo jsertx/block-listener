@@ -1,4 +1,5 @@
 import { createBrokerAsPromised, VhostConfig } from "rascal";
+import { sleep } from "../../../../App/Utils/Misc";
 import { IConfig } from "../../../../Interfaces/IConfig";
 import { Publication } from "../../Publication";
 import { Subscription } from "../../Subscription";
@@ -123,26 +124,26 @@ export const createBrokerConnection = async (config: IConfig) => {
 	};
 	const maxRetries = 120;
 	let retry = 1;
+
 	while (retry++) {
-		const client = await createBrokerAsPromised({
-			vhosts: {
-				"/": vhostConfig
-			}
-		}).catch((error) => {
-			if (!error || !error.code || error.code !== "ECONNREFUSED") {
+		try {
+			const client = await createBrokerAsPromised({
+				vhosts: {
+					"/": vhostConfig
+				}
+			});
+			return client;
+		} catch (_error) {
+			const error = _error as any;
+			const notConnectionRefused =
+				!error || !error.code || error.code !== "ECONNREFUSED";
+			const maxRetriesReached = retry >= maxRetries;
+			if (notConnectionRefused || maxRetriesReached) {
 				throw error;
 			}
-			return new Promise((resolve, reject) => {
-				if (retry >= maxRetries) {
-					reject(error);
-					return;
-				}
-				const nextRetry = 1000 + retry * 1000;
-				setTimeout(resolve, nextRetry);
-			});
-		});
-		if (client) {
-			return client;
+
+			const nextRetry = 1000 + retry * 1000;
+			return sleep(nextRetry);
 		}
 	}
 };

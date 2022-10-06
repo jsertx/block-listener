@@ -8,8 +8,6 @@ import { IAdapter } from "./Interfaces/IAdapter";
 import { IExecutor } from "./Interfaces/IExecutor";
 import { getEnv } from "./App/Utils/Env";
 import { ILogger } from "./Interfaces/ILogger";
-import { MongoClient } from "mongodb";
-import { BrokerAsPromised } from "rascal";
 
 async function main() {
 	const container = await initializeContainer();
@@ -39,12 +37,7 @@ async function main() {
 		type: "app.start.full-mode"
 	});
 
-	const exit = async () => {
-		await container.get<MongoClient>(IocKey.DbClient).close();
-		await container.get<BrokerAsPromised>(IocKey.RabbitMQClient).shutdown();
-		process.exit();
-	};
-	process.on("SIGINT", exit).on("SIGTERM", exit);
+	process.on("SIGINT", process.exit).on("SIGTERM", process.exit);
 }
 
 main().catch((err) => {

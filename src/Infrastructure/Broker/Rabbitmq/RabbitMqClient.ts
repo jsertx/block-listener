@@ -25,6 +25,9 @@ export class RabbitMqClient implements IBroker<any, any> {
 		this.apiClient = new Axios({
 			baseURL: this.config.broker.config.apiUrl
 		});
+		process.on("SIGINT", async () => {
+			await this.client.shutdown();
+		});
 	}
 	async getAllQueueStatus(): Promise<IBrokerQueueStatus[]> {
 		const res = await this.apiClient
