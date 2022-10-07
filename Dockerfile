@@ -30,4 +30,5 @@ COPY ./yarn.lock .
 
 RUN yarn --production
 
-CMD ["dumb-init", "node", "build/index.js"]
+ENTRYPOINT [ "dumb-init" ]
+CMD ["node", "build/index.js"]

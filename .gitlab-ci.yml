@@ -1,6 +1,7 @@
 variables:
     IMAGE_NAME: "blocklistener-app"
     CONTAINER_NAME: "blocklistener-app"
+    CONSUMER_CONTAINER_NAME: "blocklistener-app"
     HOSTNAME: "blocklistener-app"
 
 docker_build:
@@ -20,7 +21,10 @@ docker_deploy:
         - current_container_running=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
         # remove previous container if running
         - docker rm -f $CONTAINER_NAME &>/dev/null && echo 'Removed old container $CONTAINER_NAME'
-        - docker run --tty -d -p 3000:80 --restart=always --env-file=.env --network="main" --name=$CONTAINER_NAME --hostname=$HOSTNAME --log-driver=loki --log-opt loki-url="https://${GRAFANA_LOKI_USER}:${GRAFANA_LOKI_API_KEY}@logs-prod-008.grafana.net/loki/api/v1/push" --log-opt loki-retries=10 --log-opt loki-batch-size=400 --log-opt max-size="4m" --log-opt max-buffer-size="20m" --log-opt loki-timeout="15s" --log-opt mode="non-blocking" $IMAGE_NAME
+        - docker rm -f $CONSUMER_CONTAINER_NAME &>/dev/null && echo 'Removed old container $CONTAINER_NAME'
+        - LOG_OPTIONS='--log-driver=loki --log-opt loki-url="https://${GRAFANA_LOKI_USER}:${GRAFANA_LOKI_API_KEY}@logs-prod-008.grafana.net/loki/api/v1/push" --log-opt loki-retries=10 --log-opt loki-batch-size=400 --log-opt max-size="4m" --log-opt max-buffer-size="20m" --log-opt loki-timeout="15s" --log-opt mode="non-blocking"'
+        - docker run --tty -d -p 3000:80 --restart=always --env-file=.env --network="main" --name=$CONTAINER_NAME --hostname=$HOSTNAME $LOG_OPTIONS $IMAGE_NAME node build/block_listener.js
+        - docker run --tty -d --restart=always --env-file=.env --network="main" --name=$CONSUMER_CONTAINER_NAME --hostname=$HOSTNAME $LOG_OPTIONS $IMAGE_NAME node build/consumers.js
         - rm "$(pwd)/.env"
     only:
         - main
