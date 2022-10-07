@@ -26,6 +26,9 @@ export interface IConfig {
 	covalent: {
 		apiKey: string;
 	};
+	redis: {
+		url: string;
+	};
 	finnhub: {
 		apiKey: string;
 	};

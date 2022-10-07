@@ -1,8 +1,8 @@
 import { inject, injectable } from "inversify";
 import NodeCache from "node-cache";
-import { ILogger } from "../../Interfaces/ILogger";
-import { IocKey } from "../../Ioc/IocKey";
-import { ICache } from "../Interfaces/ICache";
+import { ILogger } from "../../../Interfaces/ILogger";
+import { IocKey } from "../../../Ioc/IocKey";
+import { ICache } from "../../Interfaces/ICache";
 
 @injectable()
 export class MemoryCache implements ICache {

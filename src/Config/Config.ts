@@ -5,6 +5,9 @@ import { BlockchainId } from "./Blockchains";
 export const getConfig = (): IConfig => {
 	const logtailAccessToken = getEnv("LOGTAIL_ACCESS_TOKEN", "");
 	return {
+		redis: {
+			url: getEnv("REDIS_URL")
+		},
 		providers: prepareNodeList({
 			[BlockchainId.Ethereum]: [],
 			[BlockchainId.Binance]: [],

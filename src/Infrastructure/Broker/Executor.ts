@@ -227,7 +227,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 	}
 
 	async startRetryManager() {
-		const { off } = await this.broker.subscribe(
+		await this.broker.subscribe(
 			this.retryChannel,
 			this.retryManager.bind(this)
 		);

@@ -1,21 +1,10 @@
 version: "3.7"
 services:
-    app:
-        build:
-            context: .
-            dockerfile: ./Dockerfile
-        restart: always
-        env_file: .env
-        depends_on:
-            - rabbitmq
-            - mongodb
-        links:
-            - mongodb
-            - rabbitmq
+    redis:
+        container_name: "redis"
+        image: redis
         ports:
-            - 80:80
-        networks:
-            - main
+            - "6379:6379"
     mongodb:
         image: mongo:5.0
         container_name: "mongodb"
