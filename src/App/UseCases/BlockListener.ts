@@ -42,6 +42,7 @@ export class BlockListener implements IStandaloneApps {
 				}
 			});
 
+			const cachePriceAfterBlocks = 50;
 			const latestBlock = await this.getStartBlock(blockchain);
 			let nextBlockNum = latestBlock + 1;
 			for (;;) {
@@ -59,11 +60,12 @@ export class BlockListener implements IStandaloneApps {
 								timestamp: new Date(block.timestamp * 1000)
 							})
 						);
-
-						await this.prepareNextBlockPriceCache(
-							blockchain,
-							nextBlockNum
-						).catch(noop);
+						if (block.number % cachePriceAfterBlocks === 0) {
+							await this.prepareNextBlockPriceCache(
+								blockchain,
+								nextBlockNum
+							).catch(noop);
+						}
 
 						await this.broker.publish(
 							new BlockReceived({
