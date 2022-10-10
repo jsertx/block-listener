@@ -53,13 +53,6 @@ export class BlockListener implements IStandaloneApps {
 
 				if (block) {
 					try {
-						await this.blockRepository.save(
-							Block.create({
-								blockchain,
-								height: `${block.number}`,
-								timestamp: new Date(block.timestamp * 1000)
-							})
-						);
 						if (block.number % cachePriceAfterBlocks === 0) {
 							await this.prepareNextBlockPriceCache(
 								blockchain,
@@ -71,6 +64,13 @@ export class BlockListener implements IStandaloneApps {
 							new BlockReceived({
 								blockchain,
 								block
+							})
+						);
+						await this.blockRepository.save(
+							Block.create({
+								blockchain,
+								height: `${block.number}`,
+								timestamp: new Date(block.timestamp * 1000)
 							})
 						);
 
