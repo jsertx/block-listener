@@ -10,9 +10,14 @@ export interface TxDiscoveredPayload {
 	txRes?: ethers.providers.TransactionResponse;
 	block?: ethers.providers.Block;
 }
-
+/**
+ * MaxRetries should be a consumer executor as the message does not
+ * need to know needs of the consumer
+ */
 export class TxDiscovered extends ExecutorMessage<TxDiscoveredPayload> {
 	constructor(payload: TxDiscoveredPayload) {
-		super(Publication.TxDiscovered(payload.blockchain), payload);
+		super(Publication.TxDiscovered(payload.blockchain), payload, {
+			maxRetries: 30
+		});
 	}
 }

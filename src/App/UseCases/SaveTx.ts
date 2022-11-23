@@ -30,6 +30,10 @@ import { Contract } from "../Entities/Contract";
 import { ContractType } from "../Values/ContractType";
 import { IContractRepository } from "../Repository/IContractRepository";
 
+const MIN_DELAY_IN_S = 60;
+const backoffStrategy = (retry: number) =>
+	(Math.floor(2 ** retry) + MIN_DELAY_IN_S) * 1000;
+
 @injectable()
 export class SaveTx extends Executor<TxDiscoveredPayload> {
 	constructor(
@@ -45,7 +49,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		@inject(IocKey.ContractRepository)
 		private contractRepository: IContractRepository
 	) {
-		super(logger, broker, Subscription.SaveTx);
+		super(logger, broker, Subscription.SaveTx, { backoffStrategy });
 	}
 	async execute(msg: TxDiscoveredPayload) {
 		const { blockchain, hash, saveUnknown } = msg;
