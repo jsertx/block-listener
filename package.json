@@ -37,6 +37,7 @@
 		"bignumber.js": "^9.0.2",
 		"body-parser": "^1.20.0",
 		"bottleneck": "^2.19.5",
+		"discord.js": "^14.7.1",
 		"dotenv": "^16.0.2",
 		"ethereum-multicall": "^2.14.0",
 		"ethers": "^5.6.5",

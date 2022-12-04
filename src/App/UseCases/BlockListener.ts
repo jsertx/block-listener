@@ -15,6 +15,7 @@ import { Block } from "../Entities/Block";
 import { IPriceService } from "../Interfaces/IPriceService";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { Axios } from "axios";
+import { WebhookClient } from "discord.js";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
@@ -104,29 +105,35 @@ export class BlockListener implements IStandaloneApps {
 	}
 
 	private startNotifier() {
-		const client = new Axios();
-		const discord = new Axios({
-			headers: {
-				"Content-Type": "application/json"
-			},
-			baseURL: this.config.discord.blockListenerStatusChannelHook
+		const client = new Axios({
+			baseURL: "http://localhost"
+		});
+
+		const discord = new WebhookClient({
+			url: this.config.discord.blockListenerStatusChannelHook
 		});
 		const sendNotification = async () => {
 			const content = await client
-				.get("/status")
+				.get("/")
+				.catch((error) => {
+					throw error;
+				})
 				.then((res) => res.data)
 				.then(JSON.parse)
 				.then(buildStatusMessageFromApi);
 
 			discord
-				.post(
-					"/",
-					JSON.stringify({
-						username: "blocklistener-snitch",
-						content
-					})
-				)
-				.then(noop)
+				.send({
+					content,
+					username: "blocklistener-snitch",
+					avatarURL: "https://i.imgur.com/dBAMyiR.jpeg"
+				})
+				.then((res) => {
+					this.logger.log({
+						type: "notifications.discord.success",
+						message: "Discord notification sent successfully"
+					});
+				})
 				.catch((error) => {
 					this.logger.error({
 						type: "notifications.discord.failure",
