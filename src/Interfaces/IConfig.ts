@@ -23,6 +23,9 @@ export interface ILogtailConfig {
 export interface IConfig {
 	providers: Record<BlockchainId, IBlockchainProviderConfig[]>;
 	enabledBlockchains: BlockchainId[];
+	discord: {
+		blockListenerStatusChannelHook: string;
+	};
 	covalent: {
 		apiKey: string;
 	};

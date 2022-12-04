@@ -14,6 +14,7 @@ import { IBlockRepository } from "../Repository/IBlockRepository";
 import { Block } from "../Entities/Block";
 import { IPriceService } from "../Interfaces/IPriceService";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
+import { Axios } from "axios";
 
 @injectable()
 export class BlockListener implements IStandaloneApps {
@@ -33,6 +34,7 @@ export class BlockListener implements IStandaloneApps {
 		return this.providerFactory.getProvider(blockchain);
 	}
 	async start() {
+		this.startNotifier();
 		this.config.enabledBlockchains.forEach(async (blockchain) => {
 			this.logger.log({
 				message: `BlockListener started @${blockchain}`,
@@ -101,6 +103,41 @@ export class BlockListener implements IStandaloneApps {
 		});
 	}
 
+	private startNotifier() {
+		const client = new Axios();
+		const discord = new Axios({
+			headers: {
+				"Content-Type": "application/json"
+			},
+			baseURL: this.config.discord.blockListenerStatusChannelHook
+		});
+		const sendNotification = async () => {
+			const content = await client
+				.get("/status")
+				.then((res) => res.data)
+				.then(JSON.parse)
+				.then(buildStatusMessageFromApi);
+
+			discord
+				.post(
+					"/",
+					JSON.stringify({
+						username: "blocklistener-snitch",
+						content
+					})
+				)
+				.then(noop)
+				.catch((error) => {
+					this.logger.error({
+						type: "notifications.discord.failure",
+						message: error?.message || "Unknown error"
+					});
+				});
+		};
+		setInterval(sendNotification, 3600 * 24 * 1000);
+		sendNotification().then(noop).catch(noop);
+	}
+
 	private async nextRoundAwaiter() {
 		for (;;) {
 			const pendingSaveTxMsgs = await this.broker.getPendingMessages(
@@ -142,4 +179,28 @@ export class BlockListener implements IStandaloneApps {
 			.getBlock(this.config.blockListener.defaultStartingBlock)
 			.then((res) => res.number);
 	}
+}
+
+function buildStatusMessageFromApi(res: any) {
+	const msg = Object.entries(res.data.latestBlocks).reduce(
+		(msg, [chain, data]: [any, any]) => {
+			msg += `\n[${chain.toUpperCase()}]`;
+			msg += `\nHeight: ${data.height}`;
+			msg += `\nDate: ${data.timestamp}`;
+			msg += `\nLink: ${data.link}`;
+			return msg;
+		},
+		"BlockListener Status:"
+	);
+	const statusMsg = Object.entries(res.data.broker).reduce(
+		(msg, [queue, status]: [any, any]) => {
+			if (status.dead === 0) {
+				return msg;
+			}
+			return `${msg}\n${queue}: ${status.dead}`;
+		},
+		"Broker Dead Messages:"
+	);
+
+	return `${msg}\n\n${statusMsg}\n\n#blocklistener #status`;
 }

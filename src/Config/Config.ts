@@ -5,6 +5,9 @@ import { BlockchainId } from "./Blockchains";
 export const getConfig = (): IConfig => {
 	const logtailAccessToken = getEnv("LOGTAIL_ACCESS_TOKEN", "");
 	return {
+		discord: {
+			blockListenerStatusChannelHook: getEnv("DISCORD_STATUS_WEBHOOK_URL")
+		},
 		redis: {
 			url: getEnv("REDIS_URL")
 		},
