@@ -16,7 +16,8 @@ import { IPriceService } from "../Interfaces/IPriceService";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { Axios } from "axios";
 import { WebhookClient } from "discord.js";
-
+import { CronSchedule } from "../Types/CronSchedule";
+import Cron from "node-cron";
 @injectable()
 export class BlockListener implements IStandaloneApps {
 	constructor(
@@ -113,36 +114,30 @@ export class BlockListener implements IStandaloneApps {
 			url: this.config.discord.blockListenerStatusChannelHook
 		});
 		const sendNotification = async () => {
-			const content = await client
-				.get("/")
-				.catch((error) => {
-					throw error;
-				})
-				.then((res) => res.data)
-				.then(JSON.parse)
-				.then(buildStatusMessageFromApi);
-
-			discord
-				.send({
+			try {
+				const content = await client
+					.get("/")
+					.then((res) => res.data)
+					.then(JSON.parse)
+					.then(buildStatusMessageFromApi);
+				await discord.send({
 					content,
 					username: "blocklistener-snitch",
 					avatarURL: "https://i.imgur.com/dBAMyiR.jpeg"
-				})
-				.then((res) => {
-					this.logger.log({
-						type: "notifications.discord.success",
-						message: "Discord notification sent successfully"
-					});
-				})
-				.catch((error) => {
-					this.logger.error({
-						type: "notifications.discord.failure",
-						message: error?.message || "Unknown error"
-					});
 				});
+				this.logger.log({
+					type: "notifications.discord.success",
+					message: "Discord notification sent successfully"
+				});
+			} catch (_error) {
+				const error: any = _error;
+				this.logger.error({
+					type: "notifications.discord.failure",
+					message: error?.message || "Unknown error"
+				});
+			}
 		};
-		setInterval(sendNotification, 3600 * 24 * 1000);
-		sendNotification().then(noop).catch(noop);
+		Cron.schedule(CronSchedule.EveryTwelveHours, sendNotification);
 	}
 
 	private async nextRoundAwaiter() {
