@@ -203,7 +203,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 		this.postStart().then(noop).catch(noop);
 	}
 
-	async startDeadRecovery({ amount }: DeadRecoveryOptions) {
+	async startDeadRecovery({ amount }: DeadRecoveryOptions = {}) {
 		let msgCount = 0;
 		await this.broker.subscribe(
 			this.deadChannel,
@@ -213,15 +213,12 @@ export abstract class Executor<PayloadType> implements IExecutor {
 					message.payload
 				);
 				await this.broker.publish(processMsg).then(ack).catch(nack);
-				msgCount++;
 
 				if (amount && msgCount === amount) {
 					console.log(`${msgCount}/${amount}`);
-					return process.exit(0);
+					return;
 				}
-				if (msgCount % 5 === 0) {
-					console.log(`${msgCount}/${amount}`);
-				}
+				msgCount++;
 			}
 		);
 	}

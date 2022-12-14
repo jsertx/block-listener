@@ -5,7 +5,8 @@ import { initializeContainer } from "./Ioc/container";
 import { IocKey } from "./Ioc/IocKey";
 import { IExecutor } from "./Interfaces/IExecutor";
 import { ILogger } from "./Interfaces/ILogger";
-
+import Cron from "node-cron";
+import { CronSchedule } from "./App/Types/CronSchedule";
 async function main() {
 	const container = await initializeContainer();
 	const logger = container.get<ILogger>(IocKey.Logger);
@@ -13,6 +14,10 @@ async function main() {
 	container.getAll<IExecutor>(IocKey.Executors).forEach((listener) => {
 		listener.start();
 		listener.startRetryManager();
+
+		Cron.schedule(CronSchedule.EveryDay, () =>
+			listener.startDeadRecovery()
+		);
 	});
 
 	logger.log({

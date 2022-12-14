@@ -3,6 +3,6 @@ export interface DeadRecoveryOptions {
 }
 export interface IExecutor {
 	start(): void;
-	startDeadRecovery(options: DeadRecoveryOptions): void;
+	startDeadRecovery(options?: DeadRecoveryOptions): void;
 	startRetryManager(): void;
 }
