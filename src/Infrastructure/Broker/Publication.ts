@@ -16,6 +16,7 @@ const publicationCreatorFactory =
 export enum PublicationTypes {
 	BlockReceived = "block_received",
 	TxDiscovered = "tx_dicovered",
+	TxSaved = "tx_saved",
 	WalletDiscovered = "wallet_discovered",
 	WalletSaved = "wallet_saved",
 	WalletUpdated = "wallet_updated",
@@ -23,6 +24,7 @@ export enum PublicationTypes {
 }
 export const Publication = {
 	BlockReceived: publicationCreatorFactory(PublicationTypes.BlockReceived),
+	TxSaved: publicationCreatorFactory(PublicationTypes.TxSaved),
 	TxDiscovered: publicationCreatorFactory(PublicationTypes.TxDiscovered),
 	WalletDiscovered: publicationCreatorFactory(
 		PublicationTypes.WalletDiscovered

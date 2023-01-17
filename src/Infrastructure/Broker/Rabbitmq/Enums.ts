@@ -28,6 +28,7 @@ export const RoutingKey = {
 	WalletDiscovered: routingKeyCreatorFactory("wallet.evt.wallet_discovered"),
 	TokenDiscovered: routingKeyCreatorFactory("token.evt.discovered"),
 	TxDiscovered: routingKeyCreatorFactory("tx.evt.discovered"),
+	TxSaved: routingKeyCreatorFactory("tx.evt.saved"),
 	WalletSaved: routingKeyCreatorFactory("wallet.evt.wallet_saved"),
 	WalletUpdated: routingKeyCreatorFactory("wallet.evt.wallet_updated")
 };
