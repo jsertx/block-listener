@@ -1,9 +1,5 @@
-import { PublicationCreator } from "../../Publication";
-import { Exchange, Queue, RoutingKeyCreator } from "../Enums";
+import { Exchange, Queue, RoutingKey, Publication } from "../Enums";
 
-export type BindingSetup = [Exchange, RoutingKeyCreator, Queue];
-export type PublicationSetup = [
-	PublicationCreator,
-	Exchange,
-	RoutingKeyCreator
-];
+export type BindingSetup = [Exchange, RoutingKey, Queue];
+
+export type PublicationSetup = [Publication, Exchange, RoutingKey];

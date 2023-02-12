@@ -1,9 +1,8 @@
 import { createBrokerAsPromised, VhostConfig } from "rascal";
 import { sleep } from "../../../../App/Utils/Misc";
 import { IConfig } from "../../../../Interfaces/IConfig";
-import { Publication } from "../../Publication";
 import { Subscription } from "../../Subscription";
-import { RoutingKey, Exchange, Queue } from "../Enums";
+import { RoutingKey, Exchange, Queue, Publication } from "../Enums";
 import { BindingSetup, PublicationSetup } from "./Types";
 
 const getConnections = (brokerUrl: string): VhostConfig["connections"] => {
@@ -43,11 +42,32 @@ const bindingsSetup: BindingSetup[] = [
 	[Exchange.Wallet, RoutingKey.WalletDiscovered, Queue.SaveWallet]
 ];
 
+const subscriptions: VhostConfig["subscriptions"] = {
+	[Subscription.FindDirectTx]: {
+		queue: Queue.FindDirectTx,
+		prefetch: 10
+	},
+	[Subscription.FindInternalTx]: {
+		queue: Queue.FindInternalTx
+	},
+	[Subscription.SaveTx]: {
+		queue: Queue.SaveTx,
+		prefetch: 20
+	},
+	[Subscription.SaveToken]: {
+		queue: Queue.SaveToken
+	},
+	[Subscription.SaveWallet]: {
+		queue: Queue.SaveWallet,
+		prefetch: 20 // they generate too much txs. NOT NOW
+	}
+};
+
 export const createBrokerConnection = async (config: IConfig) => {
-	const bindings = bindingsSetup.reduce(
-		expandBindingsByBlockchain(config.enabledBlockchains),
-		[]
+	const bindings = bindingsSetup.map(
+		([ex, routingKey, queue]) => `${ex}[${routingKey}] -> ${queue}`
 	);
+
 	const queues = Object.values(Queue).reduce<string[]>(
 		(queues, name) => [
 			...queues,
@@ -57,33 +77,11 @@ export const createBrokerConnection = async (config: IConfig) => {
 		],
 		[]
 	);
-	let subscriptions: VhostConfig["subscriptions"] = {
-		[Subscription.FindDirectTx]: {
-			queue: Queue.FindDirectTx,
-			prefetch: 10
-		},
-		[Subscription.FindInternalTx]: {
-			queue: Queue.FindInternalTx
-		},
-		[Subscription.SaveTx]: {
-			queue: Queue.SaveTx,
-			prefetch: 20
-		},
-		[Subscription.SaveToken]: {
-			queue: Queue.SaveToken
-		},
-		[Subscription.SaveWallet]: {
-			queue: Queue.SaveWallet,
-			prefetch: 20 // they generate too much txs. NOT NOW
-		}
-	};
 
-	const publications = publicationsSetup.reduce(
-		expandPublicationsByBlockchain(config.enabledBlockchains),
-		{}
-	);
+	const publications = publicationsSetup.reduce(publicationsBuilder, {});
+
 	// add retry/dead subs
-	subscriptions = Object.entries(subscriptions).reduce(
+	const subscriptionsWithRetries = Object.entries(subscriptions).reduce(
 		(_subs, [name, config]) => {
 			const subs = {
 				[name]: config,
@@ -121,7 +119,7 @@ export const createBrokerConnection = async (config: IConfig) => {
 		queues,
 		bindings,
 		publications,
-		subscriptions
+		subscriptions: subscriptionsWithRetries
 	};
 	const maxRetries = 120;
 	let retry = 1;
@@ -148,38 +146,18 @@ export const createBrokerConnection = async (config: IConfig) => {
 		}
 	}
 };
-
-function expandBindingsByBlockchain(blockchains: string[]) {
-	return (
-		bindings: string[],
-		[ex, routingKeyCreator, queue]: BindingSetup
-	): string[] => {
-		const expandedBindings = blockchains.map(
-			(blockchain) =>
-				`${ex}[${routingKeyCreator(blockchain)}] -> ${queue}`
-		);
-		return [...bindings, ...expandedBindings];
-	};
-}
 type Pubs = Required<VhostConfig>["publications"];
 
-function expandPublicationsByBlockchain(blockchains: string[]) {
-	return (
-		pubs: Pubs,
-		[publicationCreator, exchange, routingKeyCreator]: PublicationSetup
-	): Pubs => {
-		const newPubs: Pubs = blockchains.reduce((pubs, blockchain) => {
-			return {
-				...pubs,
-				[publicationCreator(blockchain)]: {
-					exchange,
-					routingKey: routingKeyCreator(blockchain),
-					timeout: 100_000
-				}
-			};
-		}, {} as Pubs);
-
-		return { ...pubs, ...newPubs };
+function publicationsBuilder(
+	pubs: Pubs,
+	[publicationName, exchange, routingKey]: PublicationSetup
+): Pubs {
+	return {
+		...pubs,
+		[publicationName]: {
+			exchange,
+			routingKey
+		}
 	};
 }
 

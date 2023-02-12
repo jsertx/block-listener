@@ -1,6 +1,6 @@
 import { BlockchainId } from "../../Values/Blockchain";
-import { Publication } from "../../../Infrastructure/Broker/Publication";
 import { BaseMessage } from "../../../Infrastructure/Broker/BaseMessage";
+import { Publication } from "../../../Infrastructure/Broker/Rabbitmq/Enums";
 
 export interface WalletUpdatedPayload {
 	blockchain: BlockchainId;
@@ -9,6 +9,6 @@ export interface WalletUpdatedPayload {
 
 export class WalletUpdated extends BaseMessage<WalletUpdatedPayload> {
 	constructor(payload: WalletUpdatedPayload) {
-		super(Publication.WalletUpdated(payload.blockchain), payload);
+		super(Publication.WalletUpdated, payload);
 	}
 }

@@ -1,5 +1,5 @@
-import { Publication } from "../../../Infrastructure/Broker/Publication";
 import { ExecutorMessage } from "../../../Infrastructure/Broker/Executor";
+import { Publication } from "../../../Infrastructure/Broker/Rabbitmq/Enums";
 import { TxProps } from "../../Entities/Tx";
 
 export type TxSavedPayload = TxProps<any>;
@@ -9,7 +9,7 @@ export type TxSavedPayload = TxProps<any>;
  */
 export class TxSaved extends ExecutorMessage<TxSavedPayload> {
 	constructor(payload: TxSavedPayload) {
-		super(Publication.TxSaved(payload.blockchain), payload, {
+		super(Publication.TxSaved, payload, {
 			maxRetries: 30
 		});
 	}

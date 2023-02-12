@@ -14,7 +14,7 @@ Object {
 }
 `;
 
-exports[`PubSub > Messages BlockReceived should get the channel with the blockchain prefix 1`] = `"ethereum.block_received"`;
+exports[`PubSub > Messages BlockReceived should get the channel with the blockchain prefix 1`] = `"block_received"`;
 
 exports[`PubSub > Messages TokenDiscovered should build the correct payload 1`] = `
 Object {
@@ -28,11 +28,11 @@ Object {
 }
 `;
 
-exports[`PubSub > Messages TokenDiscovered should get the channel with the blockchain prefix 1`] = `"ethereum.token_discovered"`;
+exports[`PubSub > Messages TokenDiscovered should get the channel with the blockchain prefix 1`] = `"token_discovered"`;
 
 exports[`PubSub > Messages TxDiscovered should build the correct payload 1`] = `
 Object {
-  "maxRetries": 10,
+  "maxRetries": 30,
   "payload": Object {
     "block": Object {
       "blockData": "mock",
@@ -49,7 +49,7 @@ Object {
 }
 `;
 
-exports[`PubSub > Messages TxDiscovered should get the channel with the blockchain prefix 1`] = `"ethereum.tx_dicovered"`;
+exports[`PubSub > Messages TxDiscovered should get the channel with the blockchain prefix 1`] = `"tx_dicovered"`;
 
 exports[`PubSub > Messages WalletDiscovered should build the correct payload 1`] = `
 Object {
@@ -68,7 +68,7 @@ Object {
 }
 `;
 
-exports[`PubSub > Messages WalletDiscovered should get the channel with the blockchain prefix 1`] = `"ethereum.wallet_discovered"`;
+exports[`PubSub > Messages WalletDiscovered should get the channel with the blockchain prefix 1`] = `"wallet_discovered"`;
 
 exports[`PubSub > Messages WalletSaved should build the correct payload 1`] = `
 Object {
@@ -77,7 +77,7 @@ Object {
 }
 `;
 
-exports[`PubSub > Messages WalletSaved should get the channel with the blockchain prefix 1`] = `"ethereum.wallet_saved"`;
+exports[`PubSub > Messages WalletSaved should get the channel with the blockchain prefix 1`] = `"wallet_saved"`;
 
 exports[`PubSub > Messages WalletUpdated should build the correct payload 1`] = `
 Object {
@@ -86,4 +86,4 @@ Object {
 }
 `;
 
-exports[`PubSub > Messages WalletUpdated should get the channel with the blockchain prefix 1`] = `"ethereum.wallet_updated"`;
+exports[`PubSub > Messages WalletUpdated should get the channel with the blockchain prefix 1`] = `"wallet_updated"`;

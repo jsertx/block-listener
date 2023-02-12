@@ -1,9 +1,9 @@
 import { BlockchainId } from "../../Values/Blockchain";
-import { Publication } from "../../../Infrastructure/Broker/Publication";
 import { ExecutorMessage } from "../../../Infrastructure/Broker/Executor";
 import { WalletTagName } from "../../Values/WalletTag";
 import { AddressRelation } from "../../Entities/Wallet";
 import { WalletType } from "../../Values/WalletType";
+import { Publication } from "../../../Infrastructure/Broker/Rabbitmq/Enums";
 
 export interface WalletDiscoveredPayload {
 	blockchain: BlockchainId;
@@ -16,6 +16,6 @@ export interface WalletDiscoveredPayload {
 
 export class WalletDiscovered extends ExecutorMessage<WalletDiscoveredPayload> {
 	constructor(payload: WalletDiscoveredPayload) {
-		super(Publication.WalletDiscovered(payload.blockchain), payload);
+		super(Publication.WalletDiscovered, payload);
 	}
 }

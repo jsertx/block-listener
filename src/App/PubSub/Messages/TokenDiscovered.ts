@@ -1,6 +1,7 @@
 import { BlockchainId } from "../../Values/Blockchain";
-import { Publication } from "../../../Infrastructure/Broker/Publication";
+
 import { ExecutorMessage } from "../../../Infrastructure/Broker/Executor";
+import { Publication } from "../../../Infrastructure/Broker/Rabbitmq/Enums";
 
 export interface TokenDiscoveredPayload {
 	blockchain: BlockchainId;
@@ -9,6 +10,6 @@ export interface TokenDiscoveredPayload {
 
 export class TokenDiscovered extends ExecutorMessage<TokenDiscoveredPayload> {
 	constructor(payload: TokenDiscoveredPayload) {
-		super(Publication.TokenDiscovered(payload.blockchain), payload);
+		super(Publication.TokenDiscovered, payload);
 	}
 }

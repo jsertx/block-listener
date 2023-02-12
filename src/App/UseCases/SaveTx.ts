@@ -13,10 +13,7 @@ import { ethers } from "ethers";
 import { TransactionLog } from "../Types/TransactionLog";
 import { allAbiList } from "../Services/SmartContract/ABI";
 import { ITxProcessor } from "../Services/TxProcessor/ITxProcessor";
-import {
-	TxDiscovered,
-	TxDiscoveredPayload
-} from "../PubSub/Messages/TxDiscovered";
+import { TxDiscoveredPayload } from "../PubSub/Messages/TxDiscovered";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { WalletDiscovered } from "../PubSub/Messages/WalletDiscovered";
 import { TokenDiscovered } from "../PubSub/Messages/TokenDiscovered";
@@ -32,7 +29,7 @@ import { WalletType } from "../Values/WalletType";
 import { Contract } from "../Entities/Contract";
 import { ContractType } from "../Values/ContractType";
 import { IContractRepository } from "../Repository/IContractRepository";
-import { Publication } from "../../Infrastructure/Broker/Publication";
+
 import { TxSaved } from "../PubSub/Messages/TxSaved";
 
 const MIN_DELAY_IN_S = 60;

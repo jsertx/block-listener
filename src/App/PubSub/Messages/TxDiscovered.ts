@@ -1,7 +1,7 @@
 import { BlockchainId } from "../../Values/Blockchain";
-import { Publication } from "../../../Infrastructure/Broker/Publication";
 import { ethers } from "ethers";
 import { ExecutorMessage } from "../../../Infrastructure/Broker/Executor";
+import { Publication } from "../../../Infrastructure/Broker/Rabbitmq/Enums";
 
 export interface TxDiscoveredPayload {
 	blockchain: BlockchainId;
@@ -16,7 +16,7 @@ export interface TxDiscoveredPayload {
  */
 export class TxDiscovered extends ExecutorMessage<TxDiscoveredPayload> {
 	constructor(payload: TxDiscoveredPayload) {
-		super(Publication.TxDiscovered(payload.blockchain), payload, {
+		super(Publication.TxDiscovered, payload, {
 			maxRetries: 30
 		});
 	}

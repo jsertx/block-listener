@@ -1,7 +1,8 @@
 import { BlockWithTransactions } from "../../Types/BlockWithTransactions";
 import { BlockchainId } from "../../Values/Blockchain";
-import { Publication } from "../../../Infrastructure/Broker/Publication";
+
 import { ExecutorMessage } from "../../../Infrastructure/Broker/Executor";
+import { Publication } from "../../../Infrastructure/Broker/Rabbitmq/Enums";
 
 export interface BlockReceivedPayload {
 	blockchain: BlockchainId;
@@ -9,6 +10,6 @@ export interface BlockReceivedPayload {
 }
 export class BlockReceived extends ExecutorMessage<BlockReceivedPayload> {
 	constructor(payload: BlockReceivedPayload) {
-		super(Publication.BlockReceived(payload.blockchain), payload);
+		super(Publication.BlockReceived, payload);
 	}
 }
