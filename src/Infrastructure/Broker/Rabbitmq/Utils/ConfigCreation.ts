@@ -5,6 +5,9 @@ import { Subscription } from "../../Subscription";
 import { RoutingKey, Exchange, Queue, Publication } from "../Enums";
 import { BindingSetup, PublicationSetup } from "./Types";
 
+const RETRY_PREFIX = "retry_";
+const DEAD_PREFIX = "dead_";
+
 const getConnections = (brokerUrl: string): VhostConfig["connections"] => {
 	return [
 		{
@@ -81,33 +84,29 @@ export const createBrokerConnection = async (config: IConfig) => {
 	const publications = publicationsSetup.reduce(publicationsBuilder, {});
 
 	// add retry/dead subs
-	const subscriptionsWithRetries = Object.entries(subscriptions).reduce(
-		(_subs, [name, config]) => {
-			const subs = {
-				[name]: config,
-				..._subs
-			};
+	const deadAndRetrySubs: VhostConfig["subscriptions"] = Object.entries(
+		subscriptions
+	).reduce((_subs, [name, config]) => {
+		const subs = {
+			..._subs
+		};
 
-			if (config.queue) {
-				return {
-					...subs,
-					[addRetryPrefix(name)]: {
-						queue: addRetryPrefix(config.queue)
-					},
-					[addDeadPrefix(name)]: {
-						queue: addDeadPrefix(config.queue)
-					}
-				};
-			}
-			return subs;
-		},
-		{}
-	);
-	// add retry/dead pubs
-	Object.entries(subscriptions).forEach(([sub, config]) => {
-		if (!config.queue) {
-			return;
+		if (config.queue) {
+			return {
+				...subs,
+				[addRetryPrefix(name)]: {
+					queue: addRetryPrefix(config.queue)
+				},
+				[addDeadPrefix(name)]: {
+					queue: addDeadPrefix(config.queue)
+				}
+			};
 		}
+		return subs;
+	}, {});
+	const subscriptionsWithRetries = { ...subscriptions, ...deadAndRetrySubs };
+	// add retry/dead pubs
+	Object.entries(deadAndRetrySubs).forEach(([sub, config]) => {
 		publications[sub] = {
 			queue: config.queue
 		};
@@ -162,8 +161,8 @@ function publicationsBuilder(
 }
 
 export function addRetryPrefix(name: string) {
-	return `retry_${name}`;
+	return `${RETRY_PREFIX}${name}`;
 }
 export function addDeadPrefix(name: string) {
-	return `dead_${name}`;
+	return `${DEAD_PREFIX}${name}`;
 }
