@@ -266,18 +266,22 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		blockchain,
 		hash,
 		txRes,
+		txReceipt,
 		block
 	}: TxDiscoveredPayload): Promise<RawTx | undefined> {
 		const provider = await this.providerFactory.getProvider(blockchain);
-		const receipt = await provider
-			.getTransactionReceipt(hash)
-			.catch((err) => {
-				if (err && err.reason && err.reason === "invalid hash") {
-					throw new DirectToDead("Invalid tx hash given");
-				}
-				return undefined;
-			});
+		let receipt = txReceipt;
 
+		if (!receipt) {
+			receipt = await provider
+				.getTransactionReceipt(hash)
+				.catch((err) => {
+					if (err && err.reason && err.reason === "invalid hash") {
+						throw new DirectToDead("Invalid tx hash given");
+					}
+					return undefined;
+				});
+		}
 		if (!receipt || isUndefined(receipt.status)) {
 			throw new Error("TX receipt not available yet");
 		}

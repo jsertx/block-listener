@@ -20,6 +20,7 @@ import { BlockWithTransactions } from "../Types/BlockWithTransactions";
 import { IPriceService } from "../Interfaces/IPriceService";
 import { toFormatted } from "../Utils/Amount";
 import { BN } from "../Utils/Numbers";
+import { IProviderFactory } from "../Interfaces/IProviderFactory";
 
 const contractCacheKey = (blockchain: string) =>
 	`find_direct_tx_contracts_${blockchain}`;
@@ -38,23 +39,63 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 		@inject(IocKey.Cache)
 		private cache: ICache,
 		@inject(IocKey.PriceService)
-		private priceService: IPriceService
+		private priceService: IPriceService,
+		@inject(IocKey.ProviderFactory)
+		private providerFactory: IProviderFactory
 	) {
 		super(logger, broker, Subscription.FindDirectTx, {});
 	}
+	async getTransactionReceipts({
+		block,
+		blockchain
+	}: Pick<BlockReceivedPayload, "block" | "blockchain">): Promise<
+		ethers.providers.TransactionReceipt[]
+	> {
+		const provider = await this.providerFactory.getProvider(blockchain);
+		const blockNumberHex = `0x${Number(block.number).toString(16)}`;
+		const rawReceipts: any[] = await provider.send("eth_getBlockReceipts", [
+			blockNumberHex
+		]);
 
+		return rawReceipts.map((r) => {
+			return {
+				to: r.to,
+				from: r.from,
+				contractAddress: r.contractAddress,
+				transactionIndex: Number(r.transactionIndex),
+				root: "", // never minds at the moment
+				gasUsed: ethers.BigNumber.from(r.gasUsed),
+				logsBloom: r.logsBloom,
+				blockHash: r.blockHash,
+				transactionHash: r.transactionHash,
+				logs: r.logs.map((l: any) => ({
+					...l,
+					logIndex: Number(l.logIndex),
+					transactionIndex: Number(l.transactionIndex)
+				})),
+				blockNumber: block.number,
+				confirmations: 1, //never mind at the moment
+				cumulativeGasUsed: ethers.BigNumber.from(r.cumulativeGasUsed),
+				effectiveGasPrice: ethers.BigNumber.from(r.effectiveGasPrice),
+				byzantium: true, // never mind at the moment
+				type: Number(r.type),
+				status: Number(r.status)
+			};
+		});
+	}
 	async execute({ block, blockchain }: BlockReceivedPayload): Promise<void> {
+		const receipts = await this.getTransactionReceipts({
+			block,
+			blockchain
+		});
 		for (const tx of block.transactions) {
-			const publishConditions = Promise.all([
-				this.isNativeTransferOverThreshold(blockchain, tx, block), //isNativeTokenTx(tx),
-				this.isAgainstContractOfInterest(blockchain, tx),
-				this.isDoneByTrackedWallet(blockchain, tx)
-			]);
-
-			const shouldPublish = await publishConditions.then((res) =>
-				res.some((truthy) => truthy)
+			const txReceipt = receipts.find(
+				(receipt) =>
+					receipt.transactionHash.toLowerCase() ===
+					tx.hash.toLowerCase()
 			);
 
+			const shouldPublish = await this.shouldPublishTx();
 			if (shouldPublish) {
 				const blockWithoutTxsData = {
 					...block,
@@ -65,13 +106,26 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 						blockchain,
 						hash: tx.hash,
 						txRes: tx,
+						txReceipt,
 						block: blockWithoutTxsData
 					})
 				);
 			}
 		}
 	}
+	private async shouldPublishTx(): Promise<boolean> {
+		// const publishConditions = Promise.all([
+		// 	this.isNativeTransferOverThreshold(blockchain, tx, block), //isNativeTokenTx(tx),
+		// 	this.isAgainstContractOfInterest(blockchain, tx),
+		// 	this.isDoneByTrackedWallet(blockchain, tx)
+		// ]);
 
+		// const shouldPublish = await publishConditions.then((res) =>
+		// 	res.some((truthy) => truthy)
+		// );
+
+		return true;
+	}
 	private async isDoneByTrackedWallet(
 		blockchain: BlockchainId,
 		txRes: ethers.providers.TransactionResponse

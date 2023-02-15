@@ -8,6 +8,7 @@ export interface TxDiscoveredPayload {
 	hash: string;
 	saveUnknown?: boolean;
 	txRes?: ethers.providers.TransactionResponse;
+	txReceipt?: ethers.providers.TransactionReceipt;
 	block?: ethers.providers.Block;
 }
 /**
