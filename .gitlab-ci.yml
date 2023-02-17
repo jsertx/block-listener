@@ -30,4 +30,4 @@ docker_deploy:
         - docker run -d --restart=always --env-file=.env --network="main" --name=$CONSUMER_CONTAINER_NAME --label $PROMTAIL_LABEL --hostname=$CONSUMER_HOSTNAME $IMAGE_NAME node build/consumers.js
         - rm "$(pwd)/.env"
     only:
-        - main
+        - feat/improve-tx-fetching
