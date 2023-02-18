@@ -60,7 +60,8 @@ export const WalletRelationSchema = Joi.object({
 });
 
 export const WalletAddressTagSchema = Joi.object({
-	tag: Joi.string().valid(...walletTagNameList)
+	tag: Joi.string().valid(...walletTagNameList),
+	metadata: Joi.object().unknown(true).optional()
 });
 
 export const WalletSchema = Joi.object({
