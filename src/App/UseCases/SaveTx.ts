@@ -36,6 +36,9 @@ const MIN_DELAY_IN_S = 60;
 const backoffStrategy = (retry: number) =>
 	(Math.floor(2 ** retry) + MIN_DELAY_IN_S) * 1000;
 
+type SaveTxOpts = { saveDestionationWallets: boolean };
+const msgDefaults = { saveDestionationWallets: false };
+
 @injectable()
 export class SaveTx extends Executor<TxDiscoveredPayload> {
 	constructor(
@@ -54,7 +57,11 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		super(logger, broker, Subscription.SaveTx, { backoffStrategy });
 	}
 	async execute(msg: TxDiscoveredPayload) {
-		const { blockchain, hash, saveUnknown } = msg;
+		const { blockchain, hash, saveUnknown, saveDestionationWallets } = {
+			...msgDefaults,
+			...msg
+		};
+
 		const existingTx = await this.txRepository.findOne({
 			blockchain: msg.blockchain,
 			hash: msg.hash
@@ -84,7 +91,10 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			return;
 		}
 
-		const { saved } = await this.saveTxIfApplies(tx);
+		const { saved } = await this.saveTxIfApplies(tx, {
+			saveDestionationWallets
+		});
+
 		if (saved) {
 			await this.broker.publish(new TxSaved(tx.toRaw()));
 			this.logger.log({
@@ -95,11 +105,12 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		}
 	}
 
-	private async saveTxIfApplies(tx: Tx<any>): Promise<{ saved: boolean }> {
+	private async saveTxIfApplies(
+		tx: Tx<any>,
+		opts: SaveTxOpts
+	): Promise<{ saved: boolean }> {
 		let saved = false;
 
-		/*
-		// TODO: disabled because we dont need it yet
 		const walletOfTxInDb = await this.walletRepository.findOne({
 			blockchain: tx.blockchain.id,
 			address: tx.from
@@ -108,21 +119,23 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			await this.txRepository.save(tx);
 			return { saved: true };
 		}
-		*/
 
 		switch (tx.type) {
 			case TxType.DexSwap:
-				saved = await this.saveDexSwapTxHandler(tx);
+				saved = await this.saveDexSwapTxHandler(tx, opts);
 				break;
 			case TxType.EthTransfer:
-				saved = await this.saveEthTransferTxHandler(tx);
+				saved = await this.saveEthTransferTxHandler(tx, opts);
 				break;
 		}
 
 		return { saved };
 	}
 
-	async saveDexSwapTxHandler(tx: DexSwapTx): Promise<boolean> {
+	async saveDexSwapTxHandler(
+		tx: DexSwapTx,
+		opts: SaveTxOpts
+	): Promise<boolean> {
 		if (
 			BN(tx.data.usdValue).lt(
 				this.config.txRules[tx.blockchain.id].minDexSwapValueInUsd
@@ -154,7 +167,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			new WalletDiscovered({
 				blockchain: tx.blockchain.id,
 				address: tx.from,
-				type: WalletType.Whale,
+				type: WalletType.UnknownWallet,
 				tags: [WalletTagName.FoundIteratingBlocks],
 				relations: swapOutAddressIsNotSender
 					? [transferSentRelation]
@@ -212,7 +225,10 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		return true;
 	}
 
-	async saveEthTransferTxHandler(tx: EthTransferTx): Promise<boolean> {
+	async saveEthTransferTxHandler(
+		tx: EthTransferTx,
+		opts: SaveTxOpts
+	): Promise<boolean> {
 		if (
 			BN(tx.data.usdValue).lt(
 				this.config.txRules[tx.blockchain.id]
@@ -222,25 +238,25 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			return false;
 		}
 
-		await Promise.all([
-			this.broker.publish(
-				new WalletDiscovered({
-					blockchain: tx.blockchain.id,
-					address: tx.data.from,
-					tags: [WalletTagName.FoundIteratingBlocks],
-					type: WalletType.Whale,
-					relations: [
-						{
-							address: tx.data.to,
-							type: AddressRelationType.TransferSent,
-							metadata: {
-								txHash: tx.hash
-							}
+		await this.broker.publish(
+			new WalletDiscovered({
+				blockchain: tx.blockchain.id,
+				address: tx.data.from,
+				tags: [WalletTagName.FoundIteratingBlocks],
+				type: WalletType.UnknownWallet,
+				relations: [
+					{
+						address: tx.data.to,
+						type: AddressRelationType.TransferSent,
+						metadata: {
+							txHash: tx.hash
 						}
-					]
-				})
-			),
-			this.broker.publish(
+					}
+				]
+			})
+		);
+		if (opts.saveDestionationWallets) {
+			await this.broker.publish(
 				new WalletDiscovered({
 					blockchain: tx.blockchain.id,
 					address: tx.data.to,
@@ -256,8 +272,8 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 						}
 					]
 				})
-			)
-		]);
+			);
+		}
 		await this.txRepository.save(tx);
 		return true;
 	}
