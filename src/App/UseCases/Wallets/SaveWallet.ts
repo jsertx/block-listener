@@ -77,7 +77,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		tags.forEach((t) => wallet.addTag(t));
 		relations.forEach((r) => wallet.addRelation(r));
 
-		await this.findWhaleTxsAndPublish({ address, blockchain });
+		await this.findAndPublishWalletTxs({ address, blockchain });
 
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(new WalletSaved({ blockchain, address }));
@@ -107,7 +107,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		}
 		relations.forEach((r) => wallet.addRelation(r));
 		tags.forEach((t) => wallet.addTag(t));
-		await this.findWhaleTxsAndPublish({
+		await this.findAndPublishWalletTxs({
 			address: wallet.address,
 			blockchain: wallet.blockchain.id
 		});
@@ -120,15 +120,15 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		);
 	}
 
-	private async findWhaleTxsAndPublish({
+	private async findAndPublishWalletTxs({
 		address,
 		blockchain
 	}: WalletIdProps) {
-		const txs = await this.blockchainService
-			.getWalletTxsHashes(blockchain, address)
-			.catch((error) => {
-				throw error;
-			});
+		const txs = await this.blockchainService.getWalletTxsHashes(
+			blockchain,
+			address
+		);
+
 		await Promise.all(
 			txs.map((hash) =>
 				this.broker.publish(
@@ -136,7 +136,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 						blockchain,
 						hash,
 						saveUnknown: true,
-						saveDestionationWallets: false
+						saveDestinationAddress: false
 					})
 				)
 			)

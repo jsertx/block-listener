@@ -7,7 +7,7 @@ export interface TxDiscoveredPayload {
 	blockchain: BlockchainId;
 	hash: string;
 	saveUnknown?: boolean;
-	saveDestionationWallets?: boolean;
+	saveDestinationAddress?: boolean;
 	txRes?: ethers.providers.TransactionResponse;
 	txReceipt?: ethers.providers.TransactionReceipt;
 	block?: ethers.providers.Block;

@@ -18,7 +18,7 @@ import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { WalletDiscovered } from "../PubSub/Messages/WalletDiscovered";
 import { TokenDiscovered } from "../PubSub/Messages/TokenDiscovered";
 import { IWalletRepository } from "../Repository/IWalletRepository";
-import { checksumed } from "../Utils/Address";
+import { checksumed, isSameAddress } from "../Utils/Address";
 import { IConfig } from "../../Interfaces/IConfig";
 import { DirectToDead, Executor } from "../../Infrastructure/Broker/Executor";
 import { WalletTagName } from "../Values/WalletTag";
@@ -36,8 +36,8 @@ const MIN_DELAY_IN_S = 60;
 const backoffStrategy = (retry: number) =>
 	(Math.floor(2 ** retry) + MIN_DELAY_IN_S) * 1000;
 
-type SaveTxOpts = { saveDestionationWallets: boolean };
-const msgDefaults = { saveDestionationWallets: false };
+type SaveTxOpts = { saveDestinationAddress: boolean };
+const msgDefaults = { saveDestinationAddress: false };
 
 @injectable()
 export class SaveTx extends Executor<TxDiscoveredPayload> {
@@ -57,7 +57,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		super(logger, broker, Subscription.SaveTx, { backoffStrategy });
 	}
 	async execute(msg: TxDiscoveredPayload) {
-		const { blockchain, hash, saveUnknown, saveDestionationWallets } = {
+		const { blockchain, hash, saveUnknown, saveDestinationAddress } = {
 			...msgDefaults,
 			...msg
 		};
@@ -92,7 +92,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		}
 
 		const { saved } = await this.saveTxIfApplies(tx, {
-			saveDestionationWallets
+			saveDestinationAddress
 		});
 
 		if (saved) {
@@ -131,30 +131,18 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 
 		return { saved };
 	}
-
+	/* Tx Handlers */
 	async saveDexSwapTxHandler(
 		tx: DexSwapTx,
 		opts: SaveTxOpts
 	): Promise<boolean> {
-		if (
-			BN(tx.data.usdValue).lt(
-				this.config.txRules[tx.blockchain.id].minDexSwapValueInUsd
-			)
-		) {
+		if (this.isSwapValueUnderThreshold(tx)) {
 			return false;
 		}
 
-		await Promise.all(
-			[tx.data.input.token, tx.data.output.token].map((address) =>
-				this.broker.publish(
-					new TokenDiscovered({
-						blockchain: tx.blockchain.id,
-						address
-					})
-				)
-			)
-		);
-		const swapOutAddressIsNotSender = tx.from !== tx.data.to;
+		await this.publishSwapTokens(tx);
+
+		const swapOutAddressIsNotSender = isSameAddress(tx.from, tx.data.to);
 		const transferSentRelation = {
 			address: tx.data.to,
 			type: AddressRelationType.TransferSent,
@@ -175,32 +163,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			})
 		);
 
-		const router = await this.contractRepository.findContract(
-			tx.raw.to,
-			tx.blockchain.id
-		);
-		if (!router) {
-			await this.contractRepository.save(
-				Contract.create({
-					address: tx.raw.to,
-					blockchain: tx.blockchain.id,
-					alias: "unknown-dex.v2.router",
-					createdAt: new Date(),
-					data: {},
-					type: ContractType.UniswapRouterV2Like
-				})
-			);
-			// maybe just set dex to unknown
-			this.logger.warn({
-				type: "dex-swap-processor.router-not-found",
-				message: "Router not found",
-				context: {
-					blockchain: tx.blockchain.id,
-					txHash: tx.hash,
-					address: tx.raw.to
-				}
-			});
-		}
+		await this.saveRouterIfNotExist(tx);
 
 		if (swapOutAddressIsNotSender) {
 			await this.broker.publish(
@@ -229,12 +192,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		tx: EthTransferTx,
 		opts: SaveTxOpts
 	): Promise<boolean> {
-		if (
-			BN(tx.data.usdValue).lt(
-				this.config.txRules[tx.blockchain.id]
-					.minNativeTransferValueInUsd
-			)
-		) {
+		if (this.isEthTransferValueUnderThreshold(tx)) {
 			return false;
 		}
 
@@ -255,7 +213,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				]
 			})
 		);
-		if (opts.saveDestionationWallets) {
+		if (opts.saveDestinationAddress) {
 			await this.broker.publish(
 				new WalletDiscovered({
 					blockchain: tx.blockchain.id,
@@ -277,7 +235,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		await this.txRepository.save(tx);
 		return true;
 	}
-
+	/** Utils & Helper */
 	private async getRawTransaction({
 		blockchain,
 		hash,
@@ -389,6 +347,57 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		}
 	}
 
+	private isSwapValueUnderThreshold(tx: DexSwapTx): boolean {
+		return BN(tx.data.usdValue).lt(
+			this.config.txRules[tx.blockchain.id].minDexSwapValueInUsd
+		);
+	}
+
+	async saveRouterIfNotExist(tx: DexSwapTx): Promise<Contract> {
+		let router = await this.contractRepository.findContract(
+			tx.raw.to,
+			tx.blockchain.id
+		);
+		if (!router) {
+			router = Contract.create({
+				address: tx.raw.to,
+				blockchain: tx.blockchain.id,
+				alias: "unknown-dex.v2.router",
+				createdAt: new Date(),
+				data: {},
+				type: ContractType.UniswapRouterV2Like
+			});
+			await this.contractRepository.save(router);
+			this.logger.warn({
+				type: "dex-swap-processor.router-not-found",
+				message: "Router not found",
+				context: {
+					blockchain: tx.blockchain.id,
+					txHash: tx.hash,
+					address: tx.raw.to
+				}
+			});
+		}
+
+		return router;
+	}
+	publishSwapTokens(tx: DexSwapTx): Promise<any[]> {
+		return Promise.all(
+			[tx.data.input.token, tx.data.output.token].map((address) =>
+				this.broker.publish(
+					new TokenDiscovered({
+						blockchain: tx.blockchain.id,
+						address
+					})
+				)
+			)
+		);
+	}
+	private isEthTransferValueUnderThreshold(tx: EthTransferTx): boolean {
+		return BN(tx.data.usdValue).lt(
+			this.config.txRules[tx.blockchain.id].minNativeTransferValueInUsd
+		);
+	}
 	getMessageContextTrace({ hash, blockchain }: TxDiscoveredPayload): any {
 		return {
 			hash,
