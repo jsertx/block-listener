@@ -55,7 +55,7 @@ const subscriptions: VhostConfig["subscriptions"] = {
 	},
 	[Subscription.SaveTx]: {
 		queue: Queue.SaveTx,
-		prefetch: 20
+		prefetch: 100
 	},
 	[Subscription.SaveToken]: {
 		queue: Queue.SaveToken
