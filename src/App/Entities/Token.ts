@@ -17,6 +17,7 @@ export interface TokenProps extends TokenIdProps {
 	useAsBaseForPairDiscovery: boolean;
 	isStable: boolean;
 	isNativeWrapped: boolean;
+	logoUrls?: string[];
 }
 
 const TokenSchema = Joi.object({
@@ -27,7 +28,8 @@ const TokenSchema = Joi.object({
 	decimals: Joi.number().greater(-1).required(),
 	useAsBaseForPairDiscovery: Joi.boolean().default(false),
 	isStable: Joi.boolean().default(false),
-	isNativeWrapped: Joi.boolean().default(false)
+	isNativeWrapped: Joi.boolean().default(false),
+	logoUrls: Joi.array().items(Joi.string()).optional().default([])
 })
 	.unknown()
 	.options({ stripUnknown: true });
@@ -58,7 +60,15 @@ export class Token extends Entity<TokenProps> {
 	get decimals(): number {
 		return this.props.decimals;
 	}
-
+	addLogo(url: string) {
+		url = url.trim();
+		if (!this.props.logoUrls) {
+			this.props.logoUrls = [];
+		}
+		if (!this.props.logoUrls.includes(url)) {
+			this.props.logoUrls.push(url);
+		}
+	}
 	toFormatted(value: string) {
 		return toFormatted(value, this.decimals);
 	}

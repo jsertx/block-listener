@@ -8,6 +8,11 @@ import { Subscription } from "../../../Infrastructure/Broker/Subscription";
 import { checksumed } from "../../Utils/Address";
 import { Executor } from "../../../Infrastructure/Broker/Executor";
 import { ITokenService } from "../../Interfaces/ITokenService";
+import { Token } from "../../Entities/Token";
+import { BlockchainId } from "../../Values/Blockchain";
+import { Axios } from "axios";
+import * as cheerio from "cheerio";
+
 @injectable()
 export class SaveToken extends Executor<TokenDiscoveredPayload> {
 	constructor(
@@ -26,11 +31,14 @@ export class SaveToken extends Executor<TokenDiscoveredPayload> {
 			blockchain
 		});
 		if (existingToken) {
+			await this.updateLogo(existingToken);
+			await this.tokenRepository.save(existingToken);
 			return;
 		}
 		const [token] = await this.tokenService.fetchTokensData(blockchain, [
 			address
 		]);
+		await this.updateLogo(token);
 		await this.tokenRepository.save(token);
 		this.logger.log({
 			type: "save-token.saved",
@@ -39,7 +47,30 @@ export class SaveToken extends Executor<TokenDiscoveredPayload> {
 		});
 	}
 
+	private async updateLogo(token: Token) {
+		let logoUrl: string | undefined;
+		if (token.blockchain.equals(BlockchainId.Ethereum)) {
+			logoUrl = await getLogoFromEtherScan(token);
+		}
+
+		if (logoUrl) {
+			token.addLogo(logoUrl);
+		}
+	}
+
 	getMessageContextTrace({ address, blockchain }: TokenDiscoveredPayload) {
 		return { address, blockchain };
 	}
+}
+
+async function getLogoFromEtherScan(token: Token): Promise<string | undefined> {
+	const baseURL = "https://etherscan.io";
+	const client = new Axios({ baseURL });
+	const res = await client.get(`/token/${token.address}`);
+	const $ = cheerio.load(res.data);
+	const path = $(".js-token-avatar").attr("src");
+	if (!path || path.trim() === "") {
+		return undefined;
+	}
+	return `${baseURL}/${path}`;
 }
