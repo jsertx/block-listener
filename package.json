@@ -13,8 +13,6 @@
 		"test:dev": "node -r ts-node/register --inspect=9229 src/test.ts",
 		"test:dev:watch": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec yarn test:dev",
 		"build:watch": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec yarn build",
-		"logs:prod": "heroku logs --tail -a blocklistener",
-		"deploy:prod": "git push heroku main",
 		"format": "prettier --write 'src/**/*.{ts,js}'",
 		"lint": "eslint . --ext .ts",
 		"lint-and-fix": "eslint . --ext .ts --fix",
