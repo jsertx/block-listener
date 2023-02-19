@@ -28,6 +28,7 @@ import { FinnhubApiService } from "../App/Services/PriceService/FinnhubApiServic
 import { TokenService } from "../App/Services/TokenService";
 import { FeatureFlagService } from "../App/Services/FeatureFlagService";
 import { RedisCache } from "../App/Services/Cache/RedisCache";
+import { RequeueMissingTokens } from "../App/UseCases/Tokens/RequeueMissingTokens";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -47,7 +48,8 @@ export const initializeContainer = async () => {
 		);
 		// UseCases
 		[
-			BlockListener
+			BlockListener,
+			RequeueMissingTokens
 			//,SelectivePairDiscoverer
 		].forEach((app) => {
 			bind(IocKey.StandAloneApps).to(app).inSingletonScope();

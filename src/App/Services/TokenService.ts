@@ -123,7 +123,7 @@ export class TokenService implements ITokenService {
 				_symbol ||
 				(symbol32 && ethers.utils.parseBytes32String(name32));
 
-			if (!name || !symbol || !decimals) {
+			if (!name || !symbol || typeof decimals !== "number") {
 				throw new Error("Invalid token data received");
 			}
 			return Token.create({
