@@ -77,13 +77,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		tags.forEach((t) => wallet.addTag(t));
 		relations.forEach((r) => wallet.addRelation(r));
 
-		/* 
-		Omit for now to save resources.
-		Reenable it when we are up to date.
-		if (type === WalletType.Whale) {
-			await this.findWhaleTxsAndPublish({ address, blockchain });
-		}
-		*/
+		await this.findWhaleTxsAndPublish({ address, blockchain });
 
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(new WalletSaved({ blockchain, address }));
@@ -113,7 +107,10 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		}
 		relations.forEach((r) => wallet.addRelation(r));
 		tags.forEach((t) => wallet.addTag(t));
-
+		await this.findWhaleTxsAndPublish({
+			address: wallet.address,
+			blockchain: wallet.blockchain.id
+		});
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(
 			new WalletUpdated({
