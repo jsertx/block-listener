@@ -27,13 +27,11 @@ export class RequeueMissingTokens implements IStandaloneApps {
 	) {}
 
 	start(): void {
-		const processor = () => {
+		Cron.schedule(CronSchedule.EveryHour, () => {
 			for (const blockchain of this.config.enabledBlockchains) {
 				this.processBlockchain(blockchain).then(noop).catch(noop);
 			}
-		};
-		processor();
-		Cron.schedule(CronSchedule.EveryHour, () => processor);
+		});
 	}
 
 	async processBlockchain(blockchain: BlockchainId): Promise<void> {
