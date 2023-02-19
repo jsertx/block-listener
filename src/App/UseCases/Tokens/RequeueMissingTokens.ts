@@ -27,46 +27,34 @@ export class RequeueMissingTokens implements IStandaloneApps {
 	) {}
 
 	start(): void {
+		for (const blockchain of this.config.enabledBlockchains) {
+			this.processBlockchain(blockchain).then(noop).catch(noop);
+		}
 		Cron.schedule(CronSchedule.EveryHour, () => {
-			for (const blockchain of this.config.enabledBlockchains) {
-				this.processBlockchain(blockchain).then(noop).catch(noop);
-			}
+			console.log("");
 		});
 	}
 
 	async processBlockchain(blockchain: BlockchainId): Promise<void> {
-		const { addresses } = await this.txRepository.getAllTokensFoundInSwaps(
-			blockchain
-		);
-		const allTokens =
-			await this.tokenRepository.findTokensByBlockchainAddress({
-				addresses,
-				blockchain: new Blockchain(blockchain)
-			});
+		// const { addresses } = await this.txRepository.getAllTokensFoundInSwaps(
+		// 	blockchain
+		// );
+		const allTokens = await this.tokenRepository.findAll();
 
-		for (const address of addresses) {
-			const found = allTokens.find((token) =>
-				isSameAddress(token.address, address)
-			);
-			if (!found) {
-				this.logger.log({
-					type: "requeue-missing-tokens",
-					message: `Recovered token ${address}@${blockchain}`,
-					context: {
-						blockchain,
-						address
-					}
-				});
-				this.broker
-					.publish(
-						new TokenDiscovered({
-							address,
-							blockchain
-						})
-					)
-					.then(noop)
-					.catch(noop);
-			}
+		for (const { address } of allTokens.data) {
+			// const found = allTokens.find((token) =>
+			// 	isSameAddress(token.address, address)
+			// );
+
+			await this.broker
+				.publish(
+					new TokenDiscovered({
+						address,
+						blockchain
+					})
+				)
+				.then(noop)
+				.catch(noop);
 		}
 	}
 }
