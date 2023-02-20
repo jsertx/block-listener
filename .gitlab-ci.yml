@@ -31,7 +31,6 @@ docker_deploy:
         # disable logging for now
         # - LOG_OPTIONS='--log-driver=loki --log-opt loki-url="https://${GRAFANA_LOKI_USER}:${GRAFANA_LOKI_API_KEY}@logs-prod-008.grafana.net/loki/api/v1/push" --log-opt loki-retries=10 --log-opt loki-batch-size=400 --log-opt max-size="4m" --log-opt max-buffer-size="20m" --log-opt loki-timeout="15s" --log-opt mode="non-blocking"'
         - docker run -d -p 3000:80 --restart=always --env-file=.env --network="main" --name=$CONTAINER_NAME --label $PROMTAIL_LABEL --hostname=$HOSTNAME $IMAGE_NAME node build/blocklistener.js
-        - docker rm -f $CONTAINER_NAME &>/dev/null && echo 'Removed old container $CONTAINER_NAME'
         - |+
             for i in $(seq 1 10)
             do
