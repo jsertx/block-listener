@@ -24,14 +24,18 @@ docker_deploy:
         # remove previous container if running
         - docker rm -f $CONTAINER_NAME &>/dev/null && echo 'Removed old container $CONTAINER_NAME'
         - docker rm -f $CONSUMER_CONTAINER_NAME &>/dev/null && echo 'Removed old container $CONTAINER_NAME'
-        - docker rm -f $CONSUMER_CONTAINER_NAME-2 &>/dev/null && echo 'Removed old container $CONTAINER_NAME-1'
-        - docker rm -f $CONSUMER_CONTAINER_NAME-3 &>/dev/null && echo 'Removed old container $CONTAINER_NAME-2'
+        - docker rm -f $CONSUMER_CONTAINER_NAME-2 &>/dev/null && echo 'Removed old container $CONTAINER_NAME-2'
+        - docker rm -f $CONSUMER_CONTAINER_NAME-3 &>/dev/null && echo 'Removed old container $CONTAINER_NAME-3'
+        - docker rm -f $CONSUMER_CONTAINER_NAME-4 &>/dev/null && echo 'Removed old container $CONTAINER_NAME-4'
+        - docker rm -f $CONSUMER_CONTAINER_NAME-5 &>/dev/null && echo 'Removed old container $CONTAINER_NAME-5'
         # disable logging for now
         # - LOG_OPTIONS='--log-driver=loki --log-opt loki-url="https://${GRAFANA_LOKI_USER}:${GRAFANA_LOKI_API_KEY}@logs-prod-008.grafana.net/loki/api/v1/push" --log-opt loki-retries=10 --log-opt loki-batch-size=400 --log-opt max-size="4m" --log-opt max-buffer-size="20m" --log-opt loki-timeout="15s" --log-opt mode="non-blocking"'
         - docker run -d -p 3000:80 --restart=always --env-file=.env --network="main" --name=$CONTAINER_NAME --label $PROMTAIL_LABEL --hostname=$HOSTNAME $IMAGE_NAME node build/blocklistener.js
         - docker run -d --restart=always --env-file=.env --network="main" --name=$CONSUMER_CONTAINER_NAME --label $PROMTAIL_LABEL --hostname=$CONSUMER_HOSTNAME $IMAGE_NAME node build/consumers.js
         - docker run -d --restart=always --env-file=.env --network="main" --name=$CONSUMER_CONTAINER_NAME-2 --label $PROMTAIL_LABEL --hostname=$CONSUMER_HOSTNAME-2 $IMAGE_NAME node build/consumers.js
         - docker run -d --restart=always --env-file=.env --network="main" --name=$CONSUMER_CONTAINER_NAME-3 --label $PROMTAIL_LABEL --hostname=$CONSUMER_HOSTNAME-3 $IMAGE_NAME node build/consumers.js
+        - docker run -d --restart=always --env-file=.env --network="main" --name=$CONSUMER_CONTAINER_NAME-4 --label $PROMTAIL_LABEL --hostname=$CONSUMER_HOSTNAME-4 $IMAGE_NAME node build/consumers.js
+        - docker run -d --restart=always --env-file=.env --network="main" --name=$CONSUMER_CONTAINER_NAME-5 --label $PROMTAIL_LABEL --hostname=$CONSUMER_HOSTNAME-5 $IMAGE_NAME node build/consumers.js
         - rm "$(pwd)/.env"
     only:
         - main
