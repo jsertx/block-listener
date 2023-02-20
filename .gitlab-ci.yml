@@ -23,7 +23,7 @@ docker_deploy:
         - current_container_running=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
         # remove previous container if running
         - docker rm -f $CONTAINER_NAME &>/dev/null && echo 'Removed old container $CONTAINER_NAME'
-        - for i in 1 2 3 4 5
+        - for (( c=1; c<=10; c++ ))
           do
           docker rm -f $CONSUMER_CONTAINER_NAME-$i &>/dev/null && echo 'Removed old container $CONTAINER_NAME-$i'
           done
