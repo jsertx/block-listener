@@ -36,6 +36,11 @@ export class BlockListener implements IStandaloneApps {
 		return this.providerFactory.getProvider(blockchain);
 	}
 	async start() {
+		this.logger.error({
+			message: "Blocklistener disabled",
+			type: "block-listener.disabled"
+		});
+		return;
 		this.startNotifier();
 		this.config.enabledBlockchains.forEach(async (blockchain) => {
 			this.logger.log({

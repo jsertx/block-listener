@@ -115,6 +115,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			blockchain: tx.blockchain.id,
 			address: tx.from
 		});
+		// this should be done inside each handler to do proper side effects of saving it
 		if (walletOfTxInDb) {
 			await this.txRepository.save(tx);
 			return { saved: true };
