@@ -164,7 +164,7 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 			const provider = await this.providerFactory.getProvider(blockchain);
 			const blockNumberHex = `0x${Number(block.number).toString(16)}`;
 			const rawReceipts: any[] = await provider.send(
-				"eth_getBlockReceipts",
+				"alchemy_getTransactionReceipts",
 				[blockNumberHex]
 			);
 
