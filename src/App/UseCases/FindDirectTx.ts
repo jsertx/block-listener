@@ -163,7 +163,7 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 		try {
 			const provider = await this.providerFactory.getProvider(blockchain);
 			const blockNumberHex = `0x${Number(block.number).toString(16)}`;
-			const rawReceipts: any[] = await provider.send(
+			const rawReceipts: { receipts: any[] } = await provider.send(
 				"alchemy_getTransactionReceipts",
 				[
 					{
@@ -172,7 +172,7 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 				]
 			);
 
-			return rawReceipts.map(mapRawReceiptToTxReceipt(block));
+			return rawReceipts.receipts.map(mapRawReceiptToTxReceipt(block));
 		} catch (error) {
 			return [];
 		}
