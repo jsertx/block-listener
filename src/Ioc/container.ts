@@ -48,7 +48,7 @@ export const initializeContainer = async () => {
 		);
 		// UseCases
 		[
-			//	BlockListener,
+			BlockListener,
 			RequeueMissingTokens
 			//,SelectivePairDiscoverer
 		].forEach((app) => {
