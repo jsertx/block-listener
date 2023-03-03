@@ -5,7 +5,7 @@ variables:
     CONSUMER_REPLICAS: 2
     HOSTNAME: "blocklistener-app"
     CONSUMER_HOSTNAME: "blocklistener-consumer"
-    PROMTAIL_LABEL: "log.promtail=false"
+    # PROMTAIL_LABEL: "log.promtail=false"
 
 docker_build:
     stage: build
