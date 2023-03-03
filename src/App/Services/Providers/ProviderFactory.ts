@@ -67,29 +67,31 @@ export class ProviderFactory implements IProviderFactory {
 		const randomProvider = randomItem<ILimittedProvider>(
 			this.nodes[blockchain.id]
 		);
+		if (this.config.disableProvidersBottleneck) {
+			return randomProvider.provider;
+		}
+
+		if (await randomProvider.bottleneck.check()) {
+			return randomProvider.provider;
+		}
+
+		const providerStatuses = await Promise.all(
+			this.nodes[blockchain.id].map(async (n) => {
+				return {
+					provider: n.provider,
+					available: await n.bottleneck.check()
+				};
+			})
+		);
+		const firstAvailableProvider = providerStatuses.find(
+			(p) => p.available
+		);
+
+		if (firstAvailableProvider) {
+			return firstAvailableProvider.provider;
+		}
+
 		return randomProvider.provider;
-		// disable bottlenecking atm
-		// if (await randomProvider.bottleneck.check()) {
-		// 	return randomProvider.provider;
-		// }
-
-		// const providerStatuses = await Promise.all(
-		// 	this.nodes[blockchain.id].map(async (n) => {
-		// 		return {
-		// 			provider: n.provider,
-		// 			available: await n.bottleneck.check()
-		// 		};
-		// 	})
-		// );
-		// const firstAvailableProvider = providerStatuses.find(
-		// 	(p) => p.available
-		// );
-
-		// if (firstAvailableProvider) {
-		// 	return firstAvailableProvider.provider;
-		// }
-
-		// return randomProvider.provider;
 	}
 }
 

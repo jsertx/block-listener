@@ -11,6 +11,7 @@ export const getConfig = (): IConfig => {
 		redis: {
 			url: getEnv("REDIS_URL")
 		},
+		disableProvidersBottleneck: true,
 		providers: prepareNodeList({
 			[BlockchainId.Ethereum]: [],
 			[BlockchainId.Binance]: [],

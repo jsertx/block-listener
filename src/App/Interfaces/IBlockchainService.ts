@@ -1,8 +1,12 @@
 import { BlockchainId } from "../Values/Blockchain";
 
+export interface TxMetadata {
+	hash: string;
+	blockHeight: string;
+}
 export interface IBlockchainService {
-	getWalletTxsHashes(
+	getWalletTxsWithMetadata(
 		blockchain: BlockchainId,
 		address: string
-	): Promise<string[]>;
+	): Promise<TxMetadata[]>;
 }

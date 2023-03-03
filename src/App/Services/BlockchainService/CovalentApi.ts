@@ -4,7 +4,10 @@ import { inject, injectable } from "inversify";
 import { IConfig } from "../../../Interfaces/IConfig";
 import { ILogger } from "../../../Interfaces/ILogger";
 import { IocKey } from "../../../Ioc/IocKey";
-import { IBlockchainService } from "../../Interfaces/IBlockchainService";
+import {
+	IBlockchainService,
+	TxMetadata
+} from "../../Interfaces/IBlockchainService";
 import { Blockchain, BlockchainId } from "../../Values/Blockchain";
 
 // https://github.com/SGrondin/bottleneck#step-1-of-3
@@ -34,30 +37,35 @@ export class CovalentApi implements IBlockchainService {
 		});
 	}
 
-	getWalletTxsHashes(
+	async getWalletTxsWithMetadata(
 		blockchain: BlockchainId,
 		address: string
-	): Promise<string[]> {
+	): Promise<TxMetadata[]> {
 		const chainId = new Blockchain(blockchain).chainId;
 		const endpoint = `/${chainId}/address/${address}/transactions_v2`;
-		return this.bottleneck.schedule(() =>
-			this.client
-				.get(endpoint)
-				.catch((error) => {
-					this.logger.error({
-						message: "[Covalent] Get wallet txs call failed",
-						type: "covalent-api.call.failed.get-wallet-txs",
-						context: {
-							blockchain,
-							address
-						},
-						error
-					});
-					throw error;
-				})
-				.then(
-					(res) => res?.data?.items.map((tx: any) => tx.tx_hash) || []
-				)
+		const res = await this.bottleneck.schedule(() =>
+			this.client.get(endpoint).catch((error) => {
+				this.logger.error({
+					message: "[Covalent] Get wallet txs call failed",
+					type: "covalent-api.call.failed.get-wallet-txs",
+					context: {
+						blockchain,
+						address
+					},
+					error
+				});
+				throw error;
+			})
 		);
+		if (!res || !res.data || !res.data.items) {
+			return [];
+		}
+		const resData: Array<{ tx_hash: string; block_height: number }> =
+			res.data.items;
+
+		return resData.map((tx) => ({
+			hash: tx.tx_hash,
+			blockHeight: `${tx.block_height}`
+		}));
 	}
 }

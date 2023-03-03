@@ -107,10 +107,12 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		}
 		relations.forEach((r) => wallet.addRelation(r));
 		tags.forEach((t) => wallet.addTag(t));
-		await this.findAndPublishWalletTxs({
-			address: wallet.address,
-			blockchain: wallet.blockchain.id
-		});
+		// TODO: further review, disabling as when updating
+		// there is no need to  save again old txs
+		// await this.findAndPublishWalletTxs({
+		// 	address: wallet.address,
+		// 	blockchain: wallet.blockchain.id
+		// });
 		await this.walletRepository.save(wallet);
 		await this.broker.publish(
 			new WalletUpdated({
@@ -124,17 +126,17 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		address,
 		blockchain
 	}: WalletIdProps) {
-		const txs = await this.blockchainService.getWalletTxsHashes(
+		const txs = await this.blockchainService.getWalletTxsWithMetadata(
 			blockchain,
 			address
 		);
 
 		await Promise.all(
-			txs.map((hash) =>
+			txs.map((tx) =>
 				this.broker.publish(
 					new TxDiscovered({
 						blockchain,
-						hash,
+						hash: tx.hash,
 						saveUnknown: true,
 						saveDestinationAddress: false
 					})

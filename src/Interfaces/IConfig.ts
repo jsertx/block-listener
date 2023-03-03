@@ -21,6 +21,7 @@ export interface ILogtailConfig {
 	accessToken: string;
 }
 export interface IConfig {
+	disableProvidersBottleneck: boolean;
 	providers: Record<BlockchainId, IBlockchainProviderConfig[]>;
 	enabledBlockchains: BlockchainId[];
 	discord: {
