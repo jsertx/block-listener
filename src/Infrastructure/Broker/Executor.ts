@@ -5,7 +5,11 @@ import { IBroker, IBrokerSubscription } from "../../Interfaces/IBroker";
 import { DeadRecoveryOptions, IExecutor } from "../../Interfaces/IExecutor";
 import { ILogger } from "../../Interfaces/ILogger";
 import { BaseMessage } from "./BaseMessage";
-import { addRetryPrefix, addDeadPrefix } from "./Rabbitmq/Utils/ConfigCreation";
+import {
+	addRetryPrefix,
+	addDeadPrefix,
+	addProcessPrefix
+} from "./Rabbitmq/Utils/ConfigCreation";
 
 interface IExecutorMsgPayload<T> {
 	retries: number;
@@ -83,6 +87,10 @@ export abstract class Executor<PayloadType> implements IExecutor {
 
 	get deadChannel() {
 		return addDeadPrefix(this.channel);
+	}
+
+	get processChannel() {
+		return addProcessPrefix(this.channel);
 	}
 
 	protected abstract execute(
@@ -163,7 +171,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 				return this.broker.publish(waitMsg).then(ack).catch(nack);
 			}
 			const processMsg = new ExecutorMessage<PayloadType>(
-				this.channel,
+				this.processChannel,
 				message.payload,
 				message
 			);

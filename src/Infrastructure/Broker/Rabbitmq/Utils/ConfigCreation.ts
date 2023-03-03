@@ -7,6 +7,7 @@ import { BindingSetup, PublicationSetup } from "./Types";
 
 const RETRY_PREFIX = "retry_";
 const DEAD_PREFIX = "dead_";
+const PROCESS_PREFIX = "direct_";
 
 const getConnections = (brokerUrl: string): VhostConfig["connections"] => {
 	return [
@@ -107,8 +108,22 @@ export const createBrokerConnection = async (config: IConfig) => {
 	const subscriptionsWithRetries = { ...subscriptions, ...deadAndRetrySubs };
 	// add retry/dead pubs
 	Object.entries(deadAndRetrySubs).forEach(([sub, config]) => {
+		if (!config.queue) {
+			return;
+		}
+		const queue = config.queue;
 		publications[sub] = {
-			queue: config.queue
+			queue
+		};
+		// TODO improve this shit
+		// The idea is to have a publication direct to the queue
+		// otherwise, if we reuse the original pub we could trigger side effects
+		// making subscripbers to that Publication(exch, topic) to read a message again
+		const processQueue = queue
+			.replace(DEAD_PREFIX, "")
+			.replace(RETRY_PREFIX, "");
+		publications[addProcessPrefix(processQueue)] = {
+			queue: processQueue
 		};
 	});
 
@@ -162,6 +177,9 @@ function publicationsBuilder(
 
 export function addRetryPrefix(name: string) {
 	return `${RETRY_PREFIX}${name}`;
+}
+export function addProcessPrefix(name: string) {
+	return `${PROCESS_PREFIX}${name}`;
 }
 export function addDeadPrefix(name: string) {
 	return `${DEAD_PREFIX}${name}`;
