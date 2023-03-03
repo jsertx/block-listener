@@ -138,7 +138,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 						blockchain,
 						hash: tx.hash,
 						saveUnknown: true,
-						saveDestinationAddress: false
+						saveDestinationAddress: true
 					})
 				)
 			)

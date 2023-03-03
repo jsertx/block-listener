@@ -70,7 +70,8 @@ export class FindDirectTx extends Executor<BlockReceivedPayload> {
 						hash: tx.hash,
 						txRes: tx,
 						txReceipt,
-						block: blockWithoutTxsData
+						block: blockWithoutTxsData,
+						saveDestinationAddress: true
 					})
 				);
 			}
