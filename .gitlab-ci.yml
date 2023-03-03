@@ -2,7 +2,7 @@ variables:
     IMAGE_NAME: "blocklistener-app"
     CONTAINER_NAME: "blocklistener-app"
     CONSUMER_CONTAINER_NAME: "blocklistener-consumer"
-    CONSUMER_REPLICAS: 1
+    CONSUMER_REPLICAS: 2
     HOSTNAME: "blocklistener-app"
     CONSUMER_HOSTNAME: "blocklistener-consumer"
     PROMTAIL_LABEL: "log.promtail=false"
