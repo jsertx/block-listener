@@ -86,4 +86,33 @@ export class TxController implements interfaces.Controller {
 		await this.broker.publish(new TxDiscovered({ blockchain, hash }));
 		return res.sendStatus(202);
 	}
+
+	@httpGet("/get/:blockchain/:hash")
+	async getTx(
+		@requestParam("blockchain") blockchain: BlockchainId,
+		@requestParam("hash") hash: string,
+		@response() res: Response
+	) {
+		try {
+			const tx = await this.txRepository
+				.findOne({ hash, blockchain })
+				.then((tx) => {
+					if (!tx) {
+						throw "NOT_FOUND";
+					}
+					return tx;
+				})
+				.then((tx) => ({
+					hash: tx.hash,
+					blockchain: tx.blockchain.id,
+					type: tx.type,
+					timestamp: tx.timestamp,
+					block: tx.block,
+					data: tx.data
+				}));
+			return res.status(200).send(tx);
+		} catch (error) {
+			return res.sendStatus(404);
+		}
+	}
 }
