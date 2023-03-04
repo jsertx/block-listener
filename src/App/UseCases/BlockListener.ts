@@ -70,13 +70,16 @@ export class BlockListener implements IStandaloneApps {
 								block
 							})
 						);
-						await this.blockRepository.save(
-							Block.create({
-								blockchain,
-								height: `${block.number}`,
-								timestamp: new Date(block.timestamp * 1000)
-							})
-						);
+						this.blockRepository
+							.save(
+								Block.create({
+									blockchain,
+									height: `${block.number}`,
+									timestamp: new Date(block.timestamp * 1000)
+								})
+							)
+							.then(noop)
+							.catch(noop);
 
 						nextBlockNum = block.number + 1;
 
@@ -100,7 +103,7 @@ export class BlockListener implements IStandaloneApps {
 						});
 					}
 				}
-				await this.nextRoundAwaiter().catch(noop);
+				// await this.nextRoundAwaiter().catch(noop);
 			}
 		});
 	}
