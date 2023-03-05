@@ -14,6 +14,7 @@ import { IPriceService } from "../../../Interfaces/IPriceService";
 import { ILogger } from "../../../../Interfaces/ILogger";
 import { toFormatted } from "../../../Utils/Amount";
 import { ITokenService } from "../../../Interfaces/ITokenService";
+import { BN } from "../../../Utils/Numbers";
 
 @injectable()
 export class TokenTransferProcessor implements ITxProcessStrategy {
@@ -57,12 +58,19 @@ export class TokenTransferProcessor implements ITxProcessStrategy {
 			to = args[1];
 			amount = args[2];
 		}
-		const [token] = await this.tokenService.fetchTokensData(
-			tx.blockchain.id,
-			[tx.raw.to]
-		);
-		const usdValue = "0";
-		const nativeValue = "0";
+		const { token, nativePrice } =
+			await this.tokenService.fetchTokenDataWithPrice(
+				tx.blockchain.id,
+				tx.raw.to
+			);
+		const ethPrice =
+			await this.priceService.getBlockchainNativeTokenUsdPrice(
+				tx.blockchain,
+				tx.raw.timestamp
+			);
+		const nativeValue = nativePrice;
+		const usdValue = ethPrice.multipliedBy(nativePrice).toString();
+
 		const details: TokenTransferData = {
 			nativeValue,
 			usdValue,
