@@ -12,6 +12,10 @@ import { ILogger } from "./Interfaces/ILogger";
 async function main() {
 	const container = await initializeContainer();
 	const logger = container.get<ILogger>(IocKey.Logger);
+	if (process.env.DEV === "1") {
+		await (container.get(IocKey.Playground) as any).execute();
+		return;
+	}
 	container
 		.getAll<IAdapter>(IocKey.Adapters)
 		.forEach((adapter) => adapter.start());

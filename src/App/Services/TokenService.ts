@@ -1,9 +1,9 @@
 import { inject, injectable } from "inversify";
 import { ContractCallContext } from "ethereum-multicall";
 import { ethers } from "ethers";
-import { ITokenService } from "../Interfaces/ITokenService";
+import { ITokenService, TokenWithPriceData } from "../Interfaces/ITokenService";
 import { IocKey } from "../../Ioc/IocKey";
-import { Token } from "../Entities/Token";
+import { Token, TokenProps } from "../Entities/Token";
 import { ITokenRepository } from "../Repository/ITokenRepository";
 
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
@@ -17,6 +17,10 @@ import { notUndefined } from "../Utils/Array";
 import { ICache } from "../Interfaces/ICache";
 import { uniqueTokenList } from "../Utils/Token";
 import { noop } from "../Utils/Misc";
+import { IContractRepository } from "../Repository/IContractRepository";
+import { UniswapFactory } from "./SmartContract/ABI/UniswapFactory";
+import { UniswapPair } from "./SmartContract/ABI/UniswapPair";
+import { BN } from "../Utils/Numbers";
 
 interface ServiceCache {
 	stable: Token[];
@@ -38,6 +42,8 @@ export class TokenService implements ITokenService {
 	constructor(
 		@inject(IocKey.TokenRepository)
 		private tokenRepository: ITokenRepository,
+		@inject(IocKey.ContractRepository)
+		private contractRepository: IContractRepository,
 		@inject(IocKey.ProviderFactory)
 		private providerFactory: IProviderFactory,
 		@inject(IocKey.Cache) private cache: ICache
@@ -146,13 +152,82 @@ export class TokenService implements ITokenService {
 					)
 				) {
 					return this.cache
-						.set(tokenCacheKey(blockchain, token.address), token)
+						.set(
+							tokenCacheKey(blockchain, token.address),
+							token.props
+						)
 						.then(noop)
 						.catch(noop);
 				}
 			})
 		);
 		return tokens;
+	}
+	async fetchTokenDataWithPrice(
+		blockchain: BlockchainId,
+		tokenAddr: string
+	): Promise<TokenWithPriceData> {
+		const [factory] = await this.contractRepository.findContractsBy({
+			blockchain,
+			alias: "uniswap.v2.factory"
+		});
+		if (!factory) {
+			throw new Error("Uniswap Factory not found");
+		}
+		const provider = await this.providerFactory.getProvider(blockchain);
+		const wrapped = await this.getWrappedToken(blockchain);
+		const [token] = await this.fetchTokensData(blockchain, [tokenAddr]);
+		const factoryContract = new ethers.Contract(
+			factory.address,
+			UniswapFactory,
+			provider
+		);
+		const pairAddress = await factoryContract.getPair(
+			token.address,
+			wrapped.address
+		);
+		const multicall = await this.providerFactory.getMulticallProvider(
+			blockchain,
+			{ tryAggregate: true }
+		);
+
+		const calls: ContractCallContext<any>[] = [
+			{
+				reference: pairAddress,
+				abi: UniswapPair,
+				contractAddress: pairAddress,
+				calls: [
+					{
+						methodName: "getReserves",
+						reference: "getReserves",
+						methodParameters: []
+					},
+					...["token0", "token1"].map((methodName) => ({
+						methodName,
+						reference: methodName,
+						methodParameters: []
+					}))
+				]
+			}
+		];
+
+		const select = await multicall.call(calls).then(multicallResultHelper);
+		const [reserves, token0] = select(pairAddress, [
+			"getReserves",
+			"token0"
+		]);
+		const reserves0 = BN(reserves[0]);
+		const reserves1 = BN(reserves[1]);
+		const token0IsWeth = isSameAddress(token0, wrapped.address);
+		const wethReserves = wrapped.toFormatted(
+			token0IsWeth ? reserves0.toString() : reserves1.toString()
+		);
+		const tokenReserves = wrapped.toFormatted(
+			token0IsWeth ? reserves1.toString() : reserves0.toString()
+		);
+
+		const nativePrice = BN(wethReserves).dividedBy(tokenReserves);
+		return { token, nativePrice: nativePrice.toString() };
 	}
 	async getTokensFromDbAndCache(
 		blockchain: BlockchainId,
@@ -161,10 +236,14 @@ export class TokenService implements ITokenService {
 		const tokensFromCache = (
 			await Promise.all(
 				tokenAddrs.map((tokenAddr) =>
-					this.cache.get<Token>(tokenCacheKey(blockchain, tokenAddr))
+					this.cache.get<TokenProps>(
+						tokenCacheKey(blockchain, tokenAddr)
+					)
 				)
 			)
-		).filter(notUndefined);
+		)
+			.filter(notUndefined)
+			.map((props) => Token.create(props));
 
 		const tokensFromDb =
 			await this.tokenRepository.findTokensByBlockchainAddress({

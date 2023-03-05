@@ -29,6 +29,7 @@ import { TokenService } from "../App/Services/TokenService";
 import { FeatureFlagService } from "../App/Services/FeatureFlagService";
 import { RedisCache } from "../App/Services/Cache/RedisCache";
 import { RequeueMissingTokens } from "../App/UseCases/Tokens/RequeueMissingTokens";
+import { Playground } from "../App/UseCases/Playground";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -87,6 +88,9 @@ export const initializeContainer = async () => {
 	});
 
 	const container = new Container();
+	if (process.env.DEV === "1") {
+		container.bind(IocKey.Playground).to(Playground).inSingletonScope();
+	}
 	container.bind(IocKey.Container).toConstantValue(container);
 	await container.loadAsync(bindings);
 	return container;

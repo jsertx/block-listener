@@ -8,3 +8,8 @@ export enum UniswapV2RouterSwapMethods {
 	swapExactTokensForTokensSupportingFeeOnTransferTokens = "swapExactTokensForTokensSupportingFeeOnTransferTokens",
 	swapTokensForExactTokens = "swapTokensForExactTokens"
 }
+
+export enum ERC20TransferMethods {
+	transferFrom = "transferFrom",
+	transfer = "transfer"
+}

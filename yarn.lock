@@ -2663,10 +2663,10 @@ etag@~1.8.1:
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
   integrity sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==
 
-ethereum-multicall@^2.14.0:
-  version "2.14.0"
-  resolved "https://registry.yarnpkg.com/ethereum-multicall/-/ethereum-multicall-2.14.0.tgz#aa1e8cdf2932de5e96af51be93c79131aae6695d"
-  integrity sha512-nyfepMbvFqgv1il/gky6J+dyT/kvaNFTNvmiEp+E7xluwKUGnyCfA6/q4oyi2TLvg4yGYnmrwr3D9jcAd1hVYQ==
+ethereum-multicall@^2.15.0:
+  version "2.15.0"
+  resolved "https://registry.yarnpkg.com/ethereum-multicall/-/ethereum-multicall-2.15.0.tgz#31706ab90fde3c4a204e9e2b094871619e6dbff8"
+  integrity sha512-Xyr/N9NYF4INiUKyg7k2AVjPMnpvRBVVZ4hSHenJF9sGBmVy3ZnSAXtLduWFBz/jogEx+mihfHRiaFkKM0yzWw==
   dependencies:
     "@ethersproject/providers" "^5.0.10"
     ethers "^5.0.15"

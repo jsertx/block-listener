@@ -21,10 +21,23 @@ export const multicallResultHelper = ({ results }: ContractCallResults) => {
 		contractReference: string,
 		methodReferences: string[]
 	): any[] {
-		return results[contractReference].callsReturnContext
-			.filter((callReturn) =>
-				methodReferences.includes(callReturn.reference)
-			)
-			.map((callReturn) => callReturn.returnValues[0]);
+		return results[contractReference].callsReturnContext.reduce(
+			(result, callReturn) => {
+				methodReferences.includes(callReturn.reference);
+				const idx = methodReferences.indexOf(callReturn.reference);
+				if (idx < 0) {
+					return result;
+				}
+
+				const newRes = [...result];
+				newRes[idx] =
+					callReturn.returnValues.length === 1
+						? callReturn.returnValues[0]
+						: callReturn.returnValues;
+
+				return newRes;
+			},
+			methodReferences.map((t) => undefined)
+		);
 	};
 };

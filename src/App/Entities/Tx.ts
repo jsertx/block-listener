@@ -68,6 +68,18 @@ export interface DexSwapData {
 	};
 }
 
+export interface TokenTransferData {
+	nativeValue: string;
+	usdValue: string;
+	from: string;
+	to: string; //normally will be the same as "from"
+	amount: string;
+	token: {
+		address: HexAddressStr;
+		symbol: string;
+	};
+}
+
 const EthTransferSchema = Joi.object({
 	value: Joi.string().required(),
 	usdValue: Joi.string().required(),
@@ -197,3 +209,6 @@ export class EthTransferTx extends Tx<EthTransferData> {}
 
 export type DexSwapTxRaw = TxProps<DexSwapData>;
 export class DexSwapTx extends Tx<DexSwapData> {}
+
+export type TokenTransferTxRaw = TxProps<TokenTransferData>;
+export class TokenTransferTx extends Tx<TokenTransferTxRaw> {}

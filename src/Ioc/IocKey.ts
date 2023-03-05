@@ -1,4 +1,5 @@
 export const IocKey = {
+	Playground: Symbol.for("Playground"),
 	Container: Symbol.for("Container"),
 	Config: Symbol.for("Config"),
 	ProviderFactory: Symbol.for("ProviderFactory"),

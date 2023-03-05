@@ -4,7 +4,7 @@ import { DexSwapData, DexSwapTx, Tx } from "../../../Entities/Tx";
 import { TxType } from "../../../Values/TxType";
 import { ITxProcessStrategy } from "../ITxProcessStrategy";
 import { Token } from "../../../Entities/Token";
-import { UniswapV2RouterSwapMethods } from "../../../Types/UniswapV2RouterSwapMethods";
+import { UniswapV2RouterSwapMethods } from "../../SmartContract/SmartContractMethods";
 import { isSameAddress } from "../../../Utils/Address";
 import { TransactionLog } from "../../../Types/TransactionLog";
 import { IPriceService } from "../../../Interfaces/IPriceService";
