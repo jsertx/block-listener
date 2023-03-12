@@ -48,11 +48,7 @@ export const initializeContainer = async () => {
 			bind(IocKey.TxProcessorStrategy).to(processor).inSingletonScope()
 		);
 		// UseCases
-		[
-			BlockListener,
-			RequeueMissingTokens
-			//,SelectivePairDiscoverer
-		].forEach((app) => {
+		[BlockListener, RequeueMissingTokens].forEach((app) => {
 			bind(IocKey.StandAloneApps).to(app).inSingletonScope();
 		});
 		// Executors

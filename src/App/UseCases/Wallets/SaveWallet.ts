@@ -12,6 +12,10 @@ import { TxDiscovered } from "../../PubSub/Messages/TxDiscovered";
 import { checksumed } from "../../Utils/Address";
 import { Executor } from "../../../Infrastructure/Broker/Executor";
 import { WalletUpdated } from "../../PubSub/Messages/WalletUpdated";
+import { IProviderFactory } from "../../Interfaces/IProviderFactory";
+import { BlockchainId } from "../../Values/Blockchain";
+import { EnsNameNotResolvedError } from "../../Errors/EnsNameNotResolvedError";
+import { WalletType } from "../../Values/WalletType";
 
 @injectable()
 export class SaveWallet extends Executor<WalletDiscoveredPayload> {
@@ -21,28 +25,31 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		@inject(IocKey.BlockchainService)
 		private blockchainService: IBlockchainService,
 		@inject(IocKey.Broker) protected broker: IBroker,
-		@inject(IocKey.Logger) protected logger: ILogger
+		@inject(IocKey.Logger) protected logger: ILogger,
+		@inject(IocKey.ProviderFactory)
+		protected providerFactory: IProviderFactory
 	) {
 		super(logger, broker, Subscription.SaveWallet);
 	}
 
 	async execute({
 		address,
-		type,
+		type = WalletType.UnknownWallet,
 		alias,
 		blockchain,
 		tags = [],
 		relations = []
 	}: WalletDiscoveredPayload) {
+		const resolvedAddress = await this.resolveEnsName(blockchain, address);
 		const existingWhale = await this.walletRepository.findOne({
-			address: checksumed(address),
+			address: resolvedAddress,
 			blockchain
 		});
 
 		if (existingWhale) {
 			return this.updateWallet(existingWhale, {
 				alias,
-				address,
+				address: resolvedAddress,
 				type,
 				blockchain,
 				tags,
@@ -51,7 +58,7 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 		}
 		return this.createWallet({
 			alias,
-			address,
+			address: resolvedAddress,
 			type,
 			blockchain,
 			tags,
@@ -153,5 +160,21 @@ export class SaveWallet extends Executor<WalletDiscoveredPayload> {
 			address,
 			blockchain
 		};
+	}
+
+	private async resolveEnsName(
+		blockchain: BlockchainId,
+		address: string
+	): Promise<string> {
+		if (!address.endsWith(".eth")) {
+			return checksumed(address);
+		}
+
+		const provider = await this.providerFactory.getProvider(blockchain);
+		const resolved = await provider.resolveName(address);
+		if (!resolved) {
+			throw new EnsNameNotResolvedError(blockchain, address);
+		}
+		return checksumed(resolved);
 	}
 }
