@@ -1,7 +1,6 @@
 export enum Subscription {
-	FindDirectTx = "find_direct_tx",
-	FindInternalTx = "find_internal_tx",
-	SaveTx = "save_tx",
+	DiscoveredTxToProcess = "discovered_tx_to_process",
+	TxProcessed = "tx_processed",
 	SaveToken = "save_token",
 	SaveWallet = "save_wallet"
 }

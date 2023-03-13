@@ -7,17 +7,16 @@ import { IProviderFactory } from "../Interfaces/IProviderFactory";
 import { IocKey } from "../../Ioc/IocKey";
 import { Blockchain, BlockchainId } from "../Values/Blockchain";
 import { IStandaloneApps } from "../Interfaces/IStandaloneApps";
-import { BlockReceived } from "../PubSub/Messages/BlockReceived";
 import { IConfig } from "../../Interfaces/IConfig";
 import { noop, sleep } from "../Utils/Misc";
 import { IBlockRepository } from "../Repository/IBlockRepository";
 import { Block } from "../Entities/Block";
 import { IPriceService } from "../Interfaces/IPriceService";
 import { Subscription } from "../../Infrastructure/Broker/Subscription";
-import { Axios } from "axios";
-import { WebhookClient } from "discord.js";
-import { CronSchedule } from "../Types/CronSchedule";
-import Cron from "node-cron";
+import { BlockWithTransactions } from "../Types/BlockWithTransactions";
+import { ethers } from "ethers";
+import { TxDiscovered } from "../PubSub/Messages/TxDiscovered";
+
 @injectable()
 export class BlockListener implements IStandaloneApps {
 	constructor(
@@ -36,117 +35,128 @@ export class BlockListener implements IStandaloneApps {
 		return this.providerFactory.getProvider(blockchain);
 	}
 	async start() {
-		this.startNotifier();
-		this.config.enabledBlockchains.forEach(async (blockchain) => {
-			this.logger.log({
-				message: `BlockListener started @${blockchain}`,
-				type: "block-listener.start",
-				context: {
-					blockchain
-				}
-			});
-
-			const cachePriceAfterBlocks = 50;
-			const latestBlock = await this.getStartBlock(blockchain);
-			let nextBlockNum = latestBlock + 1;
-			for (;;) {
-				const provider = await this.getProvider(blockchain);
-				const block = await provider
-					.getBlockWithTransactions(nextBlockNum)
-					.catch(() => undefined);
-
-				if (block) {
-					try {
-						if (block.number % cachePriceAfterBlocks === 0) {
-							await this.prepareNextBlockPriceCache(
-								blockchain,
-								nextBlockNum
-							).catch(noop);
-						}
-
-						await this.broker.publish(
-							new BlockReceived({
-								blockchain,
-								block
-							})
-						);
-						this.blockRepository
-							.save(
-								Block.create({
-									blockchain,
-									height: `${block.number}`,
-									timestamp: new Date(block.timestamp * 1000)
-								})
-							)
-							.then(noop)
-							.catch(noop);
-
-						nextBlockNum = block.number + 1;
-
-						this.logger.log({
-							type: "block-listener.new-block.saved",
-							message: `Block fetched ${block.number}@${blockchain}`,
-							context: {
-								blockchain,
-								blockNumber: block.number
-							}
-						});
-					} catch (error) {
-						this.logger.error({
-							type: "block-listener.new-block.error",
-							message: `Error getting block ${block.number}@${blockchain}`,
-							error,
-							context: {
-								blockchain,
-								blockNumber: block.number
-							}
-						});
-					}
-				}
-				// await this.nextRoundAwaiter().catch(noop);
-			}
-		});
+		this.config.enabledBlockchains.forEach(this.startBlockchainListener);
 	}
 
-	private startNotifier() {
-		const client = new Axios({
-			baseURL: "http://localhost"
+	private async startBlockchainListener(blockchain: BlockchainId) {
+		this.logger.log({
+			message: `BlockListener started @${blockchain}`,
+			type: "block-listener.start",
+			context: {
+				blockchain
+			}
 		});
 
-		const discord = new WebhookClient({
-			url: this.config.discord.blockListenerStatusChannelHook
-		});
-		const sendNotification = async () => {
+		const latestBlock = await this.getStartBlock(blockchain);
+		let nextBlockNum = latestBlock + 1;
+		for (;;) {
+			const provider = await this.getProvider(blockchain);
+			const block = await provider
+				.getBlockWithTransactions(nextBlockNum)
+				.catch(() => undefined);
+
+			if (!block) {
+				await this.nextRoundAwaiter().catch(noop);
+				continue;
+			}
 			try {
-				const content = await client
-					.get("/")
-					.then((res) => res.data)
-					.then(JSON.parse)
-					.then(buildStatusMessageFromApi);
-				await discord.send({
-					content,
-					username: "blocklistener-snitch",
-					avatarURL: "https://i.imgur.com/dBAMyiR.jpeg"
-				});
+				const [_, txDiscoveredEvents] = await Promise.all([
+					this.nativeTokenPriceCacheController(
+						block,
+						blockchain,
+						nextBlockNum
+					),
+					this.getTxDiscoveredEvents(block, blockchain)
+				]);
+
+				await Promise.all(
+					txDiscoveredEvents.map((txDiscoveredEvent) => {
+						return this.broker.publish(txDiscoveredEvent);
+					})
+				);
+
+				await this.blockRepository.save(
+					Block.create({
+						blockchain,
+						height: `${block.number}`,
+						timestamp: new Date(block.timestamp * 1000)
+					})
+				);
+
+				nextBlockNum = block.number + 1;
 				this.logger.log({
-					type: "notifications.discord.success",
-					message: "Discord notification sent successfully"
+					type: "block-listener.new-block.saved",
+					message: `Block fetched ${block.number}@${blockchain}`,
+					context: {
+						blockchain,
+						blockNumber: block.number
+					}
 				});
-			} catch (_error) {
-				const error: any = _error;
+			} catch (error) {
 				this.logger.error({
-					type: "notifications.discord.failure",
-					message: error?.message || "Unknown error"
+					type: "block-listener.new-block.error",
+					message: `Error getting block ${block.number}@${blockchain}`,
+					error,
+					context: {
+						blockchain,
+						blockNumber: block.number
+					}
 				});
 			}
-		};
-		Cron.schedule(CronSchedule.EveryTwelveHours, sendNotification);
+		}
 	}
 
+	private async getTxDiscoveredEvents(
+		block: BlockWithTransactions,
+		blockchain: BlockchainId
+	): Promise<TxDiscovered[]> {
+		const receipts = await this.getTransactionReceipts(block, blockchain);
+		return block.transactions.map((tx) => {
+			const txReceipt = receipts.find(
+				(receipt) =>
+					receipt.transactionHash.toLowerCase() ===
+					tx.hash.toLowerCase()
+			);
+
+			const blockWithoutTxsData = {
+				...block,
+				transactions: block.transactions.map((t) => t.hash)
+			};
+			return new TxDiscovered({
+				blockchain,
+				hash: tx.hash,
+				txRes: tx,
+				txReceipt,
+				block: blockWithoutTxsData,
+				saveDestinationAddress: true
+			});
+		});
+	}
+
+	private async getTransactionReceipts(
+		block: BlockWithTransactions,
+		blockchain: BlockchainId
+	): Promise<ethers.providers.TransactionReceipt[]> {
+		try {
+			const provider = await this.providerFactory.getProvider(blockchain);
+			const blockNumberHex = `0x${Number(block.number).toString(16)}`;
+			const rawReceipts: { receipts: any[] } = await provider.send(
+				"alchemy_getTransactionReceipts",
+				[
+					{
+						blockNumber: blockNumberHex
+					}
+				]
+			);
+			return rawReceipts.receipts.map(mapRawReceiptToTxReceipt(block));
+		} catch (error) {
+			return [];
+		}
+	}
 	private async nextRoundAwaiter() {
 		for (;;) {
 			const pendingSaveTxMsgs = await this.broker.getPendingMessages(
-				Subscription.SaveTx
+				Subscription.DiscoveredTxToProcess
 			);
 			// few messages = stop waiting after 10s
 			if (
@@ -157,21 +167,31 @@ export class BlockListener implements IStandaloneApps {
 			}
 			// many messages = wait 2 min and check again
 			this.logger.log({
-				message: `Channel ${Subscription.SaveTx} has ${pendingSaveTxMsgs} msgs. Waiting to cool down.`,
+				message: `Channel ${Subscription.DiscoveredTxToProcess} has ${pendingSaveTxMsgs} msgs. Waiting to cool down.`,
 				type: "block-listener.new-block.cool-down"
 			});
 			await sleep(60_000);
 		}
 	}
-	private async prepareNextBlockPriceCache(
+
+	private async nativeTokenPriceCacheController(
+		block: BlockWithTransactions,
 		blockchain: BlockchainId,
 		latestBlock: number
 	) {
+		const cachePriceAfterBlocks = 50;
+		const shouldNotPrepareCache =
+			block.number % cachePriceAfterBlocks !== 0;
+
+		if (shouldNotPrepareCache) {
+			return;
+		}
 		await this.priceService.getBlockchainNativeTokenUsdPrice(
 			new Blockchain(blockchain),
 			latestBlock
 		);
 	}
+
 	private async getStartBlock(blockchain: BlockchainId): Promise<number> {
 		const latestBlockFromDb = await this.blockRepository
 			.findLatestBlock(blockchain)
@@ -186,26 +206,30 @@ export class BlockListener implements IStandaloneApps {
 	}
 }
 
-function buildStatusMessageFromApi(res: any) {
-	const msg = Object.entries(res.data.latestBlocks).reduce(
-		(msg, [chain, data]: [any, any]) => {
-			msg += `\n[${chain.toUpperCase()}]`;
-			msg += `\nHeight: ${data.height}`;
-			msg += `\nDate: ${data.timestamp}`;
-			msg += `\nLink: ${data.link}`;
-			return msg;
-		},
-		"BlockListener Status:"
-	);
-	const statusMsg = Object.entries(res.data.broker).reduce(
-		(msg, [queue, status]: [any, any]) => {
-			if (status.dead === 0) {
-				return msg;
-			}
-			return `${msg}\n${queue}: ${status.dead}`;
-		},
-		"Broker Dead Messages:"
-	);
-
-	return `${msg}\n\n${statusMsg}\n\n#blocklistener #status`;
+function mapRawReceiptToTxReceipt(block: BlockWithTransactions) {
+	return (r: Record<string, any>): ethers.providers.TransactionReceipt => {
+		return {
+			to: r.to,
+			from: r.from,
+			contractAddress: r.contractAddress,
+			transactionIndex: Number(r.transactionIndex),
+			root: "", // never minds at the moment
+			gasUsed: ethers.BigNumber.from(r.gasUsed),
+			logsBloom: r.logsBloom,
+			blockHash: r.blockHash,
+			transactionHash: r.transactionHash,
+			logs: r.logs.map((l: any) => ({
+				...l,
+				logIndex: Number(l.logIndex),
+				transactionIndex: Number(l.transactionIndex)
+			})),
+			blockNumber: block.number,
+			confirmations: 1, //never mind at the moment
+			cumulativeGasUsed: ethers.BigNumber.from(r.cumulativeGasUsed),
+			effectiveGasPrice: ethers.BigNumber.from(r.effectiveGasPrice),
+			byzantium: true, // never mind at the moment
+			type: Number(r.type),
+			status: Number(r.status)
+		};
+	};
 }

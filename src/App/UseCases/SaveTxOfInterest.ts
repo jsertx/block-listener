@@ -18,12 +18,11 @@ import { Subscription } from "../../Infrastructure/Broker/Subscription";
 import { WalletDiscovered } from "../PubSub/Messages/WalletDiscovered";
 import { TokenDiscovered } from "../PubSub/Messages/TokenDiscovered";
 import { IWalletRepository } from "../Repository/IWalletRepository";
-import { checksumed, isSameAddress } from "../Utils/Address";
+import { isSameAddress } from "../Utils/Address";
 import { IConfig } from "../../Interfaces/IConfig";
-import { DirectToDead, Executor } from "../../Infrastructure/Broker/Executor";
+import { Executor } from "../../Infrastructure/Broker/Executor";
 import { WalletTagName } from "../Values/WalletTag";
 import { AddressRelationType } from "../Entities/Wallet";
-import { isUndefined } from "../Utils/Misc";
 import { BN } from "../Utils/Numbers";
 import { WalletType } from "../Values/WalletType";
 import { Contract } from "../Entities/Contract";
@@ -31,84 +30,45 @@ import { ContractType } from "../Values/ContractType";
 import { IContractRepository } from "../Repository/IContractRepository";
 
 import { TxSaved } from "../PubSub/Messages/TxSaved";
+import { TxProcessedPayload } from "../PubSub/Messages/TxProcessed";
 
 const MIN_DELAY_IN_S = 60;
 const backoffStrategy = (retry: number) =>
 	(Math.floor(2 ** retry) + MIN_DELAY_IN_S) * 1000;
 
-type SaveTxOpts = { saveDestinationAddress: boolean };
-const msgDefaults = { saveDestinationAddress: false };
-
 @injectable()
-export class SaveTx extends Executor<TxDiscoveredPayload> {
+export class SaveTxOfInterest extends Executor<TxProcessedPayload> {
 	constructor(
 		@inject(IocKey.Config) private config: IConfig,
 		@inject(IocKey.TxRepository) private txRepository: ITxRepository,
 		@inject(IocKey.WalletRepository)
 		private walletRepository: IWalletRepository,
-		@inject(IocKey.ProviderFactory)
-		private providerFactory: IProviderFactory,
-		@inject(IocKey.Broker) broker: IBroker,
+		@inject(IocKey.Broker)
+		broker: IBroker,
 		@inject(IocKey.Logger) logger: ILogger,
-		@inject(IocKey.TxProcessor) private txProcessor: ITxProcessor,
 		@inject(IocKey.ContractRepository)
 		private contractRepository: IContractRepository
 	) {
-		super(logger, broker, Subscription.SaveTx, { backoffStrategy });
+		super(logger, broker, Subscription.TxProcessed, {
+			backoffStrategy
+		});
 	}
-	async execute(msg: TxDiscoveredPayload) {
-		const { blockchain, hash, saveUnknown, saveDestinationAddress } = {
-			...msgDefaults,
-			...msg
-		};
+	async execute(msg: TxProcessedPayload) {
+		const tx = Tx.create(msg.tx);
 
-		const existingTx = await this.txRepository.findOne({
-			blockchain: msg.blockchain,
-			hash: msg.hash
-		});
-		if (existingTx) {
-			return;
-		}
-
-		const successfullTx = await this.getRawTransaction(msg);
-
-		if (!successfullTx) {
-			return;
-		}
-
-		let tx = Tx.create({
-			blockchain,
-			hash,
-			data: undefined,
-			raw: successfullTx,
-			type: TxType.Unknown
-		});
-		const processedTx = await this.txProcessor.process(tx);
-
-		if (processedTx) {
-			tx = processedTx;
-		} else if (!saveUnknown) {
-			return;
-		}
-
-		const { saved } = await this.saveTxIfApplies(tx, {
-			saveDestinationAddress
-		});
+		const { saved } = await this.saveTxIfApplies(tx);
 
 		if (saved) {
 			await this.broker.publish(new TxSaved(tx.toRaw()));
 			this.logger.log({
 				type: "save-tx.saved",
-				message: `Tx saved: ${hash}@${blockchain}`,
-				context: { txHash: hash, blockchain }
+				message: `Tx saved: ${tx.hash}@${tx.blockchain}`,
+				context: { txHash: tx.hash, blockchain: tx.blockchain.id }
 			});
 		}
 	}
 
-	private async saveTxIfApplies(
-		tx: Tx<any>,
-		opts: SaveTxOpts
-	): Promise<{ saved: boolean }> {
+	private async saveTxIfApplies(tx: Tx<any>): Promise<{ saved: boolean }> {
 		let saved = false;
 
 		const walletOfTxInDb = await this.walletRepository.findOne({
@@ -123,20 +83,17 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 
 		switch (tx.type) {
 			case TxType.DexSwap:
-				saved = await this.saveDexSwapTxHandler(tx, opts);
+				saved = await this.saveDexSwapTxHandler(tx);
 				break;
 			case TxType.EthTransfer:
-				saved = await this.saveEthTransferTxHandler(tx, opts);
+				saved = await this.saveEthTransferTxHandler(tx);
 				break;
 		}
 
 		return { saved };
 	}
 	/* Tx Handlers */
-	async saveDexSwapTxHandler(
-		tx: DexSwapTx,
-		opts: SaveTxOpts
-	): Promise<boolean> {
+	async saveDexSwapTxHandler(tx: DexSwapTx): Promise<boolean> {
 		if (this.isSwapValueUnderThreshold(tx)) {
 			return false;
 		}
@@ -189,10 +146,7 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		return true;
 	}
 
-	async saveEthTransferTxHandler(
-		tx: EthTransferTx,
-		opts: SaveTxOpts
-	): Promise<boolean> {
+	async saveEthTransferTxHandler(tx: EthTransferTx): Promise<boolean> {
 		if (this.isEthTransferValueUnderThreshold(tx)) {
 			return false;
 		}
@@ -214,7 +168,8 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 				]
 			})
 		);
-		if (opts.saveDestinationAddress) {
+		// eslint-disable-next-line no-constant-condition
+		if (/*opts.saveDestinationAddress*/ false) {
 			await this.broker.publish(
 				new WalletDiscovered({
 					blockchain: tx.blockchain.id,
@@ -235,117 +190,6 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 		}
 		await this.txRepository.save(tx);
 		return true;
-	}
-	/** Utils & Helper */
-	private async getRawTransaction({
-		blockchain,
-		hash,
-		txRes,
-		txReceipt,
-		block
-	}: TxDiscoveredPayload): Promise<RawTx | undefined> {
-		const provider = await this.providerFactory.getProvider(blockchain);
-		let receipt = txReceipt;
-
-		if (!receipt) {
-			receipt = await provider
-				.getTransactionReceipt(hash)
-				.catch((err) => {
-					if (err && err.reason && err.reason === "invalid hash") {
-						throw new DirectToDead("Invalid tx hash given");
-					}
-					return undefined;
-				});
-		}
-		if (!receipt || isUndefined(receipt.status)) {
-			throw new Error("TX receipt not available yet");
-		}
-
-		if (receipt.status === 0) {
-			return;
-		}
-
-		if (!txRes) {
-			txRes = await provider.getTransaction(hash);
-		}
-
-		if (!block) {
-			block = await provider.getBlock(receipt.blockNumber);
-		}
-		const logs: TransactionLog[] = this.decodeTxLogs(receipt);
-		let smartContractCall: RawTx["smartContractCall"];
-		if (isSmartContractCall(txRes)) {
-			const txDecoder = new TxDecoder(allAbiList);
-			smartContractCall = this.decodeTxDetails(txRes, txDecoder);
-		}
-
-		return {
-			hash,
-			blockHeight: receipt.blockNumber,
-			timestamp: new Date(block.timestamp * 1000),
-			data: txRes.data,
-			to: checksumed(txRes.to),
-			from: checksumed(txRes.from),
-			value: BN(txRes.value).toString(),
-			smartContractCall,
-			logs: logs
-		};
-	}
-
-	private decodeTxLogs(
-		txReceipt: ethers.providers.TransactionReceipt
-	): TransactionLog[] {
-		const decoder = new LogDecoder(allAbiList);
-		const decodedLogs = decoder.decodeLogs(txReceipt.logs);
-		return decodedLogs.map((log: any) => {
-			const args = log.eventFragment.inputs.reduce(
-				(t: any, curr: any, i: number) => {
-					const argName: string = curr.name;
-					t[argName] = log.args[i].toString();
-					return t;
-				},
-				{}
-			);
-
-			return {
-				tx_hash: txReceipt.transactionHash,
-				name: log.name,
-				signature: log.signature,
-				topic: log.topic,
-				address: log.address,
-				args
-			};
-		});
-	}
-
-	private decodeTxDetails(
-		txRes: ethers.providers.TransactionResponse,
-		decoder: TxDecoder
-	) {
-		try {
-			const decodedTx = decoder.decodeTx(txRes);
-
-			const args = decodedTx.functionFragment.inputs.reduce(
-				(t, curr, i) => {
-					const argName: string = curr.name;
-					t[argName] = decodedTx.args[i].toString();
-					return t;
-				},
-				{} as Record<string, any>
-			);
-
-			return {
-				method: decodedTx.name,
-				signature: decodedTx.signature,
-				args
-			};
-		} catch (error) {
-			return {
-				method: "unknown",
-				signature: "external",
-				args: {}
-			};
-		}
 	}
 
 	private isSwapValueUnderThreshold(tx: DexSwapTx): boolean {
@@ -399,10 +243,11 @@ export class SaveTx extends Executor<TxDiscoveredPayload> {
 			this.config.txRules[tx.blockchain.id].minNativeTransferValueInUsd
 		);
 	}
-	getMessageContextTrace({ hash, blockchain }: TxDiscoveredPayload): any {
+
+	getMessageContextTrace(msg: TxProcessedPayload): any {
 		return {
-			hash,
-			blockchain
+			hash: msg.tx.hash,
+			blockchain: msg.tx.blockchain
 		};
 	}
 }
