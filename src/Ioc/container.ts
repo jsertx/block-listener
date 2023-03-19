@@ -8,11 +8,11 @@ import { TxRepository } from "../Infrastructure/Repository/TxRepository";
 import { createConnection } from "../Infrastructure/Database/utils";
 import { WalletRepository } from "../Infrastructure/Repository/WalletRepository";
 import { ContractRepository } from "../Infrastructure/Repository/ContractRepository";
-import { FindDirectTx } from "../App/UseCases/FindDirectTx";
+import { SaveTxOfInterest } from "../App/UseCases/SaveTxOfInterest";
 import { BlockListener } from "../App/UseCases/BlockListener";
 
 import { HttpAdapter } from "../Api/Http/HttpAdapter";
-import { SaveTx } from "../App/UseCases/SaveTx";
+import { ProcessTx } from "../App/UseCases/ProcessTx";
 import { TxProcessor } from "../App/Services/TxProcessor/TxProcessor";
 import { TokenRepository } from "../Infrastructure/Repository/TokenRepository";
 import { NativeTransferProcessor } from "../App/Services/TxProcessor/Strategies/NativeTransferProcessor";
@@ -30,6 +30,7 @@ import { FeatureFlagService } from "../App/Services/FeatureFlagService";
 import { RedisCache } from "../App/Services/Cache/RedisCache";
 import { RequeueMissingTokens } from "../App/UseCases/Tokens/RequeueMissingTokens";
 import { Playground } from "../App/UseCases/Playground";
+import { StatusNotifier } from "../App/UseCases/StatusNotifier";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -42,26 +43,26 @@ export const initializeContainer = async () => {
 		bind(IocKey.PriceService).to(FinnhubApiService).inSingletonScope();
 		bind(IocKey.BlockchainService).to(CovalentApi).inSingletonScope();
 		bind(IocKey.TokenService).to(TokenService).inSingletonScope();
+		bind(IocKey.FeatureFlagService)
+			.to(FeatureFlagService)
+			.inSingletonScope();
+
 		// TxProcessor
 		bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();
 		[NativeTransferProcessor, DexSwapProcessor].forEach((processor) =>
 			bind(IocKey.TxProcessorStrategy).to(processor).inSingletonScope()
 		);
+
 		// UseCases
-		[BlockListener, RequeueMissingTokens].forEach((app) => {
+		[BlockListener, RequeueMissingTokens, StatusNotifier].forEach((app) => {
 			bind(IocKey.StandAloneApps).to(app).inSingletonScope();
 		});
+
 		// Executors
-		[
-			SaveTx,
-			SaveToken,
-			SaveWallet,
-			FindDirectTx
-			/*FindInternalTx,*/
-		].forEach((app) => bind(IocKey.Executors).to(app).inSingletonScope());
-		bind(IocKey.FeatureFlagService)
-			.to(FeatureFlagService)
-			.inSingletonScope();
+		[ProcessTx, SaveTxOfInterest, SaveToken, SaveWallet].forEach((app) =>
+			bind(IocKey.Executors).to(app).inSingletonScope()
+		);
+
 		// Adapters
 		bind(IocKey.Adapters).to(HttpAdapter).inRequestScope();
 		// Brokers

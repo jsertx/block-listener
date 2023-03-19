@@ -1,20 +1,20 @@
 import { inject, injectable } from "inversify";
-import { ILogger } from "../../Interfaces/ILogger";
-import { IocKey } from "../../Ioc/IocKey";
+import { ILogger } from "../../../Interfaces/ILogger";
+import { IocKey } from "../../../Ioc/IocKey";
 
 import PromiseThrottle from "promise-throttle";
-import { IProviderFactory } from "../Interfaces/IProviderFactory";
+import { IProviderFactory } from "../../Interfaces/IProviderFactory";
 
-import { IContractRepository } from "../Repository/IContractRepository";
-import { Contract } from "../Entities/Contract";
+import { IContractRepository } from "../../Repository/IContractRepository";
+import { Contract } from "../../Entities/Contract";
 import { ethers } from "ethers";
-import { flattenReducer, onlyUniqueFilter } from "../Utils/Array";
-import { IAppBroker } from "../Interfaces/IAppBroker";
-import { BlockWithTransactions } from "../Types/BlockWithTransactions";
-import { TxDiscovered } from "../PubSub/Messages/TxDiscovered";
-import { Subscription } from "../../Infrastructure/Broker/Subscription";
-import { BlockReceivedPayload } from "../PubSub/Messages/BlockReceived";
-import { Executor } from "../../Infrastructure/Broker/Executor";
+import { flattenReducer, onlyUniqueFilter } from "../../Utils/Array";
+import { IAppBroker } from "../../Interfaces/IAppBroker";
+import { BlockWithTransactions } from "../../Types/BlockWithTransactions";
+import { TxDiscovered } from "../../PubSub/Messages/TxDiscovered";
+import { Subscription } from "../../../Infrastructure/Broker/Subscription";
+import { BlockReceivedPayload } from "../../PubSub/Messages/BlockReceived";
+import { Executor } from "../../../Infrastructure/Broker/Executor";
 
 interface BlockFetchingConfig {
 	fromBlock: number;
@@ -33,7 +33,7 @@ export class FindInternalTx extends Executor<BlockReceivedPayload> {
 		@inject(IocKey.ContractRepository)
 		private contractRepository: IContractRepository
 	) {
-		super(logger, broker, Subscription.FindInternalTx);
+		super(logger, broker, Subscription.SaveToken);
 	}
 
 	async execute({ block, blockchain }: BlockReceivedPayload) {

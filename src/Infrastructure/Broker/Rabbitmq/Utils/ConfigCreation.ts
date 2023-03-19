@@ -25,8 +25,9 @@ const getConnections = (brokerUrl: string): VhostConfig["connections"] => {
 };
 
 const publicationsSetup: PublicationSetup[] = [
-	[Publication.BlockReceived, Exchange.Block, RoutingKey.BlockReceived],
+	//[Publication.BlockReceived, Exchange.Block, RoutingKey.BlockReceived],
 	[Publication.TxDiscovered, Exchange.Tx, RoutingKey.TxDiscovered],
+	[Publication.TxProcessed, Exchange.Tx, RoutingKey.TxProcessed],
 	[Publication.TxSaved, Exchange.Tx, RoutingKey.TxSaved],
 	[Publication.TokenDiscovered, Exchange.Token, RoutingKey.TokenDiscovered],
 	[
@@ -39,23 +40,19 @@ const publicationsSetup: PublicationSetup[] = [
 ];
 
 const bindingsSetup: BindingSetup[] = [
-	[Exchange.Block, RoutingKey.BlockReceived, Queue.FindDirectTx],
-	// Not needed yet [Exchange.Block, RoutingKey.BlockReceived, Queue.FindInternalTx],
-	[Exchange.Tx, RoutingKey.TxDiscovered, Queue.SaveTx],
+	[Exchange.Tx, RoutingKey.TxDiscovered, Queue.ProcessTx],
+	[Exchange.Tx, RoutingKey.TxProcessed, Queue.SaveTxOfInterest],
 	[Exchange.Token, RoutingKey.TokenDiscovered, Queue.SaveToken],
 	[Exchange.Wallet, RoutingKey.WalletDiscovered, Queue.SaveWallet]
 ];
 
 const subscriptions: VhostConfig["subscriptions"] = {
-	[Subscription.FindDirectTx]: {
-		queue: Queue.FindDirectTx,
+	[Subscription.DiscoveredTxToProcess]: {
+		queue: Queue.ProcessTx,
 		prefetch: 10
 	},
-	[Subscription.FindInternalTx]: {
-		queue: Queue.FindInternalTx
-	},
-	[Subscription.SaveTx]: {
-		queue: Queue.SaveTx,
+	[Subscription.TxProcessed]: {
+		queue: Queue.SaveTxOfInterest,
 		prefetch: 100
 	},
 	[Subscription.SaveToken]: {
