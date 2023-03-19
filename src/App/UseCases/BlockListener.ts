@@ -51,8 +51,8 @@ export class BlockListener implements IStandaloneApps {
 
 		const latestBlock = await this.getStartBlock(blockchain);
 		let nextBlockNum = latestBlock + 1;
+		const provider = await this.getProvider(blockchain);
 		for (;;) {
-			const provider = await this.getProvider(blockchain);
 			const block = await provider
 				.getBlockWithTransactions(nextBlockNum)
 				.catch(() => undefined);
@@ -67,19 +67,25 @@ export class BlockListener implements IStandaloneApps {
 					this.getTxDiscoveredEvents(block, blockchain)
 				]);
 
-				await Promise.all(
+				// TODO: add await after being Real Time
+				Promise.all(
 					txDiscoveredEvents.map((txDiscoveredEvent) => {
 						return this.broker.publish(txDiscoveredEvent);
 					})
-				);
-
-				await this.blockRepository.save(
-					Block.create({
-						blockchain,
-						height: `${block.number}`,
-						timestamp: new Date(block.timestamp * 1000)
-					})
-				);
+				)
+					.then(noop)
+					.catch(noop);
+				// TODO: add await after being Real Time
+				this.blockRepository
+					.save(
+						Block.create({
+							blockchain,
+							height: `${block.number}`,
+							timestamp: new Date(block.timestamp * 1000)
+						})
+					)
+					.then(noop)
+					.catch(noop);
 
 				nextBlockNum = block.number + 1;
 				this.logger.log({
