@@ -12,7 +12,7 @@ import { Blockchain } from "../../Values/Blockchain";
 export class CryptoCompareApiService implements IPriceService {
 	async getBlockchainNativeTokenUsdPrice(
 		blockchain: Blockchain,
-		_time: PriceServiceTimeParam = Date.now()
+		_time: PriceServiceTimeParam = new Date()
 	): Promise<BigNumber> {
 		const res: any = await axios
 			.get(
@@ -26,7 +26,7 @@ export class CryptoCompareApiService implements IPriceService {
 	async getBlockchainNativeTokenUsdValue(
 		blockchain: Blockchain,
 		amount: BigNumber | string,
-		time: PriceServiceTimeParam = Date.now()
+		time: PriceServiceTimeParam = new Date()
 	): Promise<BigNumber> {
 		const price = await this.getBlockchainNativeTokenUsdPrice(
 			blockchain,

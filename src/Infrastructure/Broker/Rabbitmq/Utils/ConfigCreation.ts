@@ -27,8 +27,8 @@ const getConnections = (brokerUrl: string): VhostConfig["connections"] => {
 const publicationsSetup: PublicationSetup[] = [
 	//[Publication.BlockReceived, Exchange.Block, RoutingKey.BlockReceived],
 	[Publication.TxDiscovered, Exchange.Tx, RoutingKey.TxDiscovered],
-	[Publication.TxProcessed, Exchange.Tx, RoutingKey.TxDiscovered],
-	//[Publication.TxSaved, Exchange.Tx, RoutingKey.TxSaved],
+	[Publication.TxProcessed, Exchange.Tx, RoutingKey.TxProcessed],
+	[Publication.TxSaved, Exchange.Tx, RoutingKey.TxSaved],
 	[Publication.TokenDiscovered, Exchange.Token, RoutingKey.TokenDiscovered],
 	[
 		Publication.WalletDiscovered,

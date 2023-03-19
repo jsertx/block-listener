@@ -50,7 +50,7 @@ export class FinnhubApiService implements IPriceService {
 	}
 	async getBlockchainNativeTokenUsdPrice(
 		blockchain: Blockchain,
-		time: PriceServiceTimeParam = Date.now()
+		time: PriceServiceTimeParam = new Date()
 	): Promise<BigNumber> {
 		return this.bottleneck.schedule(async () => {
 			const [from, to] = this.getTimeRangeForSingleRange(time);
@@ -93,7 +93,7 @@ export class FinnhubApiService implements IPriceService {
 	async getBlockchainNativeTokenUsdValue(
 		blockchain: Blockchain,
 		amount: BigNumber | string,
-		time: PriceServiceTimeParam = Date.now()
+		time: PriceServiceTimeParam = new Date()
 	): Promise<BigNumber> {
 		const price = await this.getBlockchainNativeTokenUsdPrice(
 			blockchain,
@@ -102,7 +102,7 @@ export class FinnhubApiService implements IPriceService {
 		return price.multipliedBy(amount);
 	}
 
-	getTimeRangeForSingleRange(timestamp: Date | number) {
+	getTimeRangeForSingleRange(timestamp: Date) {
 		timestamp = ensureDate(timestamp);
 		timestamp.setSeconds(0);
 		timestamp.setMilliseconds(0);

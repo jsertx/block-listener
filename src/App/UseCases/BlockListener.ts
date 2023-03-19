@@ -35,7 +35,9 @@ export class BlockListener implements IStandaloneApps {
 		return this.providerFactory.getProvider(blockchain);
 	}
 	async start() {
-		this.config.enabledBlockchains.forEach(this.startBlockchainListener);
+		this.config.enabledBlockchains.forEach(
+			this.startBlockchainListener.bind(this)
+		);
 	}
 
 	private async startBlockchainListener(blockchain: BlockchainId) {
@@ -61,11 +63,7 @@ export class BlockListener implements IStandaloneApps {
 			}
 			try {
 				const [_, txDiscoveredEvents] = await Promise.all([
-					this.nativeTokenPriceCacheController(
-						block,
-						blockchain,
-						nextBlockNum
-					),
+					this.nativeTokenPriceCacheController(block, blockchain),
 					this.getTxDiscoveredEvents(block, blockchain)
 				]);
 
@@ -176,8 +174,7 @@ export class BlockListener implements IStandaloneApps {
 
 	private async nativeTokenPriceCacheController(
 		block: BlockWithTransactions,
-		blockchain: BlockchainId,
-		latestBlock: number
+		blockchain: BlockchainId
 	) {
 		const cachePriceAfterBlocks = 50;
 		const shouldNotPrepareCache =
@@ -188,7 +185,7 @@ export class BlockListener implements IStandaloneApps {
 		}
 		await this.priceService.getBlockchainNativeTokenUsdPrice(
 			new Blockchain(blockchain),
-			latestBlock
+			new Date(block.timestamp * 1000)
 		);
 	}
 

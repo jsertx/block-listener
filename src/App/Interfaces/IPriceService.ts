@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import { Blockchain } from "../Values/Blockchain";
 
-export type PriceServiceTimeParam = Date | number;
+export type PriceServiceTimeParam = Date;
 export interface IPriceService {
 	getBlockchainNativeTokenUsdPrice(
 		blockchain: Blockchain,
