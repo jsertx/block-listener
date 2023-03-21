@@ -49,7 +49,7 @@ const bindingsSetup: BindingSetup[] = [
 const subscriptions: VhostConfig["subscriptions"] = {
 	[Subscription.DiscoveredTxToProcess]: {
 		queue: Queue.ProcessTx,
-		prefetch: 10
+		prefetch: 100
 	},
 	[Subscription.TxProcessed]: {
 		queue: Queue.SaveTxOfInterest,
