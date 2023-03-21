@@ -8,8 +8,10 @@ import {
 	IBlockchainService,
 	TxMetadata
 } from "../../Interfaces/IBlockchainService";
+import { ICache } from "../../Interfaces/ICache";
+import { noop } from "../../Utils/Misc";
 import { Blockchain, BlockchainId } from "../../Values/Blockchain";
-
+const ONE_DAY_IN_SEC = 60 * 60;
 // https://github.com/SGrondin/bottleneck#step-1-of-3
 const FIVE_REQ_PER_SEC = Math.floor(1000 / 4);
 @injectable()
@@ -21,8 +23,10 @@ export class CovalentApi implements IBlockchainService {
 		minTime: FIVE_REQ_PER_SEC,
 		maxConcurrent: 4
 	});
+
 	constructor(
 		@inject(IocKey.Config) private config: IConfig,
+		@inject(IocKey.Cache) private cache: ICache,
 		@inject(IocKey.Logger) private logger: ILogger
 	) {
 		this.client = new Axios({ baseURL: this.baseUrl });
@@ -41,6 +45,11 @@ export class CovalentApi implements IBlockchainService {
 		blockchain: BlockchainId,
 		address: string
 	): Promise<TxMetadata[]> {
+		const cacheKey = `covalent.get_wallet_txs.${blockchain}.${address}`;
+		const cachedValue = await this.cache.get<TxMetadata[]>(cacheKey);
+		if (cachedValue) {
+			return cachedValue;
+		}
 		const chainId = new Blockchain(blockchain).chainId;
 		const endpoint = `/${chainId}/address/${address}/transactions_v2`;
 		const res = await this.bottleneck.schedule(() =>
@@ -62,10 +71,14 @@ export class CovalentApi implements IBlockchainService {
 		}
 		const resData: Array<{ tx_hash: string; block_height: number }> =
 			res.data.items;
-
-		return resData.map((tx) => ({
+		const txMetadatas = resData.map((tx) => ({
 			hash: tx.tx_hash,
 			blockHeight: `${tx.block_height}`
 		}));
+		this.cache
+			.set(cacheKey, txMetadatas, ONE_DAY_IN_SEC)
+			.then(noop)
+			.catch(noop);
+		return txMetadatas;
 	}
 }
