@@ -3,26 +3,32 @@ import { MongoClient, WithId } from "mongodb";
 
 import { IConfig } from "../../Interfaces/IConfig";
 import { IocKey } from "../../Ioc/IocKey";
-import { MongoBaseRepository } from "./MongoBaseRepository";
 import { PartialObjectDeep } from "type-fest/source/partial-deep";
 
 import { BlockchainId } from "../../App/Values/Blockchain";
-import { Contract, ContractRaw } from "../../App/Entities/Contract";
+import {
+	Contract,
+	ContractIdProps,
+	ContractRaw
+} from "../../App/Entities/Contract";
 import { IContractRepository } from "../../App/Repository/IContractRepository";
 import { ContractType } from "../../App/Values/ContractType";
 import { Dex } from "../../App/Values/Dex";
 import { checksumed } from "../../App/Utils/Address";
+import { CachedMongoBaseRepository } from "./CachedMongoBaseRepository";
+import { ICache } from "../../App/Interfaces/ICache";
 
 @injectable()
 export class ContractRepository
-	extends MongoBaseRepository<ContractRaw, Contract>
+	extends CachedMongoBaseRepository<ContractRaw, Contract, ContractIdProps>
 	implements IContractRepository
 {
 	constructor(
+		@inject(IocKey.Cache) cache: ICache,
 		@inject(IocKey.DbClient) client: MongoClient,
 		@inject(IocKey.Config) config: IConfig
 	) {
-		super("contracts", client, config);
+		super("contracts", client, config, cache);
 	}
 
 	protected getMatchCriteriaFromEntity(

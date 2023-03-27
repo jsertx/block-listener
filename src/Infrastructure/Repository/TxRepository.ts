@@ -1,23 +1,25 @@
 import { inject, injectable } from "inversify";
 import { MongoClient, WithId } from "mongodb";
-import { Tx, TxProps } from "../../App/Entities/Tx";
+import { Tx, TxIdProps, TxProps } from "../../App/Entities/Tx";
 import { IConfig } from "../../Interfaces/IConfig";
 import { ITxRepository } from "../../App/Repository/ITxRepository";
 import { IocKey } from "../../Ioc/IocKey";
-import { MongoBaseRepository } from "./MongoBaseRepository";
 import { PartialObjectDeep } from "type-fest/source/partial-deep";
 import { BlockchainId } from "../../Config/Blockchains";
+import { CachedMongoBaseRepository } from "./CachedMongoBaseRepository";
+import { ICache } from "../../App/Interfaces/ICache";
 
 @injectable()
 export class TxRepository
-	extends MongoBaseRepository<TxProps<any>, Tx<any>>
+	extends CachedMongoBaseRepository<TxProps<any>, Tx<any>, TxIdProps>
 	implements ITxRepository
 {
 	constructor(
+		@inject(IocKey.Cache) cache: ICache,
 		@inject(IocKey.DbClient) client: MongoClient,
 		@inject(IocKey.Config) config: IConfig
 	) {
-		super("tx", client, config);
+		super("tx", client, config, cache);
 	}
 
 	async getAllTokensFoundInSwaps(blockchain: BlockchainId): Promise<{

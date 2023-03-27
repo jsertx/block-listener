@@ -71,14 +71,11 @@ export abstract class MongoBaseRepository<
 		return res.insertedCount;
 	}
 
-	findOne(id: TId): Promise<TEntity | undefined> {
-		return this.getCollection()
-			.findOne(id)
-			.then((res) => {
-				if (res) {
-					return this.modelToEntityMapper(res);
-				}
-			});
+	async findOne(id: TId): Promise<TEntity | undefined> {
+		const res = await this.getCollection().findOne(id);
+		if (res) {
+			return this.modelToEntityMapper(res);
+		}
 	}
 
 	async save(item: TEntity): Promise<TEntity> {

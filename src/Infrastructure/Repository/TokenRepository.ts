@@ -3,25 +3,27 @@ import { MongoClient, WithId } from "mongodb";
 
 import { IConfig } from "../../Interfaces/IConfig";
 import { IocKey } from "../../Ioc/IocKey";
-import { MongoBaseRepository } from "./MongoBaseRepository";
 import { PartialObjectDeep } from "type-fest/source/partial-deep";
 
-import { Token, TokenProps } from "../../App/Entities/Token";
+import { Token, TokenIdProps, TokenProps } from "../../App/Entities/Token";
 import {
 	findTokensByBlockchainAddressParams,
 	ITokenRepository
 } from "../../App/Repository/ITokenRepository";
+import { ICache } from "../../App/Interfaces/ICache";
+import { CachedMongoBaseRepository } from "./CachedMongoBaseRepository";
 
 @injectable()
 export class TokenRepository
-	extends MongoBaseRepository<TokenProps, Token>
+	extends CachedMongoBaseRepository<TokenProps, Token, TokenIdProps>
 	implements ITokenRepository
 {
 	constructor(
+		@inject(IocKey.Cache) cache: ICache,
 		@inject(IocKey.DbClient) client: MongoClient,
 		@inject(IocKey.Config) config: IConfig
 	) {
-		super("tokens", client, config);
+		super("tokens", client, config, cache);
 	}
 
 	findTokensByBlockchainAddress({
