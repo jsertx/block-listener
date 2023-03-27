@@ -48,14 +48,6 @@ export class ProcessTx extends Executor<TxDiscoveredPayload> {
 			...msg
 		};
 
-		const existingTx = await this.txRepository.findOne({
-			blockchain: msg.blockchain,
-			hash: msg.hash
-		});
-		if (existingTx) {
-			return;
-		}
-
 		const successfullTx = await this.getRawTransaction(msg);
 
 		if (!successfullTx) {
