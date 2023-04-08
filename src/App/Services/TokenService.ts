@@ -18,8 +18,8 @@ import { ICache } from "../Interfaces/ICache";
 import { uniqueTokenList } from "../Utils/Token";
 import { noop } from "../Utils/Misc";
 import { IContractRepository } from "../Repository/IContractRepository";
-import { UniswapFactory } from "./SmartContract/ABI/UniswapFactory";
-import { UniswapPair } from "./SmartContract/ABI/UniswapPair";
+import { UniswapFactory } from "./SmartContract/ABI/Uniswap/V2/UniswapFactory";
+import { UniswapPair } from "./SmartContract/ABI/Uniswap/V2/UniswapPair";
 import { BN } from "../Utils/Numbers";
 
 interface ServiceCache {

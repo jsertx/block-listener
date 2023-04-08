@@ -1,8 +1,8 @@
 import { ERC20 } from "./ERC20";
-import { UniswapController } from "./UniswapController";
-import { UniswapFactory } from "./UniswapFactory";
-import { UniswapPair } from "./UniswapPair";
-import { UniswapRouter02 } from "./UniswapRouter02";
+import { UniswapController } from "./Uniswap/V2/UniswapController";
+import { UniswapFactory } from "./Uniswap/V2/UniswapFactory";
+import { UniswapPair } from "./Uniswap/V2/UniswapPair";
+import { UniswapRouter02 } from "./Uniswap/V2/UniswapRouter02";
 import { Wrapped } from "./Wrapped";
 
 export const ABI = {
