@@ -31,6 +31,7 @@ import { RedisCache } from "../App/Services/Cache/RedisCache";
 import { RequeueMissingTokens } from "../App/UseCases/Tokens/RequeueMissingTokens";
 import { Playground } from "../App/UseCases/Playground";
 import { StatusNotifier } from "../App/UseCases/StatusNotifier";
+import { UniswapV3SwapProcessor } from "../App/Services/TxProcessor/Strategies/UniswapV3SwapProcessor";
 
 export const initializeContainer = async () => {
 	const bindings = new AsyncContainerModule(async (bind) => {
@@ -49,7 +50,10 @@ export const initializeContainer = async () => {
 
 		// TxProcessor
 		bind(IocKey.TxProcessor).to(TxProcessor).inSingletonScope();
-		[NativeTransferProcessor, DexSwapProcessor].forEach((processor) =>
+		[
+			NativeTransferProcessor,
+			DexSwapProcessor /*, UniswapV3SwapProcessor*/
+		].forEach((processor) =>
 			bind(IocKey.TxProcessorStrategy).to(processor).inSingletonScope()
 		);
 
