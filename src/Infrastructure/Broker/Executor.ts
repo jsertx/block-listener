@@ -8,7 +8,7 @@ import { BaseMessage } from "./BaseMessage";
 import {
 	addRetryPrefix,
 	addDeadPrefix,
-	addProcessPrefix
+	addDirectPubPrefix
 } from "./Rabbitmq/Utils/ConfigCreation";
 
 interface IExecutorMsgPayload<T> {
@@ -90,7 +90,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 	}
 
 	get processChannel() {
-		return addProcessPrefix(this.channel);
+		return addDirectPubPrefix(this.channel);
 	}
 
 	protected abstract execute(
@@ -217,7 +217,7 @@ export abstract class Executor<PayloadType> implements IExecutor {
 			this.deadChannel,
 			async (message, ack, nack) => {
 				const processMsg = new ExecutorMessage<PayloadType>(
-					this.channel,
+					this.processChannel,
 					message.payload
 				);
 				await this.broker.publish(processMsg).then(ack).catch(nack);

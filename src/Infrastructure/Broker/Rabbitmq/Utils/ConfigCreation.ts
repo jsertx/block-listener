@@ -5,16 +5,16 @@ import { Subscription } from "../../Subscription";
 import { RoutingKey, Exchange, Queue, Publication } from "../Enums";
 import { BindingSetup, PublicationSetup } from "./Types";
 
-const RETRY_PREFIX = "retry_";
-const DEAD_PREFIX = "dead_";
-const PROCESS_PREFIX = "direct_";
+const RETRY_PREFIX = "_retry_";
+const DEAD_PREFIX = "_dead_";
+const DIRECT_PUB_PREFIX = "_direct_";
 
 const getConnections = (brokerUrl: string): VhostConfig["connections"] => {
 	return [
 		{
 			url: brokerUrl,
 			options: {
-				heartbeat: 100,
+				heartbeat: 180,
 				timeout: 100_000
 			},
 			socketOptions: {
@@ -119,7 +119,7 @@ export const createBrokerConnection = async (config: IConfig) => {
 		const processQueue = queue
 			.replace(DEAD_PREFIX, "")
 			.replace(RETRY_PREFIX, "");
-		publications[addProcessPrefix(processQueue)] = {
+		publications[addDirectPubPrefix(processQueue)] = {
 			queue: processQueue
 		};
 	});
@@ -175,8 +175,8 @@ function publicationsBuilder(
 export function addRetryPrefix(name: string) {
 	return `${RETRY_PREFIX}${name}`;
 }
-export function addProcessPrefix(name: string) {
-	return `${PROCESS_PREFIX}${name}`;
+export function addDirectPubPrefix(name: string) {
+	return `${DIRECT_PUB_PREFIX}${name}`;
 }
 export function addDeadPrefix(name: string) {
 	return `${DEAD_PREFIX}${name}`;
